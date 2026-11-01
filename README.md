@@ -10,6 +10,7 @@ dotconfig/
 ├── README.md                   # 리포지토리 매뉴얼 및 매핑 테이블
 ├── CLAUDE.md / AGENTS.md       # 에이전트 작업 지침 및 스키마
 ├── nvim/                       # Neovim (LazyVim v14+, Obsidian.nvim, Snacks)
+├── git/                        # Git 전역 설정 (.gitconfig, .gitignore)
 ├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex)
 │   ├── claude/                 # CLAUDE.md, settings.json, rules/, agents/
 │   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
@@ -18,8 +19,8 @@ dotconfig/
 │   ├── antigravity-ide/        # settings.json, keybindings.json
 │   └── intellij/               # keymaps/macOS.xml, idea.vmoptions, idea.properties
 ├── alacritty/                  # Alacritty 터미널 설정 및 테마
-├── tmux/                       # tmux.conf
-└── karabiner/                  # Karabiner-Elements 키 매핑
+├── wezterm/                    # WezTerm 설정 (wezterm.lua)
+└── tmux/                       # tmux.conf
 ```
 
 ### 매핑 상세 테이블
@@ -27,12 +28,13 @@ dotconfig/
 | 모듈 | 리포지토리 소스 (`dotconfig/`) | 시스템 대상 경로 (`$HOME`) | 링크 방식 |
 | :--- | :--- | :--- | :--- |
 | **Neovim** | `nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
+| **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
 | **Claude** | `agents/claude/CLAUDE.md`<br>`agents/claude/settings.json`<br>`agents/claude/rules`<br>`agents/claude/agents` | `~/.claude/CLAUDE.md`<br>`~/.claude/settings.json`<br>`~/.claude/rules`<br>`~/.claude/agents` | 선택적 파일 및 폴더 링크<br>*(세션/캐시/인증 제외)* |
 | **Gemini** | `agents/gemini/settings.json`<br>`agents/gemini/config.json`<br>`agents/gemini/hooks.json`<br>`agents/gemini/mcp_config.json` | `~/.gemini/settings.json`<br>`~/.gemini/config/config.json`<br>`~/.gemini/config/hooks.json`<br>`~/.gemini/config/mcp_config.json` | 파일 심볼릭 링크<br>*(토큰/DB 제외)* |
 | **Codex** | `agents/codex/config.toml`<br>`agents/codex/AGENTS.md` | `~/.codex/config.toml`<br>`~/.codex/AGENTS.md` | 파일 심볼릭 링크<br>*(DB/로그 제외)* |
 | **Antigravity IDE** | `ide/antigravity-ide/settings.json`<br>`ide/antigravity-ide/keybindings.json` | `~/Library/Application Support/Antigravity IDE/User/settings.json`<br>`~/Library/Application Support/Antigravity IDE/User/keybindings.json` | 파일 심볼릭 링크 |
 | **IntelliJ IDEA** | `ide/intellij/keymaps/macOS.xml`<br>`ide/intellij/idea.vmoptions`<br>`ide/intellij/idea.properties` | `~/Library/Application Support/JetBrains/IntelliJIdea*/keymaps/macOS.xml`<br>`~/Library/Application Support/JetBrains/IntelliJIdea*/idea.vmoptions`<br>`~/Library/Application Support/JetBrains/IntelliJIdea*/idea.properties` | 파일 심볼릭 링크 |
-| **Terminal** | `alacritty`<br>`tmux/tmux.conf`<br>`karabiner` | `~/.config/alacritty`<br>`~/.tmux.conf`<br>`~/.config/karabiner` | 디렉토리 및 파일 링크 |
+| **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf` | 디렉토리 및 파일 링크 |
 
 ---
 
@@ -49,9 +51,10 @@ dotconfig/
 
 # 특정 모듈만 선택 연결
 ./install.sh nvim       # Neovim만 연결
+./install.sh git        # Git 전역 설정(.gitconfig, .gitignore)만 연결
 ./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
 ./install.sh ide        # Antigravity IDE, IntelliJ 설정만 연결
-./install.sh terminal   # Alacritty, Tmux, Karabiner 연결
+./install.sh terminal   # Alacritty, WezTerm, Tmux 연결
 ```
 
 ### 안전 백업 메커니즘

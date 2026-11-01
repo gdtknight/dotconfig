@@ -34,7 +34,8 @@ Modules:
   nvim        Link Neovim configuration (~/.config/nvim)
   agents      Link Agent configurations (Claude, Gemini, Codex)
   ide         Link IDE configurations (Antigravity IDE, IntelliJ)
-  terminal    Link Terminal & utility configurations (Alacritty, Tmux, Karabiner)
+  git         Link Git global configuration (~/.gitconfig, ~/.gitignore)
+  terminal    Link Terminal & utility configurations (Alacritty, WezTerm, Tmux)
   all         Link all configurations (Default if no module specified)
 
 Options:
@@ -172,11 +173,17 @@ link_ide() {
   fi
 }
 
+link_git() {
+  log_info "Configuring Git (Global .gitconfig, .gitignore)..."
+  link_target "${REPO_DIR}/git/.gitconfig" "${HOME}/.gitconfig"
+  link_target "${REPO_DIR}/git/.gitignore" "${HOME}/.gitignore"
+}
+
 link_terminal() {
-  log_info "Configuring Terminal utilities (Alacritty, Tmux, Karabiner)..."
+  log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux)..."
   link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
+  link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
   link_target "${REPO_DIR}/tmux/tmux.conf" "${HOME}/.tmux.conf"
-  link_target "${REPO_DIR}/karabiner" "${HOME}/.config/karabiner"
 }
 
 # ------------------------------------------------------------------------------
@@ -198,7 +205,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    nvim|agents|ide|terminal|all)
+    nvim|agents|ide|git|terminal|all)
       MODULES+=("$1")
       shift
       ;;
@@ -224,11 +231,13 @@ for mod in "${MODULES[@]}"; do
     nvim)     link_nvim ;;
     agents)   link_agents ;;
     ide)      link_ide ;;
+    git)      link_git ;;
     terminal) link_terminal ;;
     all)
       link_nvim
       link_agents
       link_ide
+      link_git
       link_terminal
       ;;
   esac
