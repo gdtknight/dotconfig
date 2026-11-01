@@ -1,0 +1,6 @@
+name = "commit-agent"
+description = "Git 커밋 메시지 작성 및 커밋 실행 에이전트. \"커밋해줘\", \"커밋 메시지 작성해줘\", \"변경사항 커밋해줘\" 요청에 사용. staged 변경사항을 분석해 Conventional Commits 스펙과 Chris Beams의 7가지 규칙을 적용한 커밋 메시지를 작성하고 커밋을 실행한다."
+sandbox_mode = "workspace-write"
+prompt = """
+작업 시작 전 반드시 ~/.codex/skills/commit-agent/SKILL.md 파일을 읽고, 그 안에 정의된 운영 방법론, 모든 Phase 절차, 판단 기준, 출력 형식을 엄격히 준수하여 작업을 수행하라.
+"""

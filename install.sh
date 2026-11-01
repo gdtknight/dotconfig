@@ -141,22 +141,37 @@ link_agents() {
 
   # Claude (~/.claude)
   mkdir -p "${HOME}/.claude"
-  link_target "${REPO_DIR}/agents/claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+  link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.claude/CLAUDE.md"
   link_target "${REPO_DIR}/agents/claude/settings.json" "${HOME}/.claude/settings.json"
-  link_target "${REPO_DIR}/agents/claude/rules" "${HOME}/.claude/rules"
-  link_target "${REPO_DIR}/agents/claude/agents" "${HOME}/.claude/agents"
+  link_target "${REPO_DIR}/agents/shared/rules" "${HOME}/.claude/rules"
+  link_target "${REPO_DIR}/agents/shared/agents" "${HOME}/.claude/agents"
 
   # Gemini (~/.gemini)
-  mkdir -p "${HOME}/.gemini/config"
+  mkdir -p "${HOME}/.gemini/config/skills"
+  link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.gemini/GEMINI.md"
+  link_target "${REPO_DIR}/agents/shared/rules" "${HOME}/.gemini/config/rules"
+  link_target "${REPO_DIR}/agents/shared/agents" "${HOME}/.gemini/agents"
   link_target "${REPO_DIR}/agents/gemini/settings.json" "${HOME}/.gemini/settings.json"
   link_target "${REPO_DIR}/agents/gemini/config.json" "${HOME}/.gemini/config/config.json"
   link_target "${REPO_DIR}/agents/gemini/hooks.json" "${HOME}/.gemini/config/hooks.json"
   link_target "${REPO_DIR}/agents/gemini/mcp_config.json" "${HOME}/.gemini/config/mcp_config.json"
 
   # Codex (~/.codex)
-  mkdir -p "${HOME}/.codex"
+  mkdir -p "${HOME}/.codex/skills"
+  link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.codex/AGENTS.md"
   link_target "${REPO_DIR}/agents/codex/config.toml" "${HOME}/.codex/config.toml"
-  link_target "${REPO_DIR}/agents/codex/AGENTS.md" "${HOME}/.codex/AGENTS.md"
+  link_target "${REPO_DIR}/agents/codex/agents" "${HOME}/.codex/agents"
+
+  # Link shared agent markdowns as Skills for Gemini and Codex
+  local agent_md
+  local agent_name
+  for agent_md in "${REPO_DIR}/agents/shared/agents"/*.md; do
+    if [ -f "$agent_md" ]; then
+      agent_name="$(basename "$agent_md" .md)"
+      link_target "$agent_md" "${HOME}/.gemini/config/skills/${agent_name}/SKILL.md"
+      link_target "$agent_md" "${HOME}/.codex/skills/${agent_name}/SKILL.md"
+    fi
+  done
 }
 
 link_ide() {

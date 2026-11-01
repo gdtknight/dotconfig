@@ -13,10 +13,11 @@ dotconfig/
 ├── nvim/                       # Neovim (LazyVim v14+, Obsidian.nvim, Snacks)
 ├── zsh/                        # Zsh 셸 및 프롬프트 (.zshrc, .zprofile, .p10k.zsh)
 ├── git/                        # Git 전역 설정 (.gitconfig, .gitignore)
-├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex)
-│   ├── claude/                 # CLAUDE.md, settings.json, rules/, agents/
+├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex 통합 관리)
+│   ├── shared/                 # 3사 에이전트 공통 원본 (INSTRUCTIONS.md, rules/, agents/*.md)
+│   ├── claude/                 # settings.json (Claude 전용 설정)
 │   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
-│   └── codex/                  # config.toml, AGENTS.md
+│   └── codex/                  # config.toml, agents/*.toml (shared/agents 참조 래퍼)
 ├── ide/                        # IDE 설정 (macOS & Linux XDG 경로 자동 분기)
 │   ├── antigravity-ide/        # settings.json, keybindings.json
 │   └── intellij/               # keymaps/macOS.xml, idea.vmoptions, idea.properties
@@ -32,9 +33,9 @@ dotconfig/
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
 | **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(p10k/omz 플러그인 자동 보장)* |
 | **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
-| **Claude** | `agents/claude/*` | `~/.claude/*` | `~/.claude/*` | 선택적 파일 및 폴더 링크 |
-| **Gemini** | `agents/gemini/*` | `~/.gemini/*` | `~/.gemini/*` | 파일 심볼릭 링크 |
-| **Codex** | `agents/codex/*` | `~/.codex/*` | `~/.codex/*` | 파일 심볼릭 링크 |
+| **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크 |
+| **Gemini** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크 |
+| **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크 |
 | **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크 |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 파일 심볼릭 링크 |
 | **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf` | 디렉토리 및 파일 링크 |
