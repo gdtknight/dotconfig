@@ -10,6 +10,7 @@ dotconfig/
 ├── README.md                   # 리포지토리 매뉴얼 및 매핑 테이블
 ├── CLAUDE.md / AGENTS.md       # 에이전트 작업 지침 및 스키마
 ├── nvim/                       # Neovim (LazyVim v14+, Obsidian.nvim, Snacks)
+├── zsh/                        # Zsh 셸 및 프롬프트 (.zshrc, .zprofile, .p10k.zsh)
 ├── git/                        # Git 전역 설정 (.gitconfig, .gitignore)
 ├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex)
 │   ├── claude/                 # CLAUDE.md, settings.json, rules/, agents/
@@ -28,6 +29,7 @@ dotconfig/
 | 모듈 | 리포지토리 소스 (`dotconfig/`) | 시스템 대상 경로 (`$HOME`) | 링크 방식 |
 | :--- | :--- | :--- | :--- |
 | **Neovim** | `nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
+| **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(p10k, omz 플러그인 자동 보장)* |
 | **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
 | **Claude** | `agents/claude/CLAUDE.md`<br>`agents/claude/settings.json`<br>`agents/claude/rules`<br>`agents/claude/agents` | `~/.claude/CLAUDE.md`<br>`~/.claude/settings.json`<br>`~/.claude/rules`<br>`~/.claude/agents` | 선택적 파일 및 폴더 링크<br>*(세션/캐시/인증 제외)* |
 | **Gemini** | `agents/gemini/settings.json`<br>`agents/gemini/config.json`<br>`agents/gemini/hooks.json`<br>`agents/gemini/mcp_config.json` | `~/.gemini/settings.json`<br>`~/.gemini/config/config.json`<br>`~/.gemini/config/hooks.json`<br>`~/.gemini/config/mcp_config.json` | 파일 심볼릭 링크<br>*(토큰/DB 제외)* |
@@ -51,6 +53,7 @@ dotconfig/
 
 # 특정 모듈만 선택 연결
 ./install.sh nvim       # Neovim만 연결
+./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh) 연결 및 플러그인 검사
 ./install.sh git        # Git 전역 설정(.gitconfig, .gitignore)만 연결
 ./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
 ./install.sh ide        # Antigravity IDE, IntelliJ 설정만 연결

@@ -35,6 +35,7 @@ Modules:
   agents      Link Agent configurations (Claude, Gemini, Codex)
   ide         Link IDE configurations (Antigravity IDE, IntelliJ)
   git         Link Git global configuration (~/.gitconfig, ~/.gitignore)
+  zsh         Link Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
   terminal    Link Terminal & utility configurations (Alacritty, WezTerm, Tmux)
   all         Link all configurations (Default if no module specified)
 
@@ -179,6 +180,59 @@ link_git() {
   link_target "${REPO_DIR}/git/.gitignore" "${HOME}/.gitignore"
 }
 
+link_zsh() {
+  log_info "Configuring Zsh (Shell, Powerlevel10k, Plugins)..."
+  link_target "${REPO_DIR}/zsh/.zshrc" "${HOME}/.zshrc"
+  link_target "${REPO_DIR}/zsh/.zprofile" "${HOME}/.zprofile"
+  link_target "${REPO_DIR}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
+
+  # Ensure powerlevel10k theme is installed
+  local p10k_dir="${HOME}/powerlevel10k"
+  if [ ! -d "$p10k_dir" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Clone powerlevel10k into ${p10k_dir}"
+    else
+      log_info "Cloning powerlevel10k..."
+      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$p10k_dir"
+      log_ok "Installed powerlevel10k"
+    fi
+  else
+    log_ok "Powerlevel10k is installed at: ${p10k_dir}"
+  fi
+
+  # Ensure Oh My Zsh custom plugins are installed if OMZ is present
+  local omz_custom="${HOME}/.oh-my-zsh/custom/plugins"
+  if [ -d "${HOME}/.oh-my-zsh" ]; then
+    mkdir -p "$omz_custom"
+
+    # zsh-autosuggestions
+    if [ ! -d "${omz_custom}/zsh-autosuggestions" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Clone zsh-autosuggestions into ${omz_custom}/zsh-autosuggestions"
+      else
+        log_info "Cloning zsh-autosuggestions..."
+        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "${omz_custom}/zsh-autosuggestions"
+        log_ok "Installed zsh-autosuggestions"
+      fi
+    else
+      log_ok "zsh-autosuggestions is installed"
+    fi
+
+    # zsh-syntax-highlighting
+    if [ ! -d "${omz_custom}/zsh-syntax-highlighting" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Clone zsh-syntax-highlighting into ${omz_custom}/zsh-syntax-highlighting"
+      else
+        log_info "Cloning zsh-syntax-highlighting..."
+        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "${omz_custom}/zsh-syntax-highlighting"
+        log_ok "Installed zsh-syntax-highlighting"
+      fi
+    else
+      log_ok "zsh-syntax-highlighting is installed"
+    fi
+  fi
+}
+
 link_terminal() {
   log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux)..."
   link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
@@ -205,7 +259,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    nvim|agents|ide|git|terminal|all)
+    nvim|agents|ide|git|zsh|terminal|all)
       MODULES+=("$1")
       shift
       ;;
@@ -232,12 +286,14 @@ for mod in "${MODULES[@]}"; do
     agents)   link_agents ;;
     ide)      link_ide ;;
     git)      link_git ;;
+    zsh)      link_zsh ;;
     terminal) link_terminal ;;
     all)
       link_nvim
       link_agents
       link_ide
       link_git
+      link_zsh
       link_terminal
       ;;
   esac
