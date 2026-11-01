@@ -33,12 +33,12 @@ dotconfig/
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
 | **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(p10k/omz 플러그인 자동 보장)* |
 | **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
-| **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크 |
-| **Gemini** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크 |
-| **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크 |
+| **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크<br>*(claude CLI 자동 설치 보장)* |
+| **Gemini / AGY** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크<br>*(agy CLI 자동 설치 보장)* |
+| **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크<br>*(codex CLI 자동 설치 보장)* |
 | **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크 |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 파일 심볼릭 링크 |
-| **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf` | 디렉토리 및 파일 링크 |
+| **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf` | 디렉토리 및 파일 링크<br>*(tpm 자동 보장)* |
 
 ---
 
@@ -74,22 +74,12 @@ dotconfig/
 - **macOS 전용 애플리케이션 (GUI Cask)**은 `if OS.mac?` 블록으로 감싸져 있으므로, Linux 환경에서 실행해도 에러 없이 CLI 패키지만 정상 처리됩니다.
 - 원하는 패키지를 `Brewfile`에 추가하거나 주석 처리하여 손쉽게 커스터마이징할 수 있습니다.
 
-### 💡 Ubuntu 환경 (sudo 권한이 없는 경우)
-Ubuntu 서버나 클러스터 등 sudo 권한이 없는 환경에서는 **사용자 홈 디렉토리(`~/.linuxbrew`)에 Homebrew를 설치**하여 패키지를 완벽히 관리할 수 있습니다:
+### 💡 Homebrew 자동 설치 (macOS & sudo 없는 Ubuntu 지원)
+`./install.sh packages` (또는 `./install.sh all`) 실행 시 시스템에 Homebrew가 감지되지 않으면 OS에 맞춰 **자동으로 Homebrew를 먼저 설치**한 뒤 [`Brewfile`](./Brewfile) 패키지를 동기화합니다:
 
-```bash
-# 1) sudo 없이 사용자 홈 디렉토리에 Homebrew 클론
-git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew
-mkdir -p ~/.linuxbrew/bin
-ln -s ../Homebrew/bin/brew ~/.linuxbrew/bin
-
-# 2) 셸 환경에 반영 (dotconfig/zsh/.zprofile에 이미 자동 감지 로직이 포함되어 있습니다)
-eval "$($HOME/.linuxbrew/bin/brew shellenv)"
-
-# 3) dotconfig 패키지 설치 실행
-./install.sh packages
-```
-*(또한 `~/.local/bin` 경로가 셸 PATH에 기본 등록되어 있으므로, 직접 다운로드한 AppImage나 Standalone 바이너리를 `~/.local/bin`에 두고 바로 사용할 수도 있습니다.)*
+- **macOS**: 공식 Homebrew 설치 스크립트 실행 (`/opt/homebrew` 또는 `/usr/local`)
+- **Ubuntu/Linux (sudo 권한 불필요)**: 사용자 홈 디렉터리(`~/.linuxbrew`)에 Homebrew를 자동 클론 및 심볼릭 링크 구성 (`zsh/.zprofile`에서 자동 PATH 로드)
+- *(또한 `~/.local/bin` 경로가 셸 PATH에 기본 등록되어 있으므로, 직접 다운로드한 AppImage나 Standalone 바이너리를 `~/.local/bin`에 두고 바로 사용할 수도 있습니다.)*
 
 ---
 

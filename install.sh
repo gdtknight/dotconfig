@@ -172,6 +172,46 @@ link_agents() {
       link_target "$agent_md" "${HOME}/.codex/skills/${agent_name}/SKILL.md"
     fi
   done
+
+  # Ensure Agent CLIs (Antigravity, Claude, Codex) are installed
+  # 1) Antigravity CLI (agy)
+  if command -v agy >/dev/null 2>&1 || [ -x "${HOME}/.local/bin/agy" ]; then
+    log_ok "Antigravity CLI (agy) is installed"
+  else
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Install Antigravity CLI via: curl -fsSL https://antigravity.google/cli/install.sh | bash"
+    else
+      log_info "Installing Antigravity CLI (agy)..."
+      curl -fsSL https://antigravity.google/cli/install.sh | bash
+      log_ok "Installed Antigravity CLI (agy)"
+    fi
+  fi
+
+  # 2) Claude CLI (claude)
+  if command -v claude >/dev/null 2>&1 || [ -x "${HOME}/.local/bin/claude" ]; then
+    log_ok "Claude CLI (claude) is installed"
+  else
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Install Claude CLI via: curl -fsSL https://claude.ai/install.sh | bash"
+    else
+      log_info "Installing Claude CLI (claude)..."
+      curl -fsSL https://claude.ai/install.sh | bash
+      log_ok "Installed Claude CLI (claude)"
+    fi
+  fi
+
+  # 3) Codex CLI (codex)
+  if command -v codex >/dev/null 2>&1 || [ -x "${HOME}/.local/bin/codex" ]; then
+    log_ok "Codex CLI (codex) is installed"
+  else
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Install Codex CLI via: curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+    else
+      log_info "Installing Codex CLI (codex)..."
+      curl -fsSL https://chatgpt.com/codex/install.sh | sh
+      log_ok "Installed Codex CLI (codex)"
+    fi
+  fi
 }
 
 link_ide() {
@@ -274,6 +314,21 @@ link_terminal() {
     link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
   fi
   link_target "${REPO_DIR}/tmux/tmux.conf" "${HOME}/.tmux.conf"
+
+  # Ensure Tmux Plugin Manager (tpm) is installed
+  local tpm_dir="${HOME}/.tmux/plugins/tpm"
+  if [ ! -d "$tpm_dir" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Clone tpm into ${tpm_dir}"
+    else
+      log_info "Cloning Tmux Plugin Manager (tpm)..."
+      mkdir -p "$(dirname "$tpm_dir")"
+      git clone --depth=1 https://github.com/tmux-plugins/tpm "$tpm_dir"
+      log_ok "Installed tpm at: ${tpm_dir}"
+    fi
+  else
+    log_ok "tpm is installed at: ${tpm_dir}"
+  fi
 }
 
 install_packages() {
@@ -284,10 +339,49 @@ install_packages() {
     brew_cmd="brew"
   elif [ -x "/opt/homebrew/bin/brew" ]; then
     brew_cmd="/opt/homebrew/bin/brew"
+  elif [ -x "/usr/local/bin/brew" ]; then
+    brew_cmd="/usr/local/bin/brew"
   elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
     brew_cmd="$HOME/.linuxbrew/bin/brew"
   elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
     brew_cmd="/home/linuxbrew/.linuxbrew/bin/brew"
+  fi
+
+  # Auto-install Homebrew if not detected
+  if [ -z "$brew_cmd" ]; then
+    log_warn "Homebrew is not detected on this system."
+    if [ "$IS_LINUX" = true ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Install Homebrew (rootless) into ${HOME}/.linuxbrew"
+        log_dry "Run command: '${HOME}/.linuxbrew/bin/brew bundle --file=${REPO_DIR}/Brewfile'"
+        return 0
+      fi
+      log_info "Installing Homebrew into ${HOME}/.linuxbrew (no sudo required)..."
+      git clone https://github.com/Homebrew/brew "${HOME}/.linuxbrew/Homebrew"
+      mkdir -p "${HOME}/.linuxbrew/bin"
+      ln -sf ../Homebrew/bin/brew "${HOME}/.linuxbrew/bin/brew"
+      eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"
+      brew_cmd="${HOME}/.linuxbrew/bin/brew"
+      log_ok "Installed Homebrew at: ${HOME}/.linuxbrew"
+    else
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Install Homebrew via official macOS installer"
+        log_dry "Run command: 'brew bundle --file=${REPO_DIR}/Brewfile'"
+        return 0
+      fi
+      log_info "Installing Homebrew on macOS..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      if [ -x "/opt/homebrew/bin/brew" ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+        brew_cmd="/opt/homebrew/bin/brew"
+      elif [ -x "/usr/local/bin/brew" ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+        brew_cmd="/usr/local/bin/brew"
+      elif command -v brew >/dev/null 2>&1; then
+        brew_cmd="brew"
+      fi
+      log_ok "Installed Homebrew"
+    fi
   fi
 
   if [ -n "$brew_cmd" ]; then
@@ -297,19 +391,6 @@ install_packages() {
     else
       "$brew_cmd" bundle --file="${REPO_DIR}/Brewfile"
       log_ok "Brewfile packages processed successfully."
-    fi
-  else
-    log_warn "Homebrew is not detected on this system."
-    if [ "$IS_LINUX" = true ]; then
-      echo -e "${COLOR_YELLOW}[TIP: Ubuntu without sudo]${COLOR_RESET} You can install Homebrew into your home directory (zero root/sudo required):"
-      echo "  1) git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew"
-      echo "  2) mkdir -p ~/.linuxbrew/bin"
-      echo "  3) ln -s ../Homebrew/bin/brew ~/.linuxbrew/bin"
-      echo "  4) eval \$(\$HOME/.linuxbrew/bin/brew shellenv)"
-      echo "  5) Re-run: $(basename "$0") packages"
-    else
-      echo -e "${COLOR_YELLOW}[TIP: macOS]${COLOR_RESET} Install Homebrew via:"
-      echo "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
     fi
   fi
 }
@@ -364,6 +445,7 @@ for mod in "${MODULES[@]}"; do
     terminal)      link_terminal ;;
     packages|brew) install_packages ;;
     all)
+      install_packages
       link_nvim
       link_agents
       link_ide
