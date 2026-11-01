@@ -1,0 +1,474 @@
+{
+  // ===========================================================================
+  // 1. General & Security
+  // ===========================================================================
+  //#region [General / Window]
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "security.promptForLocalFileProtocolHandling": false,
+  "redhat.telemetry.enabled": true,
+  //#endregion
+  // ===========================================================================
+  // 2. UI, Theme & Vibrancy
+  // ===========================================================================
+  //#region [Theme & Vibrancy]
+  "workbench.colorTheme": "Default Dark+",
+  "vscode_vibrancy.preferredLightTheme": "Atom One Dark",
+  // 2. 에디터의 모든 레이어 배경색을 완전 투명(#00000000)으로 처리
+  "workbench.colorCustomizations": {
+    "editorLineNumber.foreground": "#ffffff88",
+    "tab.border": "#00000000",
+    "titleBar.activeBackground": "#00000022",
+    "sideBar.border": "#ffffff15",
+    "activityBar.border": "#ffffff15",
+    "panel.border": "#ffffff15",
+    "statusBar.background": "#00000033",
+    "editorGroupHeader.tabsBackground": "#1e1e1e00",
+    "editorGutter.background": "#1e1e1e00",
+    "panel.background": "#1e1e1e00",
+    "tab.activeBackground": "#1e1e1e00",
+    "sideBar.background": "#1e1e1eff",
+    "activityBar.background": "#1e1e1eff",
+    "editor.background": "#1e1e1eff",
+    "tab.inactiveBackground": "#1e1e1eff",
+    "terminal.background": "#00000000",
+    "editorPane.background": "#1e1e1e00",
+    "editorGroupHeader.noTabsBackground": "#1e1e1e00",
+    "breadcrumb.background": "#1e1e1e00",
+    "tab.unfocusedActiveBackground": "#1e1e1e00",
+    "sideBarTitle.background": "#1e1e1eff",
+    "tab.unfocusedInactiveBackground": "#1e1e1eff",
+    "editorStickyScroll.background": "#1e1e1eff",
+    "editorStickyScrollGutter.background": "#1e1e1eff",
+    "sideBarStickyScroll.background": "#1e1e1eff",
+    "panelStickyScroll.background": "#1e1e1eff",
+    "terminalStickyScroll.background": "#1e1e1eff",
+    "inlineChat.background": "#1e1e1ee6",
+    "editorWidget.background": "#1e1e1ee6",
+    "editorHoverWidget.background": "#1e1e1ee6",
+    "editorSuggestWidget.background": "#1e1e1ee6",
+    "notifications.background": "#1e1e1ee6",
+    "notificationCenterHeader.background": "#1e1e1ee6",
+    "menu.background": "#1e1e1ee6",
+    "quickInput.background": "#1e1e1ee6",
+    "minimap.background": "#1e1e1eff",
+    "editor.lineHighlightBorder": "#00000000",
+  },
+  //#endregion
+  // ===========================================================================
+  // 3. Git / GitLens
+  // ===========================================================================
+  //#region [GitLens]
+  "gitlens.ai.defaultAgent": "cli:gemini",
+  "gitlens.graph.details.location": "auto",
+  //#endregion
+  // ===========================================================================
+  // 4. VSCode Neovim & Keybindings
+  // ===========================================================================
+  //#region [Neovim Mode]
+  "editor.lineNumbers": "relative",
+  "editor.cursorSurroundingLines": 8,
+  "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
+  "vscode-neovim.compositeKeys": {
+    "jk": {
+      "command": "vscode-neovim.escape",
+    },
+  },
+  //#endregion
+  "whichkey.bindings": [
+    {
+      "key": "e",
+      "name": "Explorer Toggle",
+      "type": "command",
+      "command": "workbench.action.toggleSidebarVisibility",
+    },
+    {
+      "key": "<space>",
+      "name": "Find Files (Root)",
+      "type": "command",
+      "command": "workbench.action.quickOpen",
+    },
+    {
+      "key": "/",
+      "name": "Grep / Live Search",
+      "type": "command",
+      "command": "workbench.action.findInFiles",
+    },
+    {
+      "key": "q",
+      "name": "Quit / Close Buffer",
+      "type": "command",
+      "command": "workbench.action.closeActiveEditor",
+    },
+    {
+      "key": "Q",
+      "name": "Quit Window",
+      "type": "command",
+      "command": "workbench.action.closeWindow",
+    },
+    {
+      "key": "h",
+      "name": "No Highlight",
+      "type": "command",
+      "command": "workbench.action.search.clearHistory",
+    },
+    {
+      "key": "f",
+      "name": "+file/find",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "f",
+          "name": "Find Files",
+          "type": "command",
+          "command": "workbench.action.quickOpen",
+        },
+        {
+          "key": "r",
+          "name": "Recent Files",
+          "type": "command",
+          "command": "workbench.action.openRecent",
+        },
+        {
+          "key": "b",
+          "name": "Switch Buffer / Editor",
+          "type": "command",
+          "command": "workbench.action.showAllEditors",
+        },
+        {
+          "key": "g",
+          "name": "Find in Path (Grep)",
+          "type": "command",
+          "command": "workbench.action.findInFiles",
+        },
+        {
+          "key": "s",
+          "name": "File Structure / Symbol",
+          "type": "command",
+          "command": "workbench.action.gotoSymbol",
+        },
+        {
+          "key": "m",
+          "name": "Workspace Symbols",
+          "type": "command",
+          "command": "workbench.action.showAllSymbols",
+        },
+        {
+          "key": "t",
+          "name": "Toggle Terminal",
+          "type": "command",
+          "command": "workbench.action.terminal.toggleTerminal",
+        },
+        {
+          "key": "n",
+          "name": "New Untitled File",
+          "type": "command",
+          "command": "workbench.action.files.newUntitledFile",
+        },
+        {
+          "key": "w",
+          "name": "Save File",
+          "type": "command",
+          "command": "workbench.action.files.save",
+        },
+      ],
+    },
+    {
+      "key": "b",
+      "name": "+buffer",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "d",
+          "name": "Delete / Close Buffer",
+          "type": "command",
+          "command": "workbench.action.closeActiveEditor",
+        },
+        {
+          "key": "o",
+          "name": "Close Other Buffers",
+          "type": "command",
+          "command": "workbench.action.closeOtherEditors",
+        },
+        {
+          "key": "b",
+          "name": "Switch Buffer",
+          "type": "command",
+          "command": "workbench.action.showAllEditors",
+        },
+        {
+          "key": "p",
+          "name": "Pin Tab",
+          "type": "command",
+          "command": "workbench.action.pinEditor",
+        },
+      ],
+    },
+    {
+      "key": "c",
+      "name": "+code",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "a",
+          "name": "Code Action / Quick Fix",
+          "type": "command",
+          "command": "editor.action.quickFix",
+        },
+        {
+          "key": "r",
+          "name": "Rename Symbol",
+          "type": "command",
+          "command": "editor.action.rename",
+        },
+        {
+          "key": "f",
+          "name": "Format Document",
+          "type": "command",
+          "command": "editor.action.formatDocument",
+        },
+        {
+          "key": "F",
+          "name": "Optimize / Organize Imports",
+          "type": "command",
+          "command": "editor.action.organizeImports",
+        },
+      ],
+    },
+    {
+      "key": "w",
+      "name": "+window",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "s",
+          "name": "Split Horizontal",
+          "type": "command",
+          "command": "workbench.action.splitEditorDown",
+        },
+        {
+          "key": "v",
+          "name": "Split Vertical",
+          "type": "command",
+          "command": "workbench.action.splitEditorRight",
+        },
+        {
+          "key": "d",
+          "name": "Close Window / Editor",
+          "type": "command",
+          "command": "workbench.action.closeActiveEditor",
+        },
+        {
+          "key": "o",
+          "name": "Close Other Editors",
+          "type": "command",
+          "command": "workbench.action.closeOtherEditors",
+        },
+        {
+          "key": "p",
+          "name": "Pin Active Tab",
+          "type": "command",
+          "command": "workbench.action.pinEditor",
+        },
+        {
+          "key": "m",
+          "name": "Maximize Editor",
+          "type": "command",
+          "command": "workbench.action.toggleEditorWidths",
+        },
+        {
+          "key": "u",
+          "name": "Unsplit All",
+          "type": "command",
+          "command": "workbench.action.joinAllGroups",
+        },
+      ],
+    },
+    {
+      "key": "g",
+      "name": "+git",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "g",
+          "name": "Open Source Control",
+          "type": "command",
+          "command": "workbench.view.scm",
+        },
+        {
+          "key": "b",
+          "name": "Git Blame",
+          "type": "command",
+          "command": "gitlens.toggleFileBlame",
+        },
+        {
+          "key": "c",
+          "name": "Commit",
+          "type": "command",
+          "command": "git.commit",
+        },
+        {
+          "key": "p",
+          "name": "Push",
+          "type": "command",
+          "command": "git.push",
+        },
+        {
+          "key": "l",
+          "name": "Pull / Sync",
+          "type": "command",
+          "command": "git.pull",
+        },
+        {
+          "key": "s",
+          "name": "Refresh Changes",
+          "type": "command",
+          "command": "git.refresh",
+        },
+      ],
+    },
+    {
+      "key": "r",
+      "name": "+run/debug",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "r",
+          "name": "Run Without Debugging",
+          "type": "command",
+          "command": "workbench.action.debug.run",
+        },
+        {
+          "key": "d",
+          "name": "Start Debugging",
+          "type": "command",
+          "command": "workbench.action.debug.start",
+        },
+        {
+          "key": "t",
+          "name": "Stop Debugging",
+          "type": "command",
+          "command": "workbench.action.debug.stop",
+        },
+        {
+          "key": "b",
+          "name": "Toggle Breakpoint",
+          "type": "command",
+          "command": "editor.debug.action.toggleBreakpoint",
+        },
+      ],
+    },
+    {
+      "key": "x",
+      "name": "+diagnostics",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "x",
+          "name": "Problems View",
+          "type": "command",
+          "command": "workbench.actions.view.problems",
+        },
+      ],
+    },
+    {
+      "key": "p",
+      "name": "+project",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "p",
+          "name": "Manage Recent Projects",
+          "type": "command",
+          "command": "workbench.action.openRecent",
+        },
+        {
+          "key": "s",
+          "name": "Reveal File in Explorer",
+          "type": "command",
+          "command": "workbench.files.action.showActiveFileInExplorer",
+        },
+      ],
+    },
+  ],
+  "Key Promoter.suggestKeybindingCreation": false,
+  //#endregion
+  // ===========================================================================
+  // 6. Terminal Settings
+  // ===========================================================================
+  //#region [Terminal]
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', 'MesloLGS NF', 'FiraCode Nerd Font', 'D2CodingLigature Nerd Font', monospace",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.lineHeight": 1.2,
+  "terminal.integrated.fontWeight": "normal",
+  "terminal.integrated.fontWeightBold": "bold",
+  "editor.minimap.enabled": false,
+  "backgroundCover.perWindowBackground": false,
+  "backgroundCover.sizeModel": "center",
+  "backgroundCover.blur": 10,
+  "backgroundCover.opacity": 0.05,
+  "terminal.integrated.gpuAcceleration": "off",
+  "window.systemColorTheme": "dark",
+  "window.autoDetectColorScheme": false,
+  //#endregion
+  // ===========================================================================
+  // 7. File Settings
+  // ===========================================================================
+  //#region [File Settings]
+  // TypeScript (.ts)
+  "[typescript]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  // React TypeScript (.tsx)
+  "[typescriptreact]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  // JavaScript / React (.js, .jsx)
+  "[javascript]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  "[javascriptreact]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  // JSON (.json)
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  // Python (.py) - 보통 4칸 스페이스 사용
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+  },
+  "vscode_vibrancy.preferredDarkTheme": "Atom One Dark",
+  "vscode_vibrancy.opacity": 1,
+  "git.ignoreMissingGitWarning": true,
+  "scm.repositories.selectionMode": "single",
+  "git.autofetch": true,
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.currentLine.uncommittedChangesFormat": "${author, }${agoOrDate}${' via  'pullRequest}${ • message|50?}",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1,
+  },
+  "whichkey.useFullWidthCharacters": true,
+  "whichkey.delay": 0,
+  "python.languageServer": "Default",
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "editor.fontFamily": "'D2CodingLigature Nerd Font', 'ComicShannsMono Nerd Font'",
+  "backgroundCover.cacheLimit": 10,
+  "workbench.tree.indent": 12,
+  "workbench.tree.renderIndentGuides": "always",
+  "claudeCode.hideOnboarding": true,
+
+  //#endregion
+}

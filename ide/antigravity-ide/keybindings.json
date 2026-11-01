@@ -1,0 +1,105 @@
+[
+  {
+    "key": "alt+\\",
+    "command": "editor.action.wordHighlight.trigger"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "sideBarFocus || filesExplorerFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.navigateRight",
+    "when": "editorTextFocus && !activeEditorGroupLast"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusAuxiliaryBar",
+    "when": "editorTextFocus && activeEditorGroupLast"
+  },
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "auxiliaryBarFocus || inChat || chatFocus"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "terminalFocus || panelFocus"
+  },
+  {
+    "key": "ctrl+shift+n n",
+    "command": "welcome.showNewFileEntries"
+  },
+  {
+    "key": "ctrl+alt+cmd+n",
+    "command": "-welcome.showNewFileEntries"
+  },
+  {
+    "key": "ctrl+shift+n p",
+    "command": "explorer.newFolder"
+  },
+  {
+    "key": "ctrl+shift+n j",
+    "command": "java.view.menus.file.newJavaClass"
+  },
+  {
+    "key": "ctrl+shift+n p",
+    "command": "java.view.fileExplorer.newPackage"
+  },
+  {
+    "key": "ctrl+shift+n j",
+    "command": "java.view.package.newFile"
+  },
+  {
+    "key": "cmd+shift+e",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+shift+x",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+shift+f",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+shift+g",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+shift+d",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "escape",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus && !inputBoxFocus"
+  },
+  {
+    "key": "alt+[",
+    "command": "workbench.action.previousPanelView",
+    "when": "panelFocus || terminalFocus || panelVisible"
+  },
+  {
+    "key": "alt+]",
+    "command": "workbench.action.nextPanelView",
+    "when": "panelFocus || terminalFocus || panelVisible"
+  },
+  {
+    "key": "alt+m",
+    "command": "workbench.action.toggleMaximizedPanel",
+    "when": "panelFocus || terminalFocus"
+  },
+  {
+    "key": "alt+m",
+    "command": "workbench.action.toggleEditorWidths",
+    "when": "editorTextFocus"
+  }
+]

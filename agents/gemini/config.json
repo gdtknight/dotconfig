@@ -1,0 +1,57 @@
+{
+  "plugins": {
+    "android-cli-plugin": {
+      "enabled": true,
+      "installedFrom": {
+        "id": "antigravity-plugins-official/plugin/android-cli-plugin",
+        "marketplace": "antigravity-plugins-official",
+        "version": "1.0.16625370"
+      }
+    },
+    "chrome-devtools-plugin": {
+      "enabled": true,
+      "installedFrom": {
+        "id": "antigravity-plugins-official/plugin/chrome-devtools-plugin",
+        "marketplace": "antigravity-plugins-official",
+        "version": "1.10.1"
+      }
+    },
+    "firebase": {
+      "enabled": true,
+      "installedFrom": {
+        "id": "antigravity-plugins-official/plugin/firebase",
+        "marketplace": "antigravity-plugins-official",
+        "version": "1.0.3"
+      }
+    },
+    "flutter": {
+      "enabled": true,
+      "installedFrom": {
+        "id": "antigravity-plugins-official/plugin/flutter",
+        "marketplace": "antigravity-plugins-official",
+        "version": "1.0.7"
+      }
+    },
+    "gemini-api": {
+      "enabled": true,
+      "installedFrom": {
+        "id": "antigravity-plugins-official/plugin/gemini-api",
+        "marketplace": "antigravity-plugins-official",
+        "version": "2.3.0"
+      }
+    }
+  },
+  "userSettings": {
+    "browserJsExecutionPolicy": "BROWSER_JS_EXECUTION_POLICY_DISABLED",
+    "conversationWidth": "CONVERSATION_WIDTH_NARROW",
+    "globalPermissionGrants": {
+      "allow": [
+        "execute_url(localhost)"
+      ]
+    },
+    "permissionGrantsV2Migrated": true,
+    "remoteControlHostname": "yongs-macbook-air-local-hidden-cosmos",
+    "sandboxEnabledAtV2Migration": true,
+    "themeMode": "THEME_MODE_DARK"
+  }
+}

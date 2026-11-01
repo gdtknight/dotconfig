@@ -1,0 +1,37 @@
+{
+  "orca-status": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PreInvocation' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+        "timeout": 10
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PostInvocation' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='Stop' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+        "timeout": 10
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PostToolUse' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

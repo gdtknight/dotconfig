@@ -1,0 +1,10 @@
+-Dide.managed.by.toolbox=/Applications/JetBrains Toolbox.app/Contents/MacOS/jetbrains-toolbox
+-Dtoolbox.notification.token=9931066d-f5b4-4e44-8bb7-b29d3750f958
+-Dtoolbox.notification.portFile=/Users/yoshin/Library/Caches/JetBrains/Toolbox/ports/10ee342b-f811-44f9-807d-68e1a17f7112.port
+-Xmx4096m
+--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED

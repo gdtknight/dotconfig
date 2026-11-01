@@ -1,3 +1,5 @@
+[general]
+
 import = [
   "~/.config/alacritty/themes/themes/coolnight.toml"
 ]
@@ -15,5 +17,6 @@ opacity = 0.88
 blur = false
 
 [font]
-normal.family = "ComicShannsMono Nerd Font Mono"
-size = 11
+normal.family = "ComicShannsMono Nerd Font"
+# normal.family = "D2CodingLigature Nerd Font"
+size = 11.0
