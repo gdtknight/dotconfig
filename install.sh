@@ -20,6 +20,15 @@ COLOR_GRAY="\033[90m"
 DRY_RUN=false
 FORCE=false
 
+# OS Detection
+OS="$(uname -s)"
+IS_MAC=false
+IS_LINUX=false
+case "$OS" in
+  Darwin) IS_MAC=true ;;
+  Linux)  IS_LINUX=true ;;
+esac
+
 log_info()    { echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $*"; }
 log_ok()      { echo -e "${COLOR_GREEN}[OK]${COLOR_RESET} $*"; }
 log_dry()     { echo -e "${COLOR_YELLOW}[DRY-RUN]${COLOR_RESET} $*"; }
@@ -31,13 +40,14 @@ usage() {
 Usage: $(basename "$0") [OPTIONS] [MODULE...]
 
 Modules:
-  nvim        Link Neovim configuration (~/.config/nvim)
-  agents      Link Agent configurations (Claude, Gemini, Codex)
-  ide         Link IDE configurations (Antigravity IDE, IntelliJ)
-  git         Link Git global configuration (~/.gitconfig, ~/.gitignore)
-  zsh         Link Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
-  terminal    Link Terminal & utility configurations (Alacritty, WezTerm, Tmux)
-  all         Link all configurations (Default if no module specified)
+  nvim            Link Neovim configuration (~/.config/nvim)
+  agents          Link Agent configurations (Claude, Gemini, Codex)
+  ide             Link IDE configurations (Antigravity IDE, IntelliJ)
+  git             Link Git global configuration (~/.gitconfig, ~/.gitignore)
+  zsh             Link Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
+  terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux)
+  packages, brew  Install/sync user-curated packages from Brewfile (non-root compatible)
+  all             Link all configurations (Default if no module specified)
 
 Options:
   -n, --dry-run   Preview actions without creating symlinks or modifying files
@@ -152,14 +162,21 @@ link_agents() {
 link_ide() {
   log_info "Configuring IDEs (Antigravity IDE, IntelliJ)..."
 
-  # Antigravity IDE (VSCode based)
-  local antigravity_user="${HOME}/Library/Application Support/Antigravity IDE/User"
+  local antigravity_user
+  local jetbrains_base
+  if [ "$IS_MAC" = true ]; then
+    antigravity_user="${HOME}/Library/Application Support/Antigravity IDE/User"
+    jetbrains_base="${HOME}/Library/Application Support/JetBrains"
+  else
+    # Linux (Ubuntu without sudo)
+    antigravity_user="${HOME}/.config/Antigravity IDE/User"
+    jetbrains_base="${HOME}/.config/JetBrains"
+  fi
+
   mkdir -p "$antigravity_user"
   link_target "${REPO_DIR}/ide/antigravity-ide/settings.json" "${antigravity_user}/settings.json"
   link_target "${REPO_DIR}/ide/antigravity-ide/keybindings.json" "${antigravity_user}/keybindings.json"
 
-  # JetBrains / IntelliJ IDEA
-  local jetbrains_base="${HOME}/Library/Application Support/JetBrains"
   if [ -d "$jetbrains_base" ]; then
     # Find all IntelliJ IDEA installations
     for idea_dir in "${jetbrains_base}"/IntelliJIdea*; do
@@ -237,7 +254,49 @@ link_terminal() {
   log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux)..."
   link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
   link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
+  if [ "$IS_LINUX" = true ]; then
+    mkdir -p "${HOME}/.config/wezterm"
+    link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
+  fi
   link_target "${REPO_DIR}/tmux/tmux.conf" "${HOME}/.tmux.conf"
+}
+
+install_packages() {
+  log_info "Checking package manager & Brewfile..."
+
+  local brew_cmd=""
+  if command -v brew >/dev/null 2>&1; then
+    brew_cmd="brew"
+  elif [ -x "/opt/homebrew/bin/brew" ]; then
+    brew_cmd="/opt/homebrew/bin/brew"
+  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+    brew_cmd="$HOME/.linuxbrew/bin/brew"
+  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    brew_cmd="/home/linuxbrew/.linuxbrew/bin/brew"
+  fi
+
+  if [ -n "$brew_cmd" ]; then
+    log_info "Using Homebrew at: $("$brew_cmd" --prefix 2>/dev/null || echo "$brew_cmd")"
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Run command: '$brew_cmd bundle --file=${REPO_DIR}/Brewfile'"
+    else
+      "$brew_cmd" bundle --file="${REPO_DIR}/Brewfile"
+      log_ok "Brewfile packages processed successfully."
+    fi
+  else
+    log_warn "Homebrew is not detected on this system."
+    if [ "$IS_LINUX" = true ]; then
+      echo -e "${COLOR_YELLOW}[TIP: Ubuntu without sudo]${COLOR_RESET} You can install Homebrew into your home directory (zero root/sudo required):"
+      echo "  1) git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew"
+      echo "  2) mkdir -p ~/.linuxbrew/bin"
+      echo "  3) ln -s ../Homebrew/bin/brew ~/.linuxbrew/bin"
+      echo "  4) eval \$(\$HOME/.linuxbrew/bin/brew shellenv)"
+      echo "  5) Re-run: $(basename "$0") packages"
+    else
+      echo -e "${COLOR_YELLOW}[TIP: macOS]${COLOR_RESET} Install Homebrew via:"
+      echo "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+    fi
+  fi
 }
 
 # ------------------------------------------------------------------------------
@@ -259,7 +318,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    nvim|agents|ide|git|zsh|terminal|all)
+    nvim|agents|ide|git|zsh|terminal|packages|brew|all)
       MODULES+=("$1")
       shift
       ;;
@@ -282,12 +341,13 @@ fi
 
 for mod in "${MODULES[@]}"; do
   case "$mod" in
-    nvim)     link_nvim ;;
-    agents)   link_agents ;;
-    ide)      link_ide ;;
-    git)      link_git ;;
-    zsh)      link_zsh ;;
-    terminal) link_terminal ;;
+    nvim)          link_nvim ;;
+    agents)        link_agents ;;
+    ide)           link_ide ;;
+    git)           link_git ;;
+    zsh)           link_zsh ;;
+    terminal)      link_terminal ;;
+    packages|brew) install_packages ;;
     all)
       link_nvim
       link_agents

@@ -2,7 +2,7 @@
 	name = yoshin
 	email = yoshin@student.42gyeongsan.kr
 [core]
-	excludesfile = /Users/yoshin/.gitignore
+	excludesfile = ~/.gitignore
 [column]
 	ui = auto
 [branch]
