@@ -60,7 +60,7 @@ return {
 	-- font = wezterm.font("D2CodingLigature Nerd Font"),
 	font = wezterm.font("ComicShannsMono Nerd Font"),
 
-	font_size = 11.0,
+	font_size = 12.0,
 
 	send_composed_key_when_left_alt_is_pressed = false,
 	send_composed_key_when_right_alt_is_pressed = false,

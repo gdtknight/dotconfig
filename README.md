@@ -31,14 +31,14 @@ dotconfig/
 | 모듈 | 리포지토리 소스 (`dotconfig/`) | macOS 대상 경로 (`$HOME`) | Ubuntu/Linux 대상 경로 (`$HOME`) | 링크 방식 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
-| **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(p10k/omz 플러그인 자동 보장)* |
+| **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(oh-my-zsh, p10k, 플러그인 자동 보장)* |
 | **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
 | **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크<br>*(claude CLI 자동 설치 보장)* |
 | **Gemini / AGY** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크<br>*(agy CLI 자동 설치 보장)* |
 | **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크<br>*(codex CLI 자동 설치 보장)* |
 | **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크 |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 파일 심볼릭 링크 |
-| **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf` | 디렉토리 및 파일 링크<br>*(tpm 자동 보장)* |
+| **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf`<br>`~/Library/Fonts` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf`<br>`~/.local/share/fonts` | 디렉토리 및 파일 링크<br>*(tpm 및 Nerd Fonts: D2Coding, ComicShannsMono 자동 보장)* |
 
 ---
 
@@ -55,11 +55,12 @@ dotconfig/
 
 # 특정 모듈만 선택 연결
 ./install.sh nvim       # Neovim만 연결
-./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh) 및 플러그인 연결
+./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh), Oh My Zsh, p10k 및 플러그인 설정
 ./install.sh git        # Git 전역 설정(.gitconfig, .gitignore)만 연결
 ./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
 ./install.sh ide        # Antigravity IDE, IntelliJ 설정만 연결
-./install.sh terminal   # Alacritty, WezTerm, Tmux 연결
+./install.sh terminal   # Alacritty, WezTerm, Tmux 연결 및 Nerd Fonts 설치
+./install.sh fonts      # Nerd Fonts (D2Coding, ComicShannsMono)만 단독 설치
 
 # 패키지 설치 (Brewfile 기반)
 ./install.sh packages   # (또는 ./install.sh brew)

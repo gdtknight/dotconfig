@@ -38,4 +38,6 @@ if OS.mac?
   cask "wezterm"
   # cask "alacritty"
   # cask "ghostty"
+  cask "font-d2coding-nerd-font"
+  cask "font-comic-shanns-mono-nerd-font"
 end

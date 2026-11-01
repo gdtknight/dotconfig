@@ -44,8 +44,9 @@ Modules:
   agents          Link Agent configurations (Claude, Gemini, Codex)
   ide             Link IDE configurations (Antigravity IDE, IntelliJ)
   git             Link Git global configuration (~/.gitconfig, ~/.gitignore)
-  zsh             Link Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
-  terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux)
+  zsh             Link Zsh, Oh My Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
+  terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux, Nerd Fonts)
+  fonts           Install Nerd Fonts (D2Coding, ComicShannsMono)
   packages, brew  Install/sync user-curated packages from Brewfile (non-root compatible)
   all             Link all configurations (Default if no module specified)
 
@@ -253,7 +254,22 @@ link_git() {
 }
 
 link_zsh() {
-  log_info "Configuring Zsh (Shell, Powerlevel10k, Plugins)..."
+  log_info "Configuring Zsh (Shell, Oh My Zsh, Powerlevel10k, Plugins)..."
+
+  # Ensure Oh My Zsh is installed first so it does not overwrite ~/.zshrc
+  local omz_dir="${HOME}/.oh-my-zsh"
+  if [ ! -d "$omz_dir" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Clone Oh My Zsh into ${omz_dir}"
+    else
+      log_info "Cloning Oh My Zsh..."
+      git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$omz_dir"
+      log_ok "Installed Oh My Zsh at: ${omz_dir}"
+    fi
+  else
+    log_ok "Oh My Zsh is installed at: ${omz_dir}"
+  fi
+
   link_target "${REPO_DIR}/zsh/.zshrc" "${HOME}/.zshrc"
   link_target "${REPO_DIR}/zsh/.zprofile" "${HOME}/.zprofile"
   link_target "${REPO_DIR}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
@@ -272,41 +288,122 @@ link_zsh() {
     log_ok "Powerlevel10k is installed at: ${p10k_dir}"
   fi
 
-  # Ensure Oh My Zsh custom plugins are installed if OMZ is present
-  local omz_custom="${HOME}/.oh-my-zsh/custom/plugins"
-  if [ -d "${HOME}/.oh-my-zsh" ]; then
-    mkdir -p "$omz_custom"
-
-    # zsh-autosuggestions
-    if [ ! -d "${omz_custom}/zsh-autosuggestions" ]; then
-      if [ "$DRY_RUN" = true ]; then
-        log_dry "Clone zsh-autosuggestions into ${omz_custom}/zsh-autosuggestions"
-      else
-        log_info "Cloning zsh-autosuggestions..."
-        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "${omz_custom}/zsh-autosuggestions"
-        log_ok "Installed zsh-autosuggestions"
-      fi
-    else
-      log_ok "zsh-autosuggestions is installed"
+  # Link powerlevel10k into Oh My Zsh custom themes for ZSH_THEME="powerlevel10k/powerlevel10k"
+  local omz_themes="${omz_dir}/custom/themes"
+  if [ "$DRY_RUN" = true ] && [ ! -d "$p10k_dir" ]; then
+    log_dry "Create symlink: ${omz_themes}/powerlevel10k -> ${p10k_dir}"
+  else
+    if [ "$DRY_RUN" = false ]; then
+      mkdir -p "$omz_themes"
     fi
+    link_target "$p10k_dir" "${omz_themes}/powerlevel10k"
+  fi
 
-    # zsh-syntax-highlighting
-    if [ ! -d "${omz_custom}/zsh-syntax-highlighting" ]; then
-      if [ "$DRY_RUN" = true ]; then
-        log_dry "Clone zsh-syntax-highlighting into ${omz_custom}/zsh-syntax-highlighting"
-      else
-        log_info "Cloning zsh-syntax-highlighting..."
-        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "${omz_custom}/zsh-syntax-highlighting"
-        log_ok "Installed zsh-syntax-highlighting"
-      fi
+  # Ensure Oh My Zsh custom plugins are installed
+  local omz_custom="${omz_dir}/custom/plugins"
+  if [ "$DRY_RUN" = false ]; then
+    mkdir -p "$omz_custom"
+  fi
+
+  # zsh-autosuggestions
+  if [ ! -d "${omz_custom}/zsh-autosuggestions" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Clone zsh-autosuggestions into ${omz_custom}/zsh-autosuggestions"
     else
-      log_ok "zsh-syntax-highlighting is installed"
+      log_info "Cloning zsh-autosuggestions..."
+      git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "${omz_custom}/zsh-autosuggestions"
+      log_ok "Installed zsh-autosuggestions"
+    fi
+  else
+    log_ok "zsh-autosuggestions is installed"
+  fi
+
+  # zsh-syntax-highlighting
+  if [ ! -d "${omz_custom}/zsh-syntax-highlighting" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Clone zsh-syntax-highlighting into ${omz_custom}/zsh-syntax-highlighting"
+    else
+      log_info "Cloning zsh-syntax-highlighting..."
+      git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "${omz_custom}/zsh-syntax-highlighting"
+      log_ok "Installed zsh-syntax-highlighting"
+    fi
+  else
+    log_ok "zsh-syntax-highlighting is installed"
+  fi
+}
+
+install_nerd_font() {
+  local font_name="$1"
+  local cask_name="$2"
+  local zip_name="$3"
+  local check_pattern="$4"
+  local font_dir
+
+  if [ "$IS_MAC" = true ]; then
+    font_dir="${HOME}/Library/Fonts"
+  else
+    font_dir="${HOME}/.local/share/fonts"
+  fi
+
+  if compgen -G "${font_dir}/${check_pattern}" >/dev/null 2>&1; then
+    log_ok "Nerd Font (${font_name}) is installed in ${font_dir}"
+    return 0
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$IS_MAC" = true ] && command -v brew >/dev/null 2>&1; then
+      log_dry "Install Nerd Font (${font_name}) via: brew install --cask ${cask_name}"
+    else
+      log_dry "Download and extract ${zip_name}.zip from Nerd Fonts release into ${font_dir}"
+    fi
+    return 0
+  fi
+
+  mkdir -p "$font_dir"
+  if [ "$IS_MAC" = true ] && command -v brew >/dev/null 2>&1; then
+    log_info "Installing Nerd Font (${font_name}) via Homebrew Cask..."
+    brew install --cask "$cask_name"
+    log_ok "Installed Nerd Font (${font_name})"
+  else
+    log_info "Downloading Nerd Font (${font_name}) to ${font_dir}..."
+    local tmp_zip
+    tmp_zip="$(mktemp /tmp/nerdfont_XXXXXX.zip)"
+    curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${zip_name}.zip" -o "$tmp_zip"
+    unzip -qo "$tmp_zip" "*.ttf" "*.otf" -d "$font_dir" 2>/dev/null || unzip -qo "$tmp_zip" -d "$font_dir"
+    rm -f "$tmp_zip"
+    if [ "$IS_LINUX" = true ] && command -v fc-cache >/dev/null 2>&1; then
+      fc-cache -f "$font_dir"
+    fi
+    log_ok "Installed Nerd Font (${font_name}) at: ${font_dir}"
+  fi
+}
+
+install_fonts() {
+  log_info "Checking Nerd Fonts (D2Coding, ComicShannsMono)..."
+  install_nerd_font "D2Coding" "font-d2coding-nerd-font" "D2Coding" "D2*NerdFont*"
+  install_nerd_font "ComicShannsMono" "font-comic-shanns-mono-nerd-font" "ComicShannsMono" "ComicShannsMonoNerdFont*"
+
+  # Ensure macOS CoreText registers user fonts and strips quarantine attributes
+  if [ "$IS_MAC" = true ] && [ "$DRY_RUN" = false ] && [ -d "${HOME}/Library/Fonts" ]; then
+    xattr -dr com.apple.quarantine "${HOME}/Library/Fonts" 2>/dev/null || true
+    if command -v python3 >/dev/null 2>&1 || command -v swift >/dev/null 2>&1; then
+      swift -e '
+import CoreText
+import Foundation
+let dir = URL(fileURLWithPath: NSHomeDirectory() + "/Library/Fonts")
+if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+  for f in files where ["otf", "ttf"].contains(f.pathExtension.lowercased()) {
+    CTFontManagerRegisterFontsForURL(f as CFURL, .user, nil)
+  }
+}
+' >/dev/null 2>&1 || true
     fi
   fi
 }
 
 link_terminal() {
-  log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux)..."
+  log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux, Nerd Fonts)..."
+  install_fonts
   link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
   link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
   if [ "$IS_LINUX" = true ]; then
@@ -414,7 +511,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    nvim|agents|ide|git|zsh|terminal|packages|brew|all)
+    nvim|agents|ide|git|zsh|terminal|fonts|packages|brew|all)
       MODULES+=("$1")
       shift
       ;;
@@ -443,6 +540,7 @@ for mod in "${MODULES[@]}"; do
     git)           link_git ;;
     zsh)           link_zsh ;;
     terminal)      link_terminal ;;
+    fonts)         install_fonts ;;
     packages|brew) install_packages ;;
     all)
       install_packages
