@@ -2,15 +2,28 @@
 -- Default autocmds that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
 -- Add any additional autocmds here
 
-vim.cmd [[
-  highlight CursorLine ctermbg=NONE guibg=NONE gui=NONE cterm=NONE
-]]
+vim.cmd([[highlight clear CursorLine]])
 
-vim.api.nvim_create_augroup("CursorLineTransparency", { clear = true })
+-- vim.cmd([[
+--   Toggle42format
+-- ]])
 
-vim.api.nvim_create_autocmd("ColorScheme", {
-  group = "CursorLineTransparency",
-  callback = function()
-    vim.cmd [[highlight CursorLine guibg=NONE ctermbg=none]]
-  end,
-})
+-- qmd 파일에서 venv-selector 활성화
+
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = { "python", "qmd" },
+-- 	callback = function()
+-- 		vim.keymap.set("n", "<leader>cv", "<cmd>VenvSelect<cr>", { desc = "Select VirtualEnv", buffer = true })
+-- 	end,
+-- 	desc = "Set venv-selector keymap for python and qmd",
+-- })
+--
+-- vim.api.nvim_create_autocmd("User", {
+-- 	pattern = "LazyDone",
+-- 	callback = function()
+-- 		local rplugin = vim.fn.stdpath("data") .. "/rplugin.vim"
+-- 		if vim.fn.filereadable(rplugin) == 0 then
+-- 			vim.cmd("UpdateRemotePlugins")
+-- 		end
+-- 	end,
+-- })
