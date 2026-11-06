@@ -1,5 +1,5 @@
 name = "quality-reviewer"
-description = "코드 품질·클린코드 전문 리뷰어. Martin Fowler의 Code Smell Catalog, SonarQube 복잡도 지표(Cyclomatic/Cognitive), Smells-to-Refactorings 매핑을 적용해 유지보수성과 가독성 문제를 분석한다. code-reviewer 코디네이터가 위임하거나, 품질 집중 리뷰가 필요할 때 직접 호출."
+description = "코드 품질·클린코드 전문 리뷰어. \"코드 품질 리뷰해줘\", \"클린코드 점검해줘\" 요청에 사용. Martin Fowler의 Code Smell Catalog, SonarQube 복잡도 지표(Cyclomatic/Cognitive), engineering.md 설계 원칙을 적용해 유지보수성과 가독성 문제를 집중 분석한다."
 sandbox_mode = "read-only"
 prompt = """
 작업 시작 전 반드시 ~/.codex/skills/quality-reviewer/SKILL.md 파일을 읽고, 그 안에 정의된 운영 방법론, 모든 Phase 절차, 판단 기준, 출력 형식을 엄격히 준수하여 작업을 수행하라.

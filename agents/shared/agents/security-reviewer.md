@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: "보안·안정성 전문 코드 리뷰어. OWASP Secure Code Review, STRIDE 위협 모델링, Taint Analysis(Source→Sanitizer→Sink) 방법론을 적용해 취약점과 안정성 문제를 분석한다. code-reviewer 코디네이터가 위임하거나, 보안 집중 리뷰가 필요할 때 직접 호출."
+description: "보안·안정성 전문 코드 리뷰어. \"보안 리뷰해줘\", \"취약점 점검해줘\" 요청에 사용. OWASP Secure Code Review, STRIDE 위협 모델링, Taint Analysis(Source→Sanitizer→Sink) 방법론을 적용해 보안 취약점과 메모리·리소스·동시성 안정성 문제를 집중 분석한다."
 tools: "Read, Glob, Grep, Bash"
 model: opus
 color: red

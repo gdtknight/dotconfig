@@ -1,6 +1,6 @@
 ---
 name: test-agent
-description: 종합 테스트 에이전트. "테스트 짜줘", "테스트 해줘", "테스트 작성하고 실행해줘" 요청에 사용. 단위 테스트(FIRST·AAA·EP/BVA/결정테이블/상태전이)와 통합 테스트(인터페이스 분석·계약 테스트·Stub/Driver)를 모두 직접 수행하고 종합 품질 보고서를 낸다. 분야별로 집중하려면 unit-test-designer, unit-test-runner, integration-test-designer, integration-test-runner를 사용.
+description: 종합 테스트 에이전트. "테스트 짜줘", "테스트 해줘", "테스트 작성하고 실행해줘" 요청에 사용. 단위 테스트(FIRST·AAA·EP/BVA/결정테이블/상태전이)와 통합 테스트(인터페이스 분석·계약 테스트·Stub/Driver)를 모두 직접 수행하고 종합 품질 보고서를 낸다. 분야별로 집중하려면 unit-test-agent, integration-test-agent를 사용.
 tools: Read, Glob, Grep, Bash, Write, Edit
 model: sonnet
 color: green

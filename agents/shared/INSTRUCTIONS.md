@@ -5,7 +5,7 @@ tags: []
 ---
 # Global Engineering Instructions
 모든 프로젝트에서 작업(코드·문서·리뷰·답변)할 때 아래 전역 규칙을 따른다.
-세부 규칙은 `~/.claude/rules/` 디렉터리를 참조한다.
+세부 규칙은 전역 `rules/` 디렉터리(`accuracy.md`, `engineering.md`, `c-cpp.md`)를 참조한다.
 
 ---
 
@@ -17,7 +17,7 @@ tags: []
 ---
 
 ## 2. Workflow & Verification (작업 및 검증 원칙)
-- **원문 기반 검증 (`~/.claude/rules/accuracy.md`)**: 모든 작업에서 추측하지 않고 근거를 원문(코드·문서·로그)으로 직접 확인하며, 작업을 작은 단위로 나눠 건마다 검증한다.
+- **원문 기반 검증 (`rules/accuracy.md`)**: 모든 작업에서 추측하지 않고 근거를 원문(코드·문서·로그)으로 직접 확인하며, 작업을 작은 단위로 나눠 건마다 검증한다.
 - **선(先) 계획 후(後) 실행**: 복잡한 수정이나 여러 파일에 걸친 작업 전에는 **원인과 짧은 수정 계획을 먼저 요약**해 제시한다.
 - **근본 원인 해결**: 버그를 수정할 때는 표면적인 증상만 가리지 말고 **근본 원인(Root Cause)**을 파악하여 해결한다.
 
@@ -53,17 +53,13 @@ tags: []
 | 분류 | 상황 / 작업 내용 | 에이전트 |
 | :--- | :--- | :--- |
 | **리뷰** | 코드 리뷰 (보안 + 품질 종합) | `@code-reviewer` |
-| **리뷰** | 보안·취약점 집중 리뷰 | `@security-reviewer` |
+| **리뷰** | 보안·취약점·안정성 집중 리뷰 | `@security-reviewer` |
 | **리뷰** | 클린코드·설계 집중 리뷰 | `@quality-reviewer` |
-| **테스트** | 테스트 작성 + 실행 (전체 총괄) | `@test-agent` |
-| **테스트** | 단위 테스트 설계 + 코드 작성 | `@unit-test-designer` |
-| **테스트** | 단위 테스트 실행 + 결과 보고 | `@unit-test-runner` |
-| **테스트** | 통합 테스트 설계 + 코드 작성 | `@integration-test-designer` |
-| **테스트** | 통합 테스트 실행 + 결과 보고 | `@integration-test-runner` |
-| **디버깅** | 버그 재현·원인 추적·수정 | `@debug-agent` |
-| **리팩토링** | 리팩토링 (분석 + 실행 전체 총괄) | `@refactor-agent` |
-| **리팩토링** | 리팩토링 대상 분석 + 계획 수립 | `@refactoring-analyzer` |
-| **리팩토링** | 리팩토링 실행 + 동작 검증 | `@refactoring-implementer` |
+| **테스트** | 단위 + 통합 테스트 종합 작성 및 실행 | `@test-agent` |
+| **테스트** | 단위 테스트 설계·작성·실행·커버리지 검증 | `@unit-test-agent` |
+| **테스트** | 통합·계약 테스트 설계·작성·실행·장애 격리 | `@integration-test-agent` |
+| **디버깅** | 버그 재현·원인 추적·최소 수정·회귀 검증 | `@debug-agent` |
+| **리팩토링** | 안전망 확인·스멜 분석·계획 수립·Baby Steps 실행 | `@refactor-agent` |
 | **문서/Git** | Git 커밋 메시지 작성 + 커밋 수행 | `@commit-agent` |
 | **문서/Git** | 코드 주석 작성 + 포맷 정리 | `@docs-agent` |
 | **문서/Git** | 프로젝트 인수인계 가이드 문서 작성 | `@guide-writer` |

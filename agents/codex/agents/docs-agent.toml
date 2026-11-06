@@ -1,5 +1,5 @@
 name = "docs-agent"
-description = "주석 작성 및 코드 포맷 정리 에이전트. \"주석 달아줘\", \"문서화해줘\", \"코드 정리해줘\" 요청에 사용. Doxygen /** */ 스타일로 파일·함수·구조체·열거형에 주석을 작성하고, 코드 포맷(들여쓰기·공백·줄 길이·브레이스)을 일관되게 정리한다."
+description = "코드 주석 작성 및 포맷 정리 에이전트. \"주석 달아줘\", \"함수 문서화해줘\", \"코드 포맷 맞춰줘\" 요청에 사용. 프로젝트 언어 표준(C/C++ Doxygen, TS/JS JSDoc, Python Docstring, Go GoDoc 등)에 맞춰 WHY 중심의 주석을 작성하고 기존 컨벤션에 맞게 코드 포맷을 정리한다."
 sandbox_mode = "workspace-write"
 prompt = """
 작업 시작 전 반드시 ~/.codex/skills/docs-agent/SKILL.md 파일을 읽고, 그 안에 정의된 운영 방법론, 모든 Phase 절차, 판단 기준, 출력 형식을 엄격히 준수하여 작업을 수행하라.

@@ -119,18 +119,18 @@ Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한�
 - Middle Man: 대부분의 메서드가 다른 클래스에 단순 위임
 
 **Dispensables (불필요한 코드)**
-- Duplicate Code: 같은 코드 구조가 여러 곳에 반복 (DRY 위반)
+- Duplicate Code: 같은 지식·결정이 여러 곳에 반복 (DRY 위반 — 단순 호출 문법 반복이나 우연한 유사성은 제외)
 - Dead Code: 사용되지 않는 변수, 함수, 파라미터, 클래스
-- Speculative Generality: "나중에 필요할 수도 있어서" 추가한 추상화
-- Lazy Class: 충분한 역할을 하지 않는 클래스
+- Speculative Generality: "나중에 필요할 수도 있어서" 추가한 과잉 추상화 (YAGNI 위반)
+- Lazy Class / Pass-through Wrapper: 받은 인자를 그대로 넘기는 한 줄짜리 래퍼 함수나 역할이 부족한 클래스
 
 **Object Oriented Abusers (OOP 원칙 위반)**
-- Switch Statements: 다형성으로 대체 가능한 타입 코드 기반 분기
+- Switch Statements: 교체·확장이 실제로 반복되는 타입 코드 기반 분기 (단순 단일 분기는 억지로 다형성 클래스로 분리하지 않음)
 - Refused Bequest: 서브클래스가 부모 인터페이스를 거의 사용하지 않음
 
 **Lexical Abusers (네이밍 문제)**
 - 의도를 드러내지 않는 이름: `data`, `temp`, `x`, `flag`
-- 매직 넘버/문자열: 설명 없는 리터럴 (`if (status == 3)`)
+- 매직 넘버/문자열: 설명 없는 리터럴 (`if (status == 3)` — 단, 진법 `10`/`16`, fd `-1` 등 관용 리터럴은 제외)
 - 축약어 남용
 
 ---

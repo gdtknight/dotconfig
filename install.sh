@@ -163,6 +163,20 @@ link_agents() {
   link_target "${REPO_DIR}/agents/codex/config.toml" "${HOME}/.codex/config.toml"
   link_target "${REPO_DIR}/agents/codex/agents" "${HOME}/.codex/agents"
 
+  # Clean up stale/dangling skill symlinks in Gemini and Codex
+  local skill_file
+  for skill_file in "${HOME}/.gemini/config/skills"/*/SKILL.md "${HOME}/.codex/skills"/*/SKILL.md; do
+    if [ -L "$skill_file" ] && [ ! -e "$skill_file" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Remove broken skill symlink: $skill_file"
+      else
+        rm -f "$skill_file"
+        rmdir "$(dirname "$skill_file")" 2>/dev/null || true
+        log_ok "Removed stale skill symlink: $skill_file"
+      fi
+    fi
+  done
+
   # Link shared agent markdowns as Skills for Gemini and Codex
   local agent_md
   local agent_name
