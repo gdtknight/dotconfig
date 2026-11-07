@@ -42,7 +42,7 @@ Usage: $(basename "$0") [OPTIONS] [MODULE...]
 Modules:
   nvim            Link Neovim configuration (~/.config/nvim)
   agents          Link Agent configurations (Claude, Gemini, Codex)
-  ide             Link IDE configurations (Antigravity IDE, IntelliJ)
+  ide             Link IDE configurations (Antigravity IDE, IntelliJ) & sync extensions
   git             Link Git global configuration (~/.gitconfig, ~/.gitignore)
   zsh             Link Zsh, Oh My Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
   terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux, Nerd Fonts)
@@ -53,6 +53,7 @@ Modules:
 Options:
   -n, --dry-run   Preview actions without creating symlinks or modifying files
   -f, --force     Force overwrite / relink even if destination symlink points elsewhere
+  --dump-extensions Dump currently installed Antigravity IDE extensions to extensions.txt
   -h, --help      Display this help message and exit
 
 Examples:
@@ -229,6 +230,93 @@ link_agents() {
   fi
 }
 
+find_antigravity_cli() {
+  if command -v antigravity-ide >/dev/null 2>&1; then
+    echo "antigravity-ide"
+  elif [ -x "${HOME}/.antigravity-ide/antigravity-ide/bin/antigravity-ide" ]; then
+    echo "${HOME}/.antigravity-ide/antigravity-ide/bin/antigravity-ide"
+  elif [ -x "/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide" ]; then
+    echo "/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide"
+  elif [ -x "${HOME}/.local/bin/antigravity-ide" ]; then
+    echo "${HOME}/.local/bin/antigravity-ide"
+  fi
+}
+
+install_antigravity_extensions() {
+  local ext_file="${REPO_DIR}/ide/antigravity-ide/extensions.txt"
+  if [ ! -f "$ext_file" ]; then
+    return 0
+  fi
+
+  local ide_bin
+  ide_bin="$(find_antigravity_cli)"
+  if [ -z "$ide_bin" ]; then
+    log_warn "Antigravity IDE CLI not found; skipping extensions sync."
+    return 0
+  fi
+
+  log_info "Syncing Antigravity IDE extensions from ${ext_file}..."
+
+  local installed_raw
+  installed_raw="$("$ide_bin" --list-extensions 2>/dev/null | grep -v "^\\[" | tr '[:upper:]' '[:lower:]' || true)"
+
+  local ext
+  local ext_clean
+  local ext_lower
+  local missing_count=0
+
+  while IFS= read -r ext || [ -n "$ext" ]; do
+    # Strip comments and whitespace
+    ext_clean="$(echo "$ext" | sed -e 's/#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    [ -z "$ext_clean" ] && continue
+
+    ext_lower="$(echo "$ext_clean" | tr '[:upper:]' '[:lower:]')"
+    if echo "$installed_raw" | grep -qx "$ext_lower"; then
+      continue
+    fi
+
+    missing_count=$((missing_count + 1))
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Install Antigravity IDE extension: $ext_clean"
+    else
+      log_info "Installing Antigravity IDE extension: $ext_clean..."
+      "$ide_bin" --install-extension "$ext_clean" --force >/dev/null 2>&1 || log_warn "Failed to install extension: $ext_clean"
+      log_ok "Installed extension: $ext_clean"
+    fi
+  done < "$ext_file"
+
+  if [ "$missing_count" -eq 0 ]; then
+    log_ok "All Antigravity IDE extensions are up-to-date."
+  fi
+}
+
+dump_antigravity_extensions() {
+  local ext_file="${REPO_DIR}/ide/antigravity-ide/extensions.txt"
+  local ide_bin
+  ide_bin="$(find_antigravity_cli)"
+  if [ -z "$ide_bin" ]; then
+    log_warn "Antigravity IDE CLI not found. Cannot export extensions."
+    return 1
+  fi
+
+  log_info "Exporting installed Antigravity IDE extensions to ${ext_file}..."
+  local exts
+  exts="$("$ide_bin" --list-extensions 2>/dev/null | grep -v "^\\[" | sort)"
+  if [ -z "$exts" ]; then
+    log_warn "No extensions found to export."
+    return 0
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Would write $(echo "$exts" | wc -l | tr -d ' ') extensions to ${ext_file}"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$ext_file")"
+  echo "$exts" > "$ext_file"
+  log_ok "Exported $(wc -l < "$ext_file" | tr -d ' ') extensions to ${ext_file}"
+}
+
 link_ide() {
   log_info "Configuring IDEs (Antigravity IDE, IntelliJ)..."
 
@@ -246,6 +334,7 @@ link_ide() {
   mkdir -p "$antigravity_user"
   link_target "${REPO_DIR}/ide/antigravity-ide/settings.json" "${antigravity_user}/settings.json"
   link_target "${REPO_DIR}/ide/antigravity-ide/keybindings.json" "${antigravity_user}/keybindings.json"
+  install_antigravity_extensions
 
   if [ -d "$jetbrains_base" ]; then
     # Find all IntelliJ IDEA installations
@@ -523,6 +612,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       usage
+      exit 0
+      ;;
+    --dump-extensions)
+      dump_antigravity_extensions
       exit 0
       ;;
     nvim|agents|ide|git|zsh|terminal|fonts|packages|brew|all)

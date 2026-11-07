@@ -1,81 +1,185 @@
 {
   // ===========================================================================
-  // 1. General & Security
+  // 1. 에디터 기본 및 편집 설정 (Editor Core & Formatting)
   // ===========================================================================
-  //#region [General / Window]
+  //#region [Editor Core]
+  // 기본 탭 간격 (스페이스 2칸)
   "editor.tabSize": 2,
+  // 탭 키 입력 시 탭 문자 대신 공백(스페이스) 삽입
   "editor.insertSpaces": true,
+  // 파일 열 때 파일 내용을 분석해 들여쓰기를 자동 감지할지 여부 (사용자 설정 고정을 위해 false)
   "editor.detectIndentation": false,
-  "security.promptForLocalFileProtocolHandling": false,
-  "redhat.telemetry.enabled": true,
+  // 에디터 기본 글꼴 (Nerd Font 및 아이콘 지원 폰트)
+  "editor.fontFamily": "'ComicShannsMono Nerd Font', 'D2CodingLigature Nerd Font'",
+  // 줄 번호 표시 모드 (Vim 탐색에 최적화된 상대 줄 번호)
+  "editor.lineNumbers": "relative",
+  // 커서 이동 시 화면 상/하단에 항상 유지할 최소 여백 라인 수 (Vim scrolloff=8)
+  "editor.cursorSurroundingLines": 8,
+  // 우측 미니맵(코드 미리보기 바) 표시 여부 (비활성화하여 화면 공간 확보)
+  "editor.minimap.enabled": false,
   //#endregion
+
   // ===========================================================================
-  // 2. UI, Theme & Vibrancy
+  // 2. UI, 테마 및 시각 효과 (UI, Theme & Visuals)
   // ===========================================================================
   //#region [Theme & Vibrancy]
+  // 전체 색상 테마
   "workbench.colorTheme": "Default Dark+",
-  "vscode_vibrancy.preferredLightTheme": "Atom One Dark",
-  // 2. 에디터의 모든 레이어 배경색을 완전 투명(#00000000)으로 처리
+  // OS 시스템 다크 테마 기준 동작
+  "window.systemColorTheme": "dark",
+  // OS 테마 변경 시 VS Code 테마를 자동 감지하여 변경할지 여부
+  "window.autoDetectColorScheme": false,
+  // 탐색기(파일 트리) 들여쓰기 픽셀 너비
+  "workbench.tree.indent": 12,
+  // 탐색기(파일 트리) 들여쓰기 가이드 라인 상시 표시
+  "workbench.tree.renderIndentGuides": "always",
+
+  // 에디터 및 UI 투명도 커스터마이징 (투명/반투명 아크릴 효과)
   "workbench.colorCustomizations": {
+    // 줄 번호 색상 (반투명 화이트)
     "editorLineNumber.foreground": "#ffffff88",
-    "tab.border": "#00000000",
+    // 탭 테두리 (탭 간 구분을 위한 미세한 라인)
+    "tab.border": "#ffffff10",
+    // 활성 타이틀바 배경 (약한 반투명 블랙)
     "titleBar.activeBackground": "#00000022",
+    // 분할 창(Editor Group) 사이의 세로 구분선 (활성 창 영역 식별용)
+    "editorGroup.border": "#ffffff33",
+    // 사이드바, 액티비티바, 패널, 보조 사이드바 경계선 (미세한 반투명 라인)
     "sideBar.border": "#ffffff15",
     "activityBar.border": "#ffffff15",
     "panel.border": "#ffffff15",
+    "auxiliaryBar.border": "#ffffff15",
+    // 상태 표시줄 배경
     "statusBar.background": "#00000033",
-    "editorGroupHeader.tabsBackground": "#1e1e1e00",
-    "editorGutter.background": "#1e1e1e00",
-    "panel.background": "#1e1e1e00",
-    "tab.activeBackground": "#1e1e1e00",
-    "sideBar.background": "#1e1e1eff",
-    "activityBar.background": "#1e1e1eff",
-    "editor.background": "#1e1e1eff",
-    "tab.inactiveBackground": "#1e1e1eff",
-    "terminal.background": "#00000000",
-    "editorPane.background": "#1e1e1e00",
-    "editorGroupHeader.noTabsBackground": "#1e1e1e00",
-    "breadcrumb.background": "#1e1e1e00",
-    "tab.unfocusedActiveBackground": "#1e1e1e00",
-    "sideBarTitle.background": "#1e1e1eff",
-    "tab.unfocusedInactiveBackground": "#1e1e1eff",
-    "editorStickyScroll.background": "#1e1e1eff",
-    "editorStickyScrollGutter.background": "#1e1e1eff",
-    "sideBarStickyScroll.background": "#1e1e1eff",
-    "panelStickyScroll.background": "#1e1e1eff",
-    "terminalStickyScroll.background": "#1e1e1eff",
-    "inlineChat.background": "#1e1e1ee6",
-    "editorWidget.background": "#1e1e1ee6",
-    "editorHoverWidget.background": "#1e1e1ee6",
-    "editorSuggestWidget.background": "#1e1e1ee6",
-    "notifications.background": "#1e1e1ee6",
-    "notificationCenterHeader.background": "#1e1e1ee6",
-    "menu.background": "#1e1e1ee6",
-    "quickInput.background": "#1e1e1ee6",
-    "minimap.background": "#1e1e1eff",
+    // 에디터 탭 헤더 빈 영역, 거터, 에디터 페인 투명 처리
+    "editorGroupHeader.tabsBackground": "#00000000",
+    "editorGroupHeader.noTabsBackground": "#00000000",
+    "editorGutter.background": "#00000000",
+    "editorPane.background": "#00000000",
+
+    // [상단 탭 & 분할창 구분 설정]
+    // 활성 탭 글자색 (선명한 화이트) vs 비활성 탭 글자색 (차분한 반투명 그레이)
+    "tab.activeForeground": "#ffffff",
+    "tab.inactiveForeground": "#ffffff66",
+    "tab.unfocusedActiveForeground": "#ffffff99",
+    // 활성 분할창의 활성 탭 상단 모던 블루 액센트 라인 (한눈에 현재 탭/창 식별)
+    "tab.activeBorderTop": "#388bfd",
+    // 비활성 분할창에는 액센트 라인을 꺼서 현재 작업 창과 완벽하게 구분
+    "tab.unfocusedActiveBorderTop": "#00000000",
+    // 활성 탭 배경 (선택된 카드로 돋보이도록 짙은 딥블랙 95%)
+    "tab.activeBackground": "#101010f2",
+    // 비활성 분할창의 활성 탭 (어둡게 톤 다운)
+    "tab.unfocusedActiveBackground": "#10101099",
+    // 비활성 탭 배경 (투명하게 낮추어 활성 탭을 강조)
+    "tab.inactiveBackground": "#00000044",
+    "tab.unfocusedInactiveBackground": "#00000044",
+
+    // 경로 표시줄 및 터미널 (딥블랙 70%)
+    "breadcrumb.background": "#101010b3",
+    "terminal.background": "#101010b3",
+
+    // 에디터 본문 반투명 배경 (회색 안개 느낌을 없애고 웹뷰와 톤을 일치시키는 딥블랙 35%)
+    "editor.background": "#00000059",
+
+    // 사이드바, 보조 사이드바, 액티비티바 (웹뷰의 짙은 블랙과 일치시키면서 반투명 유지 85%)
+    "sideBar.background": "#101010d9",
+    "sideBarTitle.background": "#101010d9",
+    "auxiliaryBar.background": "#101010d9",
+    "auxiliaryBarTitle.background": "#101010d9",
+    "activityBar.background": "#101010d9",
+    // 스티키 스크롤(상단 고정 헤더) 배경 (딥블랙 80%)
+    "editorStickyScroll.background": "#101010cc",
+    "editorStickyScrollGutter.background": "#101010cc",
+    "sideBarStickyScroll.background": "#101010cc",
+    "panelStickyScroll.background": "#101010cc",
+    "terminalStickyScroll.background": "#101010cc",
+    "minimap.background": "#101010cc",
+    // AI 대화창(Chat View) 배경 (딥블랙 80%)
+    "chat.background": "#101010cc",
+    "chat.requestBackground": "#101010cc",
+    "chat.editor.background": "#101010cc",
+    "chat.slashCommandBackground": "#101010cc",
+    // 팝업, 위젯, 제안창, 메뉴, 알림창, 보조 패널 배경 (웹뷰 톤과 일치하는 딥블랙 92%)
+    "panel.background": "#101010eb",
+    "panelSection.background": "#101010eb",
+    "panelSectionHeader.background": "#101010eb",
+    "inlineChat.background": "#101010eb",
+    "editorWidget.background": "#101010eb",
+    "editorHoverWidget.background": "#101010eb",
+    "editorSuggestWidget.background": "#101010eb",
+    "notifications.background": "#101010eb",
+    "notificationCenterHeader.background": "#101010eb",
+    "menu.background": "#101010eb",
+    "quickInput.background": "#101010eb",
+    // 현재 줄 하이라이트 테두리 숨김
     "editor.lineHighlightBorder": "#00000000",
   },
+
+  // background-cover 확장 설정 (에디터 배경 이미지/투명화)
+  // 창별 개별 배경 적용 여부
+  "backgroundCover.perWindowBackground": false,
+  // 배경 크기 배치 모드 (가운데 정렬)
+  "backgroundCover.sizeModel": "center",
+  // 배경 이미지 블러 강도
+  "backgroundCover.blur": 10,
+  // 배경 이미지 투명도 (0.05 = 5%)
+  "backgroundCover.opacity": 0.2,
+  // 배경 이미지 캐시 한도
+  "backgroundCover.cacheLimit": 10,
+
+  // indent-rainbow 확장 설정 (들여쓰기 단계별 무지개 가이드라인)
+  "indentRainbow.colors": [
+    "rgba(255,255,64,0.07)",
+    "rgba(127,255,127,0.07)",
+    "rgba(255,127,255,0.07)",
+    "rgba(79,236,236,0.07)",
+  ],
+  // 인디케이터 스타일 (라이트 스타일)
+  "indentRainbow.indicatorStyle": "light",
   //#endregion
+
   // ===========================================================================
-  // 3. Git / GitLens
+  // 3. 통합 터미널 (Integrated Terminal)
   // ===========================================================================
-  //#region [GitLens]
-  "gitlens.ai.defaultAgent": "cli:gemini",
-  "gitlens.graph.details.location": "auto",
+  //#region [Terminal]
+  // 터미널 글꼴 (Nerd Font)
+  "terminal.integrated.fontFamily": "'ComicShannsMono Nerd Font', 'D2CodingLigature Nerd Font'",
+  // 터미널 글꼴 크기 (pt)
+  "terminal.integrated.fontSize": 13,
+  // 터미널 줄 간격 (배율)
+  "terminal.integrated.lineHeight": 1.2,
+  // 터미널 일반 글꼴 두께
+  "terminal.integrated.fontWeight": "normal",
+  // 터미널 볼드 글꼴 두께
+  "terminal.integrated.fontWeightBold": "bold",
+  // 터미널 GPU 가속 비활성화 (투명도/배경 렌더링 글리치 방지)
+  "terminal.integrated.gpuAcceleration": "off",
   //#endregion
+
   // ===========================================================================
-  // 4. VSCode Neovim & Keybindings
+  // 4. Vim / Neovim & 단축키 바인딩 (Neovim & Keybindings)
   // ===========================================================================
-  //#region [Neovim Mode]
-  "editor.lineNumbers": "relative",
-  "editor.cursorSurroundingLines": 8,
+  //#region [Neovim Mode & WhichKey]
+  // macOS Neovim 바이너리 경로 (Homebrew 설치 경로)
   "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
+  // Neovim 확장을 별도 확장 호스트 프로세스로 격리하여 입력 지연 및 프레임 드랍 방지
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1,
+  },
+  // 연속 키 입력 매핑 (Insert 모드에서 'jk' 입력 시 ESC 동작)
   "vscode-neovim.compositeKeys": {
     "jk": {
       "command": "vscode-neovim.escape",
     },
   },
-  //#endregion
+  // which-key 표시 팝업 지연 시간 (0ms = 즉시 반응)
+  "whichkey.delay": 0,
+  // which-key 메뉴 레이아웃에서 전각 문자 사용 여부
+  "whichkey.useFullWidthCharacters": true,
+  // 마우스로 메뉴 클릭 시 단축키 생성 추천 팝업 비활성화
+  "Key Promoter.suggestKeybindingCreation": false,
+
+  // Which-Key 리더키 단축키 메뉴 바인딩 트리 (<Space> 리더)
   "whichkey.bindings": [
     {
       "key": "e",
@@ -392,83 +496,98 @@
       ],
     },
   ],
-  "Key Promoter.suggestKeybindingCreation": false,
   //#endregion
+
   // ===========================================================================
-  // 6. Terminal Settings
+  // 5. Git & 소스 제어 (Source Control & GitLens)
   // ===========================================================================
-  //#region [Terminal]
-  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', 'MesloLGS NF', 'FiraCode Nerd Font', 'D2CodingLigature Nerd Font', monospace",
-  "terminal.integrated.fontSize": 13,
-  "terminal.integrated.lineHeight": 1.2,
-  "terminal.integrated.fontWeight": "normal",
-  "terminal.integrated.fontWeightBold": "bold",
-  "editor.minimap.enabled": false,
-  "backgroundCover.perWindowBackground": false,
-  "backgroundCover.sizeModel": "center",
-  "backgroundCover.blur": 10,
-  "backgroundCover.opacity": 0.05,
-  "terminal.integrated.gpuAcceleration": "off",
-  "window.systemColorTheme": "dark",
-  "window.autoDetectColorScheme": false,
+  //#region [Git & GitLens]
+  // 주기적으로 원격 저장소의 최신 커밋을 자동 fetch
+  "git.autofetch": true,
+  // Git 바이너리가 감지되지 않을 때 뜨는 경고 메시지 무시
+  "git.ignoreMissingGitWarning": true,
+  // 소스 제어 뷰에서 저장소 선택 모드 (단일 저장소 포커스)
+  "scm.repositories.selectionMode": "single",
+  // GitLens AI 기본 에이전트 지정
+  "gitlens.ai.defaultAgent": "cli:gemini",
+  // GitLens 커밋 그래프 세부 정보 패널 위치 (자동 결정)
+  "gitlens.graph.details.location": "auto",
+  // 마우스 호버 시 GitLens 블레임 정보를 전체 라인에 걸쳐 감지
+  "gitlens.hovers.currentLine.over": "line",
+  // 아직 커밋되지 않은 로컬 변경 라인의 GitLens 인라인 블레임 텍스트 포맷
+  "gitlens.currentLine.uncommittedChangesFormat": "${author, }${agoOrDate}${' via  'pullRequest}${ • message|50?}",
   //#endregion
+
   // ===========================================================================
-  // 7. File Settings
+  // 6. 언어별 설정 및 포매터 (Languages & Formatting)
   // ===========================================================================
-  //#region [File Settings]
-  // TypeScript (.ts)
+  //#region [Languages & Tooling]
+  // TypeScript 파일 (.ts)
   "[typescript]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
-  // React TypeScript (.tsx)
+  // React TypeScript 파일 (.tsx)
   "[typescriptreact]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
-  // JavaScript / React (.js, .jsx)
+  // 파일 이동 또는 이름 변경 시 import 경로 자동 업데이트 (항상 적용)
+  "typescript.updateImportsOnFileMove.enabled": "always",
+
+  // JavaScript 파일 (.js)
   "[javascript]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
   },
+  // React JavaScript 파일 (.jsx)
   "[javascriptreact]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
   },
-  // JSON (.json)
+
+  // JSON 파일 (.json)
   "[json]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
   },
-  // Python (.py) - 보통 4칸 스페이스 사용
+  // 주석이 포함된 JSON 파일 (.jsonc)
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+
+  // Python 파일 (.py - PEP 8 표준 4칸 공백)
   "[python]": {
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
   },
-  "vscode_vibrancy.preferredDarkTheme": "Atom One Dark",
-  "vscode_vibrancy.opacity": 1,
-  "git.ignoreMissingGitWarning": true,
-  "scm.repositories.selectionMode": "single",
-  "git.autofetch": true,
-  "gitlens.hovers.currentLine.over": "line",
-  "gitlens.currentLine.uncommittedChangesFormat": "${author, }${agoOrDate}${' via  'pullRequest}${ • message|50?}",
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "extensions.experimental.affinity": {
-    "asvetliakov.vscode-neovim": 1,
-  },
-  "whichkey.useFullWidthCharacters": true,
-  "whichkey.delay": 0,
+  // Python 언어 서버 (Pylance 기본 엔진)
   "python.languageServer": "Default",
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-  },
-  "editor.fontFamily": "'D2CodingLigature Nerd Font', 'ComicShannsMono Nerd Font'",
-  "backgroundCover.cacheLimit": 10,
-  "workbench.tree.indent": 12,
-  "workbench.tree.renderIndentGuides": "always",
+  //#endregion
+
+  // ===========================================================================
+  // 7. 기타 확장 프로그램 및 보안 (Extensions, Security & Misc)
+  // ===========================================================================
+  //#region [Extensions & Security]
+  // 로컬 파일 프로토콜(file://) 링크 클릭 시 열기 여부 확인 프롬프트 생략
+  "security.promptForLocalFileProtocolHandling": false,
+  // Red Hat 확장 프로그램의 익명 원격 측정(telemetry) 데이터 전송 허용
+  "redhat.telemetry.enabled": false,
+  // Claude Code 확장 프로그램의 온보딩 가이드 숨기기
   "claudeCode.hideOnboarding": true,
 
+  // Total TypeScript 확장 팁 설정
+  // 모든 팁 숨기기 여부
+  "totalTypeScript.hideAllTips": false,
+  // 기초 타입 팁 숨기기 여부
+  "totalTypeScript.hideBasicTips": false,
+  // 숨김 처리할 특정 Total TypeScript 팁 목록
+  "totalTypeScript.hiddenTips": [
+    "interface-declaration",
+    "basic-types",
+    "typing-function-parameters",
+  ],
   //#endregion
 }

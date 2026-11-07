@@ -19,7 +19,7 @@ dotconfig/
 │   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
 │   └── codex/                  # config.toml, agents/*.toml (shared/agents 참조 래퍼)
 ├── ide/                        # IDE 설정 (macOS & Linux XDG 경로 자동 분기)
-│   ├── antigravity-ide/        # settings.json, keybindings.json
+│   ├── antigravity-ide/        # settings.json, keybindings.json, extensions.txt
 │   └── intellij/               # keymaps/macOS.xml, idea.vmoptions, idea.properties
 ├── alacritty/                  # Alacritty 터미널 설정 및 테마
 ├── wezterm/                    # WezTerm 설정 (wezterm.lua)
@@ -36,7 +36,7 @@ dotconfig/
 | **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크<br>*(claude CLI 자동 설치 보장)* |
 | **Gemini / AGY** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크<br>*(agy CLI 자동 설치 보장)* |
 | **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크<br>*(codex CLI 자동 설치 보장)* |
-| **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크 |
+| **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크<br>*(extensions.txt 기반 확장 자동 설치/동기화)* |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 파일 심볼릭 링크 |
 | **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf`<br>`~/Library/Fonts` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf`<br>`~/.local/share/fonts` | 디렉토리 및 파일 링크<br>*(tpm 및 Nerd Fonts: D2Coding, ComicShannsMono 자동 보장)* |
 
@@ -58,9 +58,12 @@ dotconfig/
 ./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh), Oh My Zsh, p10k 및 플러그인 설정
 ./install.sh git        # Git 전역 설정(.gitconfig, .gitignore)만 연결
 ./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
-./install.sh ide        # Antigravity IDE, IntelliJ 설정만 연결
+./install.sh ide        # Antigravity IDE, IntelliJ 설정 연결 및 확장 프로그램 동기화
 ./install.sh terminal   # Alacritty, WezTerm, Tmux 연결 및 Nerd Fonts 설치
 ./install.sh fonts      # Nerd Fonts (D2Coding, ComicShannsMono)만 단독 설치
+
+# Antigravity IDE 확장 프로그램 관리
+./install.sh --dump-extensions  # 현재 IDE에 설치된 확장 목록을 extensions.txt로 내보내기
 
 # 패키지 설치 (Brewfile 기반)
 ./install.sh packages   # (또는 ./install.sh brew)
