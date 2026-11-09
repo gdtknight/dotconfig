@@ -61,6 +61,7 @@ tags: []
 | **디버깅** | 버그 재현·원인 추적·최소 수정·회귀 검증 | `@debug-agent` |
 | **리팩토링** | 안전망 확인·스멜 분석·계획 수립·Baby Steps 실행 | `@refactor-agent` |
 | **문서/Git** | Git 커밋 메시지 작성 + 커밋 수행 | `@commit-agent` |
+| **문서/Git** | GitHub Issue·PR 작성 및 메타데이터 점검 | `@github-agent` |
 | **문서/Git** | 코드 주석 작성 + 포맷 정리 | `@docs-agent` |
 | **문서/Git** | 프로젝트 인수인계 가이드 문서 작성 | `@guide-writer` |
 
