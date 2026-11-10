@@ -35,6 +35,9 @@ brew "nvm"
 # (Ubuntu/Linux 환경에서는 자동으로 무시되므로 안전하게 동작합니다)
 # ------------------------------------------------------------------------------
 if OS.mac?
+  cask "google-chrome"
+  cask "alfred"
+  cask "rectangle"
   cask "orbstack"
   cask "wezterm"
   # cask "alacritty"
