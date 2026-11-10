@@ -20,11 +20,26 @@ import sys
 
 # 파괴적 명령어 패턴
 DANGEROUS_COMMAND_PATTERNS = [
-    (r"git\s+push\s+.*(--force\b|-f\b)", "강제 푸시(git push --force)는 원격 히스토리를 덮어쓸 수 있어 차단됩니다."),
-    (r"git\s+reset\s+--hard", "하드 리셋(git reset --hard)은 작업 내용을 영구 유실시킬 수 있어 차단됩니다."),
-    (r"git\s+clean\s+-[a-zA-Z]*f", "git clean -f 명령은 추적되지 않는 파일을 강제 삭제하므로 차단됩니다."),
-    (r"git\s+checkout\s+(\.|-f\b|--force)", "git checkout . / -f 명령은 수정사항을 되돌리므로 차단됩니다."),
-    (r"rm\s+-(rf|fr)\s+[/~]", "루트(/) 또는 홈(~) 디렉터리 강제 삭제 명령은 위험하므로 차단됩니다."),
+    (
+        r"git\s+push\s+.*(--force\b|-f\b)",
+        "강제 푸시(git push --force)는 원격 히스토리를 덮어쓸 수 있어 차단됩니다.",
+    ),
+    (
+        r"git\s+reset\s+--hard",
+        "하드 리셋(git reset --hard)은 작업 내용을 영구 유실시킬 수 있어 차단됩니다.",
+    ),
+    (
+        r"git\s+clean\s+-[a-zA-Z]*f",
+        "git clean -f 명령은 추적되지 않는 파일을 강제 삭제하므로 차단됩니다.",
+    ),
+    (
+        r"git\s+checkout\s+(\.|-f\b|--force)",
+        "git checkout . / -f 명령은 수정사항을 되돌리므로 차단됩니다.",
+    ),
+    (
+        r"rm\s+-(rf|fr)\s+[/~]",
+        "루트(/) 또는 홈(~) 디렉터리 강제 삭제 명령은 위험하므로 차단됩니다.",
+    ),
     (r"\bmkfs(\.\w+)?\b", "파일 시스템 포맷(mkfs) 명령은 차단됩니다."),
     (r"\bdd\s+if=", "dd 저수준 디스크 덮어쓰기 명령은 차단됩니다."),
     (r"chmod\s+-R\s+777\s+[/~]", "루트/홈 전체에 777 권한 부여는 보안상 차단됩니다."),
@@ -51,6 +66,7 @@ SECRET_PATTERNS = [
 # 2. 페이로드 파서 (Claude / Gemini / Codex 공통)
 # ------------------------------------------------------------------------------
 
+
 def parse_input():
     """stdin에서 JSON을 읽어 도구 이름과 인자를 정규화하여 반환"""
     try:
@@ -71,13 +87,16 @@ def extract_tool_info(payload):
 
     # Claude / Codex 포맷
     tool_name = payload.get("tool_name") or payload.get("name", "")
-    tool_args = payload.get("tool_input") or payload.get("args") or payload.get("input", {})
+    tool_args = (
+        payload.get("tool_input") or payload.get("args") or payload.get("input", {})
+    )
     return tool_name, tool_args
 
 
 # ------------------------------------------------------------------------------
 # 3. PreToolUse 핸들러 (차단 가드 & 시크릿 검사)
 # ------------------------------------------------------------------------------
+
 
 def handle_pre_tool():
     payload = parse_input()
@@ -118,9 +137,13 @@ def handle_pre_tool():
     )
     if file_path:
         norm_path = os.path.basename(file_path.strip("\"'"))
-        if SENSITIVE_FILE_PATTERN.search(norm_path) or SENSITIVE_FILE_PATTERN.search(file_path):
+        if SENSITIVE_FILE_PATTERN.search(norm_path) or SENSITIVE_FILE_PATTERN.search(
+            file_path
+        ):
             # 파일 읽기/쓰기 차단
-            deny(f"민감한 시크릿 파일({norm_path}) 접근 또는 수정 시도가 차단되었습니다.")
+            deny(
+                f"민감한 시크릿 파일({norm_path}) 접근 또는 수정 시도가 차단되었습니다."
+            )
 
     # 정상 허용
     allow()
@@ -141,8 +164,36 @@ def allow():
 
 
 # ------------------------------------------------------------------------------
-# 4. PostToolUse 핸들러 (자동 코드 포매터 실행)
+# 4. PostToolUse 핸들러 (단발성 Docker 컨테이너 기반 코드 포매터 실행)
 # ------------------------------------------------------------------------------
+
+DOCKER_IMAGE = "dotconfig-formatter:latest"
+
+# 지원 언어 확장자별 포매터 및 실행 명령어
+FORMATTER_COMMANDS = {
+    # JS / TS / JSON / Markdown / CSS / SCSS -> Prettier
+    ".js": ["prettier", "--write"],
+    ".jsx": ["prettier", "--write"],
+    ".ts": ["prettier", "--write"],
+    ".tsx": ["prettier", "--write"],
+    ".json": ["prettier", "--write"],
+    ".md": ["prettier", "--write"],
+    ".css": ["prettier", "--write"],
+    ".scss": ["prettier", "--write"],
+    # Python -> ruff
+    ".py": ["ruff", "format"],
+    # C / C++ -> clang-format
+    ".c": ["clang-format", "-i"],
+    ".cpp": ["clang-format", "-i"],
+    ".cc": ["clang-format", "-i"],
+    ".h": ["clang-format", "-i"],
+    ".hpp": ["clang-format", "-i"],
+    # Lua -> stylua
+    ".lua": ["stylua"],
+    # Java -> google-java-format
+    ".java": ["google-java-format", "--replace"],
+}
+
 
 def handle_post_tool():
     payload = parse_input()
@@ -170,58 +221,74 @@ def handle_post_tool():
 
 
 def format_file(file_path: str):
-    """파일 확장자별 로컬 포매터 실행 (실패 시 조용히 무시)"""
+    """단발성 Docker 컨테이너(docker run --rm) 기반 포매터 실행 (실패 시 로컬 폴백)"""
     ext = os.path.splitext(file_path)[1].lower()
+    cmd_prefix = FORMATTER_COMMANDS.get(ext)
+    if not cmd_prefix:
+        return
 
+    # 심볼릭 링크 해석을 포함한 정규 절대 경로
+    abs_path = os.path.realpath(os.path.abspath(file_path))
+    file_dir = os.path.dirname(abs_path)
+    home_dir = os.path.realpath(os.path.expanduser("~"))
+
+    # 1) Docker 단발성 컨테이너 실행 시도
+    docker_bin = shutil.which("docker")
+    if docker_bin:
+        try:
+            # 기본적으로 홈 디렉터리 마운트
+            volume_args = ["-v", f"{home_dir}:{home_dir}"]
+            # 임시 폴더 또는 홈 외부 경로 접근 지원
+            if abs_path.startswith("/private/"):
+                volume_args.extend(["-v", "/private:/private"])
+            elif not abs_path.startswith(home_dir):
+                volume_args.extend(["-v", f"{file_dir}:{file_dir}"])
+
+            docker_cmd = (
+                [
+                    docker_bin,
+                    "run",
+                    "--rm",
+                ]
+                + volume_args
+                + [
+                    "-w",
+                    file_dir,
+                    DOCKER_IMAGE,
+                ]
+                + cmd_prefix
+                + [abs_path]
+            )
+
+            res = subprocess.run(
+                docker_cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=15,
+            )
+            if res.returncode == 0:
+                return
+        except Exception:
+            pass
+
+    # 2) Docker 미가동 또는 실패 시 로컬 포매터 폴백
     try:
-        # JS / TS / JSON / Markdown -> Prettier
-        if ext in {".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".css", ".scss"}:
-            prettier_cmd = shutil.which("prettier")
-            if prettier_cmd:
-                subprocess.run(
-                    [prettier_cmd, "--write", file_path],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    timeout=5,
-                )
-
-        # Python -> ruff 또는 black
+        local_tool = cmd_prefix[0]
+        local_bin = shutil.which(local_tool)
+        if local_bin:
+            local_cmd = [local_bin] + cmd_prefix[1:] + [abs_path]
+            subprocess.run(
+                local_cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+            )
         elif ext == ".py":
-            ruff_cmd = shutil.which("ruff")
-            if ruff_cmd:
+            # Python: ruff 없으면 black 시도
+            black_bin = shutil.which("black")
+            if black_bin:
                 subprocess.run(
-                    [ruff_cmd, "format", file_path],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    timeout=5,
-                )
-            else:
-                black_cmd = shutil.which("black")
-                if black_cmd:
-                    subprocess.run(
-                        [black_cmd, "-q", file_path],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                        timeout=5,
-                    )
-
-        # C / C++ -> clang-format
-        elif ext in {".c", ".cpp", ".cc", ".h", ".hpp"}:
-            clang_cmd = shutil.which("clang-format")
-            if clang_cmd:
-                subprocess.run(
-                    [clang_cmd, "-i", file_path],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    timeout=5,
-                )
-
-        # Lua -> stylua
-        elif ext == ".lua":
-            stylua_cmd = shutil.which("stylua")
-            if stylua_cmd:
-                subprocess.run(
-                    [stylua_cmd, file_path],
+                    [black_bin, "-q", abs_path],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=5,
@@ -234,12 +301,15 @@ def format_file(file_path: str):
 # 5. Stop 핸들러 (macOS 네이티브 알림)
 # ------------------------------------------------------------------------------
 
+
 def handle_stop():
     # macOS 환경 알림 전송
     if sys.platform == "darwin":
         try:
             msg = "에이전트 작업이 완료되었습니다."
-            script = f'display notification "{msg}" with title "AI Agent" sound name "Glass"'
+            script = (
+                f'display notification "{msg}" with title "AI Agent" sound name "Glass"'
+            )
             subprocess.run(
                 ["osascript", "-e", script],
                 stdout=subprocess.DEVNULL,
@@ -256,6 +326,7 @@ def handle_stop():
 # ------------------------------------------------------------------------------
 # 메인 엔트리포인트
 # ------------------------------------------------------------------------------
+
 
 def main():
     if len(sys.argv) < 2:

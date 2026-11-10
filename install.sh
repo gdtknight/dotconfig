@@ -47,6 +47,7 @@ Modules:
   zsh             Link Zsh, Oh My Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
   terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux, Nerd Fonts)
   fonts           Install Nerd Fonts (D2Coding, ComicShannsMono)
+  formatter, docker Build the dotconfig-formatter Docker image (Prettier, Ruff, Clang-format, StyLua, Google-Java-Format)
   packages, brew  Install/sync user-curated packages from Brewfile (non-root compatible)
   all             Link all configurations (Default if no module specified)
 
@@ -598,6 +599,22 @@ install_packages() {
   fi
 }
 
+build_formatter() {
+  log_info "Building Formatter Docker Image (dotconfig-formatter:latest)..."
+  if ! command -v docker >/dev/null 2>&1; then
+    log_warn "Docker is not installed or not in PATH; skipping formatter build."
+    return 1
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Build docker image: dotconfig-formatter:latest from ${REPO_DIR}/docker/formatter"
+    return 0
+  fi
+
+  "${REPO_DIR}/docker/formatter/build.sh"
+  log_ok "Formatter Docker Image built successfully."
+}
+
 # ------------------------------------------------------------------------------
 # Argument Parsing
 # ------------------------------------------------------------------------------
@@ -621,7 +638,7 @@ while [[ $# -gt 0 ]]; do
       dump_antigravity_extensions
       exit 0
       ;;
-    nvim|agents|ide|git|zsh|terminal|fonts|packages|brew|all)
+    nvim|agents|ide|git|zsh|terminal|fonts|formatter|docker|packages|brew|all)
       MODULES+=("$1")
       shift
       ;;
@@ -644,14 +661,15 @@ fi
 
 for mod in "${MODULES[@]}"; do
   case "$mod" in
-    nvim)          link_nvim ;;
-    agents)        link_agents ;;
-    ide)           link_ide ;;
-    git)           link_git ;;
-    zsh)           link_zsh ;;
-    terminal)      link_terminal ;;
-    fonts)         install_fonts ;;
-    packages|brew) install_packages ;;
+    nvim)             link_nvim ;;
+    agents)           link_agents ;;
+    ide)              link_ide ;;
+    git)              link_git ;;
+    zsh)              link_zsh ;;
+    terminal)         link_terminal ;;
+    fonts)            install_fonts ;;
+    formatter|docker) build_formatter ;;
+    packages|brew)    install_packages ;;
     all)
       install_packages
       link_nvim
