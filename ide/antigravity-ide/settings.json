@@ -74,19 +74,19 @@
     "tab.inactiveBackground": "#00000044",
     "tab.unfocusedInactiveBackground": "#00000044",
 
-    // 경로 표시줄 및 터미널 (딥블랙 70%)
+    // 경로 표시줄 (딥블랙 70%) 및 터미널 (중첩 어두워짐 방지를 위해 완전 투명 처리)
     "breadcrumb.background": "#101010b3",
-    "terminal.background": "#101010b3",
+    "terminal.background": "#00000000",
 
     // 에디터 본문 반투명 배경 (회색 안개 느낌을 없애고 웹뷰와 톤을 일치시키는 딥블랙 35%)
     "editor.background": "#00000059",
 
-    // 사이드바, 보조 사이드바, 액티비티바 (웹뷰의 짙은 블랙과 일치시키면서 반투명 유지 85%)
-    "sideBar.background": "#101010d9",
-    "sideBarTitle.background": "#101010d9",
-    "auxiliaryBar.background": "#101010d9",
-    "auxiliaryBarTitle.background": "#101010d9",
-    "activityBar.background": "#101010d9",
+    // 사이드바, 보조 사이드바, 액티비티바 (하단 터미널 40%보다 5% 진한 반투명 45%)
+    "sideBar.background": "#00000073",
+    "sideBarTitle.background": "#00000073",
+    "auxiliaryBar.background": "#00000073",
+    "auxiliaryBarTitle.background": "#00000073",
+    "activityBar.background": "#00000073",
     // 스티키 스크롤(상단 고정 헤더) 배경 (딥블랙 80%)
     "editorStickyScroll.background": "#101010cc",
     "editorStickyScrollGutter.background": "#101010cc",
@@ -99,10 +99,11 @@
     "chat.requestBackground": "#101010cc",
     "chat.editor.background": "#101010cc",
     "chat.slashCommandBackground": "#101010cc",
-    // 팝업, 위젯, 제안창, 메뉴, 알림창, 보조 패널 배경 (웹뷰 톤과 일치하는 딥블랙 92%)
-    "panel.background": "#101010eb",
-    "panelSection.background": "#101010eb",
+    // 하단 패널 및 섹션 배경 (에디터 35%보다 살짝만 짙은 반투명 40%로 미세 경계 구분)
+    "panel.background": "#00000073",
+    "panelSection.background": "#00000073",
     "panelSectionHeader.background": "#101010eb",
+    // 팝업, 위젯, 제안창, 메뉴, 알림창 배경 (웹뷰 톤과 일치하는 딥블랙 92%)
     "inlineChat.background": "#101010eb",
     "editorWidget.background": "#101010eb",
     "editorHoverWidget.background": "#101010eb",

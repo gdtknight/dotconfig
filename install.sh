@@ -147,6 +147,7 @@ link_agents() {
   link_target "${REPO_DIR}/agents/claude/settings.json" "${HOME}/.claude/settings.json"
   link_target "${REPO_DIR}/agents/shared/rules" "${HOME}/.claude/rules"
   link_target "${REPO_DIR}/agents/shared/agents" "${HOME}/.claude/agents"
+  link_target "${REPO_DIR}/agents/shared/hooks" "${HOME}/.claude/hooks"
 
   # Gemini (~/.gemini)
   mkdir -p "${HOME}/.gemini/config/skills"
@@ -156,6 +157,7 @@ link_agents() {
   link_target "${REPO_DIR}/agents/gemini/settings.json" "${HOME}/.gemini/settings.json"
   link_target "${REPO_DIR}/agents/gemini/config.json" "${HOME}/.gemini/config/config.json"
   link_target "${REPO_DIR}/agents/gemini/hooks.json" "${HOME}/.gemini/config/hooks.json"
+  link_target "${REPO_DIR}/agents/shared/hooks" "${HOME}/.gemini/config/hooks"
   link_target "${REPO_DIR}/agents/gemini/mcp_config.json" "${HOME}/.gemini/config/mcp_config.json"
 
   # Codex (~/.codex)
@@ -163,6 +165,7 @@ link_agents() {
   link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.codex/AGENTS.md"
   link_target "${REPO_DIR}/agents/codex/config.toml" "${HOME}/.codex/config.toml"
   link_target "${REPO_DIR}/agents/codex/agents" "${HOME}/.codex/agents"
+  link_target "${REPO_DIR}/agents/shared/hooks" "${HOME}/.codex/hooks"
 
   # Clean up stale/dangling skill symlinks in Gemini and Codex
   local skill_file

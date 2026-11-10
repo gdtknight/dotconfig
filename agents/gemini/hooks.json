@@ -1,24 +1,15 @@
 {
-  "orca-status": {
-    "PreInvocation": [
+  "dotconfig-hooks": {
+    "PreToolUse": [
       {
-        "type": "command",
-        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PreInvocation' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-        "timeout": 10
-      }
-    ],
-    "PostInvocation": [
-      {
-        "type": "command",
-        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PostInvocation' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-        "timeout": 10
-      }
-    ],
-    "Stop": [
-      {
-        "type": "command",
-        "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='Stop' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-        "timeout": 10
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" pre-tool",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -27,10 +18,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -r '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ] && [ -x '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh' ]; then ORCA_ANTIGRAVITY_EVENT='PostToolUse' /bin/sh '/Users/yoshin/.orca/agent-hooks/antigravity-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" post-tool",
             "timeout": 10
           }
         ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" stop",
+        "timeout": 5
       }
     ]
   }

@@ -14,79 +14,13 @@
   "theme": "dark",
   "tui": "fullscreen",
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "TeammateIdle": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "command": "python3 \"${HOME}/.claude/hooks/hook.py\" pre-tool",
             "timeout": 10
           }
         ]
@@ -98,32 +32,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "command": "python3 \"${HOME}/.claude/hooks/hook.py\" post-tool",
             "timeout": 10
           }
         ]
       }
     ],
-    "PostToolUseFailure": [
+    "Stop": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
+            "command": "python3 \"${HOME}/.claude/hooks/hook.py\" stop",
+            "timeout": 5
           }
         ]
       }

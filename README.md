@@ -14,8 +14,8 @@ dotconfig/
 ├── zsh/                        # Zsh 셸 및 프롬프트 (.zshrc, .zprofile, .p10k.zsh)
 ├── git/                        # Git 전역 설정 (.gitconfig, .gitignore)
 ├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex 통합 관리)
-│   ├── shared/                 # 3사 에이전트 공통 원본 (INSTRUCTIONS.md, rules/, agents/*.md)
-│   ├── claude/                 # settings.json (Claude 전용 설정)
+│   ├── shared/                 # 3사 에이전트 공통 원본 (INSTRUCTIONS.md, rules/, agents/*.md, hooks/)
+│   ├── claude/                 # settings.json (Claude 전용 설정 및 훅 연동)
 │   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
 │   └── codex/                  # config.toml, agents/*.toml (shared/agents 참조 래퍼)
 ├── ide/                        # IDE 설정 (macOS & Linux XDG 경로 자동 분기)
@@ -33,9 +33,9 @@ dotconfig/
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | 디렉토리 심볼릭 링크 |
 | **Zsh** | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh` | 파일 심볼릭 링크<br>*(oh-my-zsh, p10k, 플러그인 자동 보장)* |
 | **Git** | `git/.gitconfig`<br>`git/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | `~/.gitconfig`<br>`~/.gitignore` | 파일 심볼릭 링크 |
-| **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크<br>*(claude CLI 자동 설치 보장)* |
-| **Gemini / AGY** | `agents/shared/{INSTRUCTIONS.md,rules,agents}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크<br>*(agy CLI 자동 설치 보장)* |
-| **Codex** | `agents/shared/{INSTRUCTIONS.md,agents}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크<br>*(codex CLI 자동 설치 보장)* |
+| **Claude** | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json` | 공통 마크다운/폴더 및 설정 링크<br>*(claude CLI 자동 설치 보장)* |
+| **Gemini / AGY** | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | 공통 마크다운/스킬 및 설정 링크<br>*(agy CLI 자동 설치 보장)* |
+| **Codex** | `agents/shared/{INSTRUCTIONS.md,agents,hooks}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md` | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md` | 공통 마크다운/스킬 및 TOML 링크<br>*(codex CLI 자동 설치 보장)* |
 | **Antigravity IDE** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Antigravity IDE/User/*` | 파일 심볼릭 링크<br>*(extensions.txt 기반 확장 자동 설치/동기화)* |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 파일 심볼릭 링크 |
 | **Terminal** | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf` | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf`<br>`~/Library/Fonts` | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf`<br>`~/.local/share/fonts` | 디렉토리 및 파일 링크<br>*(tpm 및 Nerd Fonts: D2Coding, ComicShannsMono 자동 보장)* |
@@ -92,3 +92,16 @@ dotconfig/
 ```text
 ~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/
 ```
+
+---
+
+## 5. AI 에이전트 라이프사이클 훅 (`agents/shared/hooks/hook.py`)
+
+Claude, Gemini, Codex 에이전트 공통으로 동작하는 보안 가드, 자동 포맷, 시스템 알림 훅을 제공합니다.
+
+| 훅 이벤트 | 동작 및 기능 |
+| :--- | :--- |
+| **PreToolUse** (실행 전) | **보안 가드**: `git push --force`, `git reset --hard`, `rm -rf /` 등 파괴적 명령 사전 차단<br>**시크릿 보호**: `.env`, 개인키, 인증 파일 직접 접근 차단 및 API 키(OpenAI, Google, GitHub, Slack 등) 누출 차단 |
+| **PostToolUse** (실행 후) | **자동 코드 포맷**: 파일 수정 도구 완료 시 로컬에 설치된 포매터(`prettier`, `ruff`, `black`, `clang-format`, `stylua`) 자동 실행 |
+| **Stop** (세션 종료) | **작업 완료 알림**: 긴 작업 완료 시 macOS 네이티브 알림(`display notification`) 및 Glass 사운드 재생 |
+

@@ -1,63 +1,54 @@
 {
-	"hooks": {
-		"BeforeAgent": [
-			{
-				"hooks": [
-					{
-						"type":    "command",
-						"command": "if [ -f '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/gemini-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-						"timeout": 10000
-					}
-				]
-			}
-		],
-		"AfterAgent": [
-			{
-				"hooks": [
-					{
-						"type":    "command",
-						"command": "if [ -f '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/gemini-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-						"timeout": 10000
-					}
-				]
-			}
-		],
-		"AfterTool": [
-			{
-				"hooks": [
-					{
-						"type":    "command",
-						"command": "if [ -f '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/gemini-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-						"timeout": 10000
-					}
-				]
-			}
-		],
-		"BeforeTool": [
-			{
-				"hooks": [
-					{
-						"type":    "command",
-						"command": "if [ -f '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -r '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ] && [ -x '/Users/yong/.orca/agent-hooks/gemini-hook.sh' ]; then /bin/sh '/Users/yong/.orca/agent-hooks/gemini-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
-						"timeout": 10000
-					}
-				]
-			}
-		]
-	},
-	"security": {
-		"auth": {
-			"selectedType": "oauth-personal"
-		}
-	},
-	"mcpServers": {"GitKraken": {
-		"args": [
-			"mcp",
-			"--host=gemini",
-			"--source=gitlens",
-			"--scheme=antigravity-ide"
-		],
-		"command": "/Users/yong/Library/Application Support/Antigravity IDE/User/globalStorage/eamodio.gitlens/gk",
-		"type":    "stdio"
-	}}
+  "hooks": {
+    "BeforeTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" pre-tool",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" post-tool",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${HOME}/.gemini/config/hooks/hook.py\" stop",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "mcpServers": {
+    "GitKraken": {
+      "args": [
+        "mcp",
+        "--host=gemini",
+        "--source=gitlens",
+        "--scheme=antigravity-ide"
+      ],
+      "command": "/Users/yong/Library/Application Support/Antigravity IDE/User/globalStorage/eamodio.gitlens/gk",
+      "type": "stdio"
+    }
+  }
 }
