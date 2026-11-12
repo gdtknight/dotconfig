@@ -93,11 +93,13 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+  export VISUAL='vim'
+else
+  export EDITOR='nvim'
+  export VISUAL='nvim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch $(uname -m)"
@@ -118,17 +120,11 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-
 alias cd="z"
 #alias ll="eza -alD --icons --blocksize && eza -alf --icons --show-symlinks"
 alias ll="eza -al --sort type --icons always"
 eval "$(zoxide init zsh)"
 export PATH="$HOME/.local/bin:$PATH"
-
 
 # android
 export ANDROID_HOME=$HOME/Library/Android/sdk
@@ -140,9 +136,60 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 # Added by Antigravity IDE
 export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
 
+# Local private environment variables and secrets (Never committed)
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
-# Added by Antigravity CLI installer
-export PATH="$HOME/.local/bin:$PATH"
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# Dev Container Template Initializer
+devcontainer-init() {
+  local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
+  local template_dir="${dotconfig_repo}/devcontainers"
+  if [ ! -d "$template_dir" ]; then
+    echo "Error: Devcontainer template directory not found at: $template_dir"
+    return 1
+  fi
+
+  if [ -z "$1" ]; then
+    echo "Usage: devcontainer-init <template-name>"
+    echo ""
+    echo "Available templates:"
+    for d in "$template_dir"/*; do
+      [ -d "$d" ] && echo "  - $(basename "$d")"
+    done
+    return 1
+  fi
+
+  local target="$template_dir/$1/.devcontainer"
+  if [ ! -d "$target" ]; then
+    echo "Error: Template '$1' not found. Available templates:"
+    for d in "$template_dir"/*; do
+      [ -d "$d" ] && echo "  - $(basename "$d")"
+    done
+    return 1
+  fi
+
+  if [ -d ".devcontainer" ]; then
+    echo -n ".devcontainer already exists. Overwrite? (y/N): "
+    read -r answer
+    if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+      echo "Aborted."
+      return 0
+    fi
+    rm -rf .devcontainer
+  fi
+
+  cp -r "$target" .
+  echo "✓ Successfully initialized .devcontainer for '$1'!"
+  echo "  Open with 'nvim .' and press '<Space>Ds' to start container, then '<Space>Da' to attach."
+}
+
+# Zsh auto-completion for devcontainer-init
+_devcontainer_init_completion() {
+  local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
+  local template_dir="${dotconfig_repo}/devcontainers"
+  if [ -d "$template_dir" ]; then
+    local -a templates
+    templates=("$template_dir"/*(N/:t))
+    _describe 'templates' templates
+  fi
+}
+compdef _devcontainer_init_completion devcontainer-init 2>/dev/null || true
