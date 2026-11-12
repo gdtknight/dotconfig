@@ -50,12 +50,12 @@ local function get_filename()
 end
 
 local function get_user()
-	local user = vim.g.user42 or vim.env.USER or "yoshin"
+	local user = vim.g.user42 or vim.env.USER42 or vim.env.USER or "marvin"
 	return user
 end
 
 local function get_mail()
-	local mail = vim.g.mail42 or vim.env.MAIL or "yoshin@student.42gyeongsan.kr"
+	local mail = vim.g.mail42 or vim.env.MAIL42 or vim.env.MAIL or "marvin@42.fr"
 	return mail
 end
 
