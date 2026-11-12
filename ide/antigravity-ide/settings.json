@@ -496,6 +496,37 @@
         },
       ],
     },
+    {
+      "key": "D",
+      "name": "+devcontainer",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "m",
+          "name": "Devcontainer Actions Menu",
+          "type": "command",
+          "command": "codiumDevcontainer.showMenu",
+        },
+        {
+          "key": "o",
+          "name": "Open Folder in Devcontainer",
+          "type": "command",
+          "command": "codiumDevcontainer.openFolderInDevcontainer",
+        },
+        {
+          "key": "r",
+          "name": "Rebuild & Open",
+          "type": "command",
+          "command": "codiumDevcontainer.rebuildAndOpen",
+        },
+        {
+          "key": "c",
+          "name": "Open devcontainer.json",
+          "type": "command",
+          "command": "codiumDevcontainer.openDevcontainerConfig",
+        },
+      ],
+    },
   ],
   //#endregion
 
