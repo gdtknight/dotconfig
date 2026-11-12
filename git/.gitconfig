@@ -1,6 +1,8 @@
-[user]
-	name = yoshin
-	email = yoshin@student.42gyeongsan.kr
+# ==============================================================================
+# Global Git Configuration (Managed by dotconfig)
+# User details and multi-account includes are loaded from ~/.gitconfig.local
+# ==============================================================================
+
 [core]
 	excludesfile = ~/.gitignore
 [column]
@@ -26,5 +28,12 @@
 	all = true
 [commit]
 	verbose = true
+	gpgsign = true
+[gpg]
+	format = ssh
 [rebase]
 	autoStash = true
+
+# Include machine-local and private account configuration (Never committed)
+[include]
+	path = ~/.gitconfig.local

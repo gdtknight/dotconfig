@@ -248,6 +248,13 @@ captures/
 *.ipr
 *.swp
 
+# Local environment and private overrides
+*.local
+*.local.*
+.zshrc.local
+!*.example
+git-accounts.env
+
 # Keystore files
 *.jks
 *.keystore

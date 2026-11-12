@@ -43,7 +43,7 @@ Modules:
   nvim            Link Neovim configuration (~/.config/nvim)
   agents          Link Agent configurations (Claude, Gemini, Codex)
   ide             Link IDE configurations (Antigravity IDE, IntelliJ) & sync extensions
-  git             Link Git global configuration (~/.gitconfig, ~/.gitignore)
+  git             Link Git global configuration & multi-account workspaces (~/Projects)
   zsh             Link Zsh, Oh My Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
   terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux, Nerd Fonts)
   fonts           Install Nerd Fonts (D2Coding, ComicShannsMono)
@@ -354,10 +354,191 @@ link_ide() {
   fi
 }
 
+guide_github_ssh_key() {
+  local user="$1"
+  local email="$2"
+  local pub_key="${HOME}/.ssh/id_ed25519_${user}.pub"
+
+  if [ ! -f "$pub_key" ]; then
+    return 0
+  fi
+
+  local copied=false
+  if command -v pbcopy >/dev/null 2>&1; then
+    pbcopy < "$pub_key"
+    copied=true
+  fi
+
+  echo ""
+  echo -e "${COLOR_GREEN}================================================================================${COLOR_RESET}"
+  if [ "$copied" = true ]; then
+    echo -e "${COLOR_GREEN}[GitHub SSH Key 등록 안내] ${COLOR_RESET}${COLOR_YELLOW}${user} (${email})${COLOR_RESET} 공개키가 클립보드에 복사되었습니다! (pbcopy)"
+  else
+    echo -e "${COLOR_GREEN}[GitHub SSH Key 등록 안내] ${COLOR_RESET}${COLOR_YELLOW}${user} (${email})${COLOR_RESET}"
+    echo -e "공개키 내용: $(cat "$pub_key")"
+  fi
+  echo -e "👉 GitHub 등록 링크: ${COLOR_BLUE}https://github.com/settings/ssh/new${COLOR_RESET}"
+  echo -e "   - Title: MacBook (${user})"
+  echo -e "   - Key type: Authentication Key (또는 Signing Key)"
+  echo -e "   - Key: Cmd + V (붙여넣기)"
+  echo -e "${COLOR_GREEN}================================================================================${COLOR_RESET}"
+}
+
+setup_git_accounts() {
+  log_info "Configuring Multi-account Git workspaces and SSH keys..."
+
+  local local_env="${HOME}/.config/dotconfig/git-accounts.env"
+  if [ -f "$local_env" ]; then
+    # shellcheck disable=SC1090
+    . "$local_env"
+  else
+    if [ -t 0 ]; then
+      echo ""
+      echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
+      echo -e "${COLOR_BLUE}[Git 다중 계정 설정]${COLOR_RESET} 계정 분기 설정을 위해 2개 계정 정보를 입력해주세요."
+      echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
+      read -r -p "계정 1 GitHub Username (예: personal): " ACCOUNT1_USER
+      read -r -p "계정 1 Git 작성자 이름 (예: Hong Gildong): " ACCOUNT1_NAME
+      read -r -p "계정 1 이메일 (예: user@example.com): " ACCOUNT1_EMAIL
+      echo ""
+      read -r -p "계정 2 GitHub Username (예: work): " ACCOUNT2_USER
+      read -r -p "계정 2 Git 작성자 이름 (예: Gildong Hong): " ACCOUNT2_NAME
+      read -r -p "계정 2 이메일 (예: work@company.com): " ACCOUNT2_EMAIL
+      echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
+    fi
+
+    # Check if accounts are provided
+    if [ -z "${ACCOUNT1_USER:-}" ] || [ -z "${ACCOUNT2_USER:-}" ]; then
+      log_warn "Git accounts configuration not found or incomplete."
+      log_info "Create ${local_env} to enable multi-account Git workspaces."
+      return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Initialize git accounts config at: ${local_env}"
+    else
+      mkdir -p "$(dirname "$local_env")"
+      cat > "$local_env" << EOF
+ACCOUNT1_USER="${ACCOUNT1_USER}"
+ACCOUNT1_NAME="${ACCOUNT1_NAME}"
+ACCOUNT1_EMAIL="${ACCOUNT1_EMAIL}"
+
+ACCOUNT2_USER="${ACCOUNT2_USER}"
+ACCOUNT2_NAME="${ACCOUNT2_NAME}"
+ACCOUNT2_EMAIL="${ACCOUNT2_EMAIL}"
+EOF
+      log_ok "Saved git accounts config to: ${local_env}"
+    fi
+  fi
+
+  local ssh_dir="${HOME}/.ssh"
+
+  # Process Account 1 and Account 2
+  local u n e k p cfg
+  local idx=1
+  while [ "$idx" -le 2 ]; do
+    if [ "$idx" -eq 1 ]; then
+      u="$ACCOUNT1_USER"
+      n="$ACCOUNT1_NAME"
+      e="$ACCOUNT1_EMAIL"
+    else
+      u="$ACCOUNT2_USER"
+      n="$ACCOUNT2_NAME"
+      e="$ACCOUNT2_EMAIL"
+    fi
+
+    k="${ssh_dir}/id_ed25519_${u}"
+    p="${HOME}/Projects/${u}"
+    cfg="${HOME}/.gitconfig-${u}"
+
+    # 1. Project Directory
+    if [ ! -d "$p" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Create workspace: ${p}"
+      else
+        mkdir -p "$p"
+        log_ok "Created workspace: ${p}"
+      fi
+    else
+      log_ok "Workspace exists: ${p}"
+    fi
+
+    # 2. SSH Key Pair
+    if [ ! -f "$k" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Generate ed25519 SSH key: ${k} (${e})"
+      else
+        mkdir -p "$ssh_dir"
+        chmod 700 "$ssh_dir"
+        log_info "Generating SSH key for ${u} (${e})..."
+        ssh-keygen -t ed25519 -C "$e" -f "$k" -N "" >/dev/null 2>&1
+        chmod 600 "$k"
+        chmod 644 "${k}.pub"
+        log_ok "Generated SSH key: ${k}"
+      fi
+    else
+      log_ok "SSH key already exists: ${k}"
+    fi
+
+    # 3. Dedicated .gitconfig-<user>
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Create git config ${cfg} (user=${n}, email=${e})"
+    else
+      cat > "$cfg" << EOF
+[user]
+	name = ${n}
+	email = ${e}
+	signingkey = ${k}.pub
+[core]
+	sshCommand = ssh -i ${k} -F /dev/null
+EOF
+      log_ok "Configured: ${cfg}"
+    fi
+
+    idx=$((idx + 1))
+  done
+
+  # 4. Generate ~/.gitconfig.local with includeIf rules
+  local local_gitconfig="${HOME}/.gitconfig.local"
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Configure ${local_gitconfig} with includeIf rules for ${ACCOUNT1_USER} and ${ACCOUNT2_USER}"
+  else
+    cat > "$local_gitconfig" << EOF
+# Auto-generated by dotconfig install.sh (Never committed)
+# Default fallback user
+[user]
+	name = ${ACCOUNT1_NAME}
+	email = ${ACCOUNT1_EMAIL}
+
+# Multi-account directory includes
+[includeIf "gitdir:~/Projects/${ACCOUNT1_USER}/"]
+	path = ~/.gitconfig-${ACCOUNT1_USER}
+
+[includeIf "gitdir:~/dev/"]
+	path = ~/.gitconfig-${ACCOUNT1_USER}
+
+[includeIf "gitdir:~/Projects/${ACCOUNT2_USER}/"]
+	path = ~/.gitconfig-${ACCOUNT2_USER}
+EOF
+    log_ok "Configured: ${local_gitconfig}"
+  fi
+
+  # 5. GitHub SSH Key Guide (Option A)
+  if [ "$DRY_RUN" = false ]; then
+    guide_github_ssh_key "$ACCOUNT1_USER" "$ACCOUNT1_EMAIL"
+    if [ -t 0 ]; then
+      echo ""
+      read -r -p "엔터를 누르면 두 번째 계정 (${ACCOUNT2_USER}) 키를 클립보드에 복사합니다..." _prompt_enter || true
+    fi
+    guide_github_ssh_key "$ACCOUNT2_USER" "$ACCOUNT2_EMAIL"
+  fi
+}
+
 link_git() {
   log_info "Configuring Git (Global .gitconfig, .gitignore)..."
   link_target "${REPO_DIR}/git/.gitconfig" "${HOME}/.gitconfig"
   link_target "${REPO_DIR}/git/.gitignore" "${HOME}/.gitignore"
+  setup_git_accounts
 }
 
 link_zsh() {
