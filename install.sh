@@ -322,7 +322,16 @@ link_agents() {
   fi
 }
 
-find_antigravity_cli() {
+find_ide_cli() {
+  if [ "$IS_LINUX" = true ]; then
+    # On Linux (Ubuntu), prioritize default system-installed VS Code ('code')
+    if command -v code >/dev/null 2>&1; then
+      echo "code"
+      return 0
+    fi
+  fi
+
+  # Prioritize Antigravity IDE (primary on macOS)
   if command -v antigravity-ide >/dev/null 2>&1; then
     echo "antigravity-ide"
   elif [ -x "${HOME}/.antigravity-ide/antigravity-ide/bin/antigravity-ide" ]; then
@@ -331,7 +340,49 @@ find_antigravity_cli() {
     echo "/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide"
   elif [ -x "${HOME}/.local/bin/antigravity-ide" ]; then
     echo "${HOME}/.local/bin/antigravity-ide"
+  elif command -v code >/dev/null 2>&1; then
+    # Fallback to standard VS Code
+    echo "code"
+  elif [ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
+    echo "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
   fi
+}
+
+find_antigravity_cli() {
+  find_ide_cli
+}
+
+setup_goinfre_symlink() {
+  local target_home="$1"
+  local rel_path="$2"
+
+  local goinfre_dir="${HOME}/goinfre/${rel_path}"
+  local home_dest="${HOME}/${rel_path}"
+
+  if [ ! -d "${HOME}/goinfre" ]; then
+    return 0
+  fi
+
+  if [ -L "$home_dest" ] && [ "$(readlink "$home_dest")" = "$goinfre_dir" ]; then
+    log_ok "Goinfre link active: ${home_dest} -> ${goinfre_dir}"
+    return 0
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Relocate ${home_dest} to ${goinfre_dir} (NFS Quota Protection)"
+    return 0
+  fi
+
+  mkdir -p "$goinfre_dir"
+  if [ -d "$home_dest" ] && [ ! -L "$home_dest" ]; then
+    log_info "Moving existing ${home_dest} to ${goinfre_dir}..."
+    cp -rn "${home_dest}"/* "$goinfre_dir/" 2>/dev/null || true
+    rm -rf "$home_dest"
+  fi
+
+  mkdir -p "$(dirname "$home_dest")"
+  ln -sfn "$goinfre_dir" "$home_dest"
+  log_ok "Linked to goinfre: ${home_dest} -> ${goinfre_dir}"
 }
 
 install_antigravity_extensions() {
@@ -341,13 +392,13 @@ install_antigravity_extensions() {
   fi
 
   local ide_bin
-  ide_bin="$(find_antigravity_cli)"
+  ide_bin="$(find_ide_cli)"
   if [ -z "$ide_bin" ]; then
-    log_warn "Antigravity IDE CLI not found; skipping extensions sync."
+    log_warn "IDE CLI (code/antigravity-ide) not found; skipping extensions sync."
     return 0
   fi
 
-  log_info "Syncing Antigravity IDE extensions from ${ext_file}..."
+  log_info "Syncing extensions for ${ide_bin} from ${ext_file}..."
 
   local installed_raw
   installed_raw="$("$ide_bin" --list-extensions 2>/dev/null | grep -v "^\\[" | tr '[:upper:]' '[:lower:]' || true)"
@@ -369,29 +420,29 @@ install_antigravity_extensions() {
 
     missing_count=$((missing_count + 1))
     if [ "$DRY_RUN" = true ]; then
-      log_dry "Install Antigravity IDE extension: $ext_clean"
+      log_dry "Install ${ide_bin} extension: $ext_clean"
     else
-      log_info "Installing Antigravity IDE extension: $ext_clean..."
+      log_info "Installing ${ide_bin} extension: $ext_clean..."
       "$ide_bin" --install-extension "$ext_clean" --force >/dev/null 2>&1 || log_warn "Failed to install extension: $ext_clean"
       log_ok "Installed extension: $ext_clean"
     fi
   done < "$ext_file"
 
   if [ "$missing_count" -eq 0 ]; then
-    log_ok "All Antigravity IDE extensions are up-to-date."
+    log_ok "All extensions for ${ide_bin} are up-to-date."
   fi
 }
 
 dump_antigravity_extensions() {
   local ext_file="${REPO_DIR}/ide/antigravity-ide/extensions.txt"
   local ide_bin
-  ide_bin="$(find_antigravity_cli)"
+  ide_bin="$(find_ide_cli)"
   if [ -z "$ide_bin" ]; then
-    log_warn "Antigravity IDE CLI not found. Cannot export extensions."
+    log_warn "IDE CLI (code/antigravity-ide) not found. Cannot export extensions."
     return 1
   fi
 
-  log_info "Exporting installed Antigravity IDE extensions to ${ext_file}..."
+  log_info "Exporting installed extensions from ${ide_bin} to ${ext_file}..."
   local exts
   exts="$("$ide_bin" --list-extensions 2>/dev/null | grep -v "^\\[" | sort)"
   if [ -z "$exts" ]; then
@@ -410,23 +461,47 @@ dump_antigravity_extensions() {
 }
 
 link_ide() {
-  log_info "Configuring IDEs (Antigravity IDE, IntelliJ)..."
+  log_info "Configuring IDEs (VS Code / Antigravity IDE, IntelliJ)..."
 
-  local antigravity_user
-  local jetbrains_base
-  if [ "$IS_MAC" = true ]; then
-    antigravity_user="${HOME}/Library/Application Support/Antigravity IDE/User"
-    jetbrains_base="${HOME}/Library/Application Support/JetBrains"
-  else
-    # Linux (Ubuntu without sudo)
-    antigravity_user="${HOME}/.config/Antigravity IDE/User"
-    jetbrains_base="${HOME}/.config/JetBrains"
+  # 1. 42 Goinfre Quota Protection: Relocate extension storage to goinfre if available
+  if [ -d "${HOME}/goinfre" ]; then
+    log_info "Detected ~/goinfre. Configuring quota-safe extension storage..."
+    setup_goinfre_symlink "${HOME}" ".vscode/extensions"
+    setup_goinfre_symlink "${HOME}" ".antigravity-ide/extensions"
   fi
 
-  mkdir -p "$antigravity_user"
-  link_target "${REPO_DIR}/ide/antigravity-ide/settings.json" "${antigravity_user}/settings.json"
-  link_target "${REPO_DIR}/ide/antigravity-ide/keybindings.json" "${antigravity_user}/keybindings.json"
+  # 2. Setup user settings and keybindings per platform
+  local target_user_dirs=()
+
+  if [ "$IS_MAC" = true ]; then
+    target_user_dirs+=("${HOME}/Library/Application Support/Antigravity IDE/User")
+    if [ -d "${HOME}/Library/Application Support/Code/User" ] || command -v code >/dev/null 2>&1; then
+      target_user_dirs+=("${HOME}/Library/Application Support/Code/User")
+    fi
+  else
+    # Linux (Ubuntu): Prioritize system VS Code ('Code')
+    target_user_dirs+=("${HOME}/.config/Code/User")
+    if [ -d "${HOME}/.config/Antigravity IDE/User" ] || command -v antigravity-ide >/dev/null 2>&1; then
+      target_user_dirs+=("${HOME}/.config/Antigravity IDE/User")
+    fi
+  fi
+
+  for user_dir in "${target_user_dirs[@]}"; do
+    mkdir -p "$user_dir"
+    link_target "${REPO_DIR}/ide/antigravity-ide/settings.json" "${user_dir}/settings.json"
+    link_target "${REPO_DIR}/ide/antigravity-ide/keybindings.json" "${user_dir}/keybindings.json"
+  done
+
+  # 3. Synchronize extensions
   install_antigravity_extensions
+
+  # 4. IntelliJ configurations (if present)
+  local jetbrains_base
+  if [ "$IS_MAC" = true ]; then
+    jetbrains_base="${HOME}/Library/Application Support/JetBrains"
+  else
+    jetbrains_base="${HOME}/.config/JetBrains"
+  fi
 
   if [ -d "$jetbrains_base" ]; then
     # Find all IntelliJ IDEA installations
