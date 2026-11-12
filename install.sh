@@ -4,10 +4,12 @@
 # ==============================================================================
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_BASE="${HOME}/.dotconfig_backups"
-TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-BACKUP_DIR="${BACKUP_BASE}/backup_${TIMESTAMP}"
+# ------------------------------------------------------------------------------
+# 0. Self-Bootstrapping Guard (for curl/web one-line execution)
+# ------------------------------------------------------------------------------
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" 2>/dev/null && pwd || echo "")"
+DEFAULT_TARGET_REPO="${DOTCONFIG_DIR:-${HOME}/.dotconfig}"
+DOTCONFIG_REMOTE_URL="${DOTCONFIG_REMOTE_URL:-https://github.com/gdtknight/dotconfig.git}"
 
 # Color codes
 COLOR_RESET="\033[0m"
@@ -16,9 +18,6 @@ COLOR_YELLOW="\033[33m"
 COLOR_BLUE="\033[34m"
 COLOR_RED="\033[31m"
 COLOR_GRAY="\033[90m"
-
-DRY_RUN=false
-FORCE=false
 
 # OS Detection
 OS="$(uname -s)"
@@ -35,9 +34,94 @@ log_dry()     { echo -e "${COLOR_YELLOW}[DRY-RUN]${COLOR_RESET} $*"; }
 log_backup()  { echo -e "${COLOR_YELLOW}[BACKUP]${COLOR_RESET} $*"; }
 log_warn()    { echo -e "${COLOR_RED}[WARN]${COLOR_RESET} $*"; }
 
+# TTY-safe input prompt (handles curl | bash pipes)
+read_prompt() {
+  local prompt="$1"
+  local var_name="$2"
+  if [ -c /dev/tty ]; then
+    read -r -p "$prompt" "$var_name" < /dev/tty
+  else
+    read -r -p "$prompt" "$var_name"
+  fi
+}
+
+# If executed directly from web (outside a valid dotconfig git repo)
+if [ -z "$REPO_DIR" ] || [ ! -d "${REPO_DIR}/.git" ] || [ ! -f "${REPO_DIR}/git/.gitconfig" ]; then
+  echo -e "${COLOR_BLUE}================================================================================${COLOR_RESET}"
+  echo -e "${COLOR_GREEN}  dotconfig Web Bootstrapper${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}================================================================================${COLOR_RESET}"
+  log_info "Running via web installer. Preparing local environment..."
+
+  # 1. macOS Command Line Tools (git requirement)
+  if [ "$IS_MAC" = true ]; then
+    if ! xcode-select -p >/dev/null 2>&1; then
+      log_info "Xcode Command Line Tools not found. Requesting installation..."
+      xcode-select --install || true
+      echo -e "${COLOR_YELLOW}Press enter after the Xcode Command Line Tools installation finishes...${COLOR_RESET}"
+      read_prompt "Press [Enter] to continue..." _wait_xcode
+    fi
+
+    # 2. Check & Bootstrap Homebrew on macOS
+    local_brew=""
+    if command -v brew >/dev/null 2>&1; then
+      local_brew="brew"
+    elif [ -x "/opt/homebrew/bin/brew" ]; then
+      local_brew="/opt/homebrew/bin/brew"
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x "/usr/local/bin/brew" ]; then
+      local_brew="/usr/local/bin/brew"
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
+    if [ -z "$local_brew" ]; then
+      log_info "Homebrew not detected. Installing Homebrew..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      if [ -x "/opt/homebrew/bin/brew" ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      elif [ -x "/usr/local/bin/brew" ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+      fi
+    fi
+  fi
+
+  # 3. Ensure git is available
+  if ! command -v git >/dev/null 2>&1; then
+    log_warn "'git' is required to clone dotconfig but was not found in PATH."
+    exit 1
+  fi
+
+  # 4. Clone or update repository
+  if [ -d "${DEFAULT_TARGET_REPO}/.git" ]; then
+    log_info "Existing dotconfig repository found at ${DEFAULT_TARGET_REPO}. Pulling latest..."
+    git -C "$DEFAULT_TARGET_REPO" pull --ff-only || true
+  else
+    log_info "Cloning dotconfig repository into ${DEFAULT_TARGET_REPO}..."
+    mkdir -p "$(dirname "$DEFAULT_TARGET_REPO")"
+    git clone "$DOTCONFIG_REMOTE_URL" "$DEFAULT_TARGET_REPO"
+    log_ok "Successfully cloned dotconfig into ${DEFAULT_TARGET_REPO}"
+  fi
+
+  # 5. Hand over execution to local installer
+  log_info "Handoff to local installer: ${DEFAULT_TARGET_REPO}/install.sh $*"
+  echo ""
+  exec /bin/bash "${DEFAULT_TARGET_REPO}/install.sh" "$@"
+fi
+
+BACKUP_BASE="${HOME}/.dotconfig_backups"
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="${BACKUP_BASE}/backup_${TIMESTAMP}"
+
+DRY_RUN=false
+FORCE=false
+
 usage() {
   cat << EOF
 Usage: $(basename "$0") [OPTIONS] [MODULE...]
+
+Web One-Line Quickstart:
+  /bin/bash -c "\$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+  /bin/bash -c "\$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
+  /bin/bash -c "\$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
 
 Modules:
   nvim            Link Neovim configuration (~/.config/nvim)
@@ -56,6 +140,10 @@ Options:
   -f, --force     Force overwrite / relink even if destination symlink points elsewhere
   --dump-extensions Dump currently installed Antigravity IDE extensions to extensions.txt
   -h, --help      Display this help message and exit
+
+Environment Variables:
+  DOTCONFIG_DIR   Target repository directory (Default: ~/.dotconfig)
+  NONINTERACTIVE  Set to 1 to bypass interactive prompts in automated/CI setups
 
 Examples:
   $(basename "$0") --dry-run
@@ -388,22 +476,27 @@ setup_git_accounts() {
   log_info "Configuring Multi-account Git workspaces and SSH keys..."
 
   local local_env="${HOME}/.config/dotconfig/git-accounts.env"
+  local can_prompt=false
+  if [ "${NONINTERACTIVE:-0}" != "1" ] && { [ -t 0 ] || [ -c /dev/tty ]; }; then
+    can_prompt=true
+  fi
+
   if [ -f "$local_env" ]; then
     # shellcheck disable=SC1090
     . "$local_env"
   else
-    if [ -t 0 ]; then
+    if [ "$can_prompt" = true ]; then
       echo ""
       echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
       echo -e "${COLOR_BLUE}[Git 다중 계정 설정]${COLOR_RESET} 계정 분기 설정을 위해 2개 계정 정보를 입력해주세요."
       echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
-      read -r -p "계정 1 GitHub Username (예: personal): " ACCOUNT1_USER
-      read -r -p "계정 1 Git 작성자 이름 (예: Hong Gildong): " ACCOUNT1_NAME
-      read -r -p "계정 1 이메일 (예: user@example.com): " ACCOUNT1_EMAIL
+      read_prompt "계정 1 GitHub Username (예: personal): " ACCOUNT1_USER
+      read_prompt "계정 1 Git 작성자 이름 (예: Hong Gildong): " ACCOUNT1_NAME
+      read_prompt "계정 1 이메일 (예: user@example.com): " ACCOUNT1_EMAIL
       echo ""
-      read -r -p "계정 2 GitHub Username (예: work): " ACCOUNT2_USER
-      read -r -p "계정 2 Git 작성자 이름 (예: Gildong Hong): " ACCOUNT2_NAME
-      read -r -p "계정 2 이메일 (예: work@company.com): " ACCOUNT2_EMAIL
+      read_prompt "계정 2 GitHub Username (예: work): " ACCOUNT2_USER
+      read_prompt "계정 2 Git 작성자 이름 (예: Gildong Hong): " ACCOUNT2_NAME
+      read_prompt "계정 2 이메일 (예: work@company.com): " ACCOUNT2_EMAIL
       echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
     fi
 
@@ -526,9 +619,9 @@ EOF
   # 5. GitHub SSH Key Guide (Option A)
   if [ "$DRY_RUN" = false ]; then
     guide_github_ssh_key "$ACCOUNT1_USER" "$ACCOUNT1_EMAIL"
-    if [ -t 0 ]; then
+    if [ "$can_prompt" = true ]; then
       echo ""
-      read -r -p "엔터를 누르면 두 번째 계정 (${ACCOUNT2_USER}) 키를 클립보드에 복사합니다..." _prompt_enter || true
+      read_prompt "엔터를 누르면 두 번째 계정 (${ACCOUNT2_USER}) 키를 클립보드에 복사합니다..." _prompt_enter || true
     fi
     guide_github_ssh_key "$ACCOUNT2_USER" "$ACCOUNT2_EMAIL"
   fi

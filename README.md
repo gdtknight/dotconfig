@@ -47,7 +47,28 @@ dotconfig/
 
 ## 2. 사용법 (`install.sh`)
 
-`install.sh`는 OS(macOS, Linux)를 자동으로 감지하며 **sudo 권한이 전혀 필요하지 않습니다.**
+### ⚡ 웹 원라인 설치 (새 머신 / Fresh OS)
+
+새 머신에서 터미널을 열고 다음 명령어 한 줄만 실행하면, 저장소 클론(`~/.dotconfig`), 선행 도구(Xcode CLI Tools, Homebrew) 설치, 그리고 전체 환경 설정 심볼릭 링크가 원클릭으로 완료됩니다:
+
+```bash
+# 전체 자동 설치 (Homebrew, 심볼릭 링크, 폰트, IDE 확장 등)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+
+# 미리보기 (Dry-run)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
+
+# 특정 모듈만 선택 설치 (예: Neovim, Git)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
+```
+
+> **Tip**: 기본 설치 위치는 `~/.dotconfig`이며, 다른 경로를 원할 경우 `DOTCONFIG_DIR=~/my/path` 환경변수를 앞에 지정할 수 있습니다.
+
+---
+
+### 💻 로컬 저장소에서 실행
+
+이미 저장소를 클론한 경우, 저장소 디렉터리 내에서 직접 실행할 수 있습니다. OS(macOS, Linux)를 자동으로 감지하며 **sudo 권한이 전혀 필요하지 않습니다.**
 
 ```bash
 # 전체 설정 링크 미리보기 (실제 변경 없음)
