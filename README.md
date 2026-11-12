@@ -24,6 +24,7 @@ dotconfig/
 ├── alacritty/                  # Alacritty 터미널 설정 및 테마
 ├── wezterm/                    # WezTerm 설정 (wezterm.lua)
 ├── tmux/                       # tmux.conf
+├── devcontainers/              # 환경별 Dev Container 템플릿 (42 C/C++, Go, DB 풀스택, Python AI 등)
 └── docker/                     # 컨테이너화 도구 정의
     └── formatter/              # Dockerfile, build.sh (단발성 코드 포매터 컨테이너)
 ```
@@ -34,7 +35,7 @@ dotconfig/
 | :------------------ | :------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------- |
 | **Neovim**          | `nvim`                                                                                | `~/.config/nvim`                                                                     | `~/.config/nvim`                                                                                              | 디렉토리 심볼릭 링크                                                                |
 | **Zsh**             | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh`                                    | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh`                                         | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh`                                                                  | 파일 심볼릭 링크<br>_(oh-my-zsh, p10k, 플러그인 자동 보장)_                         |
-| **Git**             | `git/.gitconfig`<br>`git/.gitignore`                                                  | `~/.gitconfig`<br>`~/.gitignore`                                                     | `~/.gitconfig`<br>`~/.gitignore`                                                                              | 파일 심볼릭 링크                                                                    |
+| **Git**             | `git/.gitconfig`<br>`git/.gitignore`                                                  | `~/.gitconfig`<br>`~/.gitignore`<br>`~/Projects/<account>/`                          | `~/.gitconfig`<br>`~/.gitignore`<br>`~/Projects/<account>/`                                                   | 파일 심볼릭 링크<br>_(다중 계정 격리 워크플로우 & SSH 키/서명 자동화)_              |
 | **Claude**          | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json`              | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json`                                       | 공통 마크다운/폴더 및 설정 링크<br>_(claude CLI 자동 설치 보장)_                    |
 | **Gemini / AGY**    | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/gemini/*`             | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}`                          | 공통 마크다운/스킬 및 설정 링크<br>_(agy CLI 자동 설치 보장)_                       |
 | **Codex**           | `agents/shared/{INSTRUCTIONS.md,agents,hooks}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md`      | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md`                               | 공통 마크다운/스킬 및 TOML 링크<br>_(codex CLI 자동 설치 보장)_                     |
@@ -58,7 +59,7 @@ dotconfig/
 # 특정 모듈만 선택 연결
 ./install.sh nvim       # Neovim만 연결
 ./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh), Oh My Zsh, p10k 및 플러그인 설정
-./install.sh git        # Git 전역 설정(.gitconfig, .gitignore)만 연결
+./install.sh git        # Git 전역 설정 및 다중 계정(Projects/계정별 디렉터리, SSH 키, includeIf) 구성
 ./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
 ./install.sh ide        # Antigravity IDE, IntelliJ 설정 연결 및 확장 프로그램 동기화
 ./install.sh terminal   # Alacritty, WezTerm, Tmux 연결 및 Nerd Fonts 설치
@@ -110,3 +111,58 @@ Claude, Gemini, Codex 에이전트 공통으로 동작하는 보안 가드, 자�
 | **PreToolUse** (실행 전)  | **보안 가드**: `git push --force`, `git reset --hard`, `rm -rf /` 등 파괴적 명령 사전 차단<br>**시크릿 보호**: `.env`, 개인키, 인증 파일 직접 접근 차단 및 API 키(OpenAI, Google, GitHub, Slack 등) 누출 차단                        |
 | **PostToolUse** (실행 후) | **자동 코드 포맷**: 파일 수정 완료 시 **단발성 Docker 컨테이너**(`dotconfig-formatter:latest`)를 통해 즉시 포맷 적용 (`prettier`, `ruff`, `google-java-format`, `clang-format`, `stylua`) _(Docker 미가동 시 로컬 도구로 자동 폴백)_ |
 | **Stop** (세션 종료)      | **작업 완료 알림**: 긴 작업 완료 시 macOS 네이티브 알림(`display notification`) 및 Glass 사운드 재생                                                                                                                                 |
+
+---
+
+## 6. 다중 Git 계정 워크플로우 (`~/Projects/`)
+
+단일 호스트에서 복수의 GitHub 계정(예: 학교/회사 계정과 개인 계정)을 사용할 때, URL을 임의로 수정할 필요 없이 작업 경로에 따라 **이메일, 커밋 서명, SSH 인증 키**가 100% 자동 분기됩니다.
+
+### 디렉터리 아키텍처
+
+```text
+~/Projects/
+├── <account1>/      # 계정 1 작업 공간 (예: personal)
+│   └── my-project/  # -> 일반 GitHub URL 그대로 clone 해도 계정 1 SSH 키/이메일 자동 적용
+└── <account2>/      # 계정 2 작업 공간 (예: work)
+    └── sub-project/ # -> 일반 GitHub URL 그대로 clone 해도 계정 2 SSH 키/이메일 자동 적용
+```
+
+- **설정 자동화**: `./install.sh git` (또는 `./install.sh all`) 실행 시 계정 정보가 없으면 대화형으로 계정 정보를 입력받아 `~/.config/dotconfig/git-accounts.env`에 안전하게 격리 저장합니다.
+- **자동 분기 구성**: 계정별 ed25519 SSH 키(`~/.ssh/id_ed25519_<user>`), 프로젝트 디렉터리(`~/Projects/<user>`), `~/.gitconfig-<user>`, 그리고 `~/.gitconfig.local`의 `includeIf` 설정이 한 번에 자동 구성됩니다.
+- **클립보드 지원 (방안 A)**: 실행 시 각 계정의 공개키가 클립보드(`pbcopy`)에 자동 복사되며, 터미널 안내 링크(`https://github.com/settings/ssh/new`)를 통해 GitHub에 손쉽게 붙여넣기만 하면 등록이 완료됩니다.
+- **저장소 무결성**: 실제 개인 식별자(이름, 이메일, 계정명)는 로컬 `~/.config/dotconfig/git-accounts.env` 및 `~/.gitconfig.local`에만 보관되어 공개 Git 저장소에는 일체 커밋되지 않습니다.
+
+---
+
+## 7. Dev Container 템플릿 관리 (`devcontainers/`)
+
+호스트 머신에 개발 툴체인을 직접 설치하지 않고 격리된 Docker 환경에서 개발할 수 있는 8가지 표준 템플릿을 제공합니다:
+
+- `42-c-valgrind`: Ubuntu 24.04, Clang/GCC, GDB, Valgrind, Make, Norminette (42 C/C++ 과제 전용)
+- `fullstack-db`: Node.js 20 앱 + PostgreSQL 16 + Redis 7 멀티 컨테이너 Compose 환경
+- `go-backend`: Go 1.23, gopls, dlv, golangci-lint
+- `python-ai`: Python 3.11, PyTorch, Jupyter, LangChain, Pandas
+- `devops-cloud`: Terraform, kubectl, helm, aws-cli
+- `rust`: Rust, Cargo, rust-analyzer
+- `java`: OpenJDK 21, Gradle, Maven
+- `node-ts`: Node.js 20, TypeScript
+- `react-native`: React Native & Expo (Metro 8081 포트 포워딩, 하이브리드 iOS/Android)
+
+### 사용법
+
+새 프로젝트나 기존 프로젝트 디렉터리에서 명령어 한 줄로 템플릿을 생성합니다:
+
+```bash
+# 1. 원하는 디렉터리로 이동
+cd ~/Projects/gdtknight/my-project
+
+# 2. 템플릿 초기화 (Zsh 자동완성 지원: devcontainer-init <Tab>)
+devcontainer-init 42-c-valgrind
+
+# 3. Neovim 실행 후 단축키 조작
+nvim .
+# -> <Space>Ds : 컨테이너 백그라운드 시작 (Start)
+# -> <Space>Da : 컨테이너 내부로 접속 (Attach)
+# -> <Space>Dq : 작업 완료 후 컨테이너 중지 (Stop)
+```
