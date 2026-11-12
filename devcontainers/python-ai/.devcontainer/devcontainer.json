@@ -1,0 +1,12 @@
+{
+  "name": "Python AI & Machine Learning Playground",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "username": "vscode"
+    }
+  },
+  "postCreateCommand": "python3 -m pip install --no-cache-dir numpy pandas jupyterlab torch langchain",
+  "remoteUser": "vscode"
+}

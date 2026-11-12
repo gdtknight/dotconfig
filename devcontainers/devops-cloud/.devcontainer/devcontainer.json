@@ -1,0 +1,13 @@
+{
+  "name": "DevOps & Cloud Infrastructure (Terraform, K8s, Helm)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest",
+      "helm": "latest"
+    },
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+  "remoteUser": "vscode"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "React Native & Expo (iOS / Android Hybrid)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "username": "node"
+    }
+  },
+  "forwardPorts": [8081, 19000, 19001, 19002],
+  "portsAttributes": {
+    "8081": {
+      "label": "Metro Bundler",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "npm install -g eas-cli",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "expo.vscode-expo-tools",
+        "dbaeumer.vscode-eslint",
+        "christian-kohler.npm-intellisense",
+        "mattpocock.ts-error-translator",
+        "yoavbls.pretty-ts-errors",
+        "gydunhn.typescript-essentials",
+        "gydunhn.javascript-essentials",
+        "xabikos.javascriptsnippets"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}

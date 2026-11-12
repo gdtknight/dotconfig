@@ -1,0 +1,25 @@
+{
+  "name": "Node.js & TypeScript Full-Stack",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "username": "node"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "christian-kohler.npm-intellisense",
+        "mattpocock.ts-error-translator",
+        "yoavbls.pretty-ts-errors",
+        "gydunhn.typescript-essentials",
+        "gydunhn.javascript-essentials",
+        "gydunhn.vsc-essentials-core",
+        "xabikos.javascriptsnippets"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}

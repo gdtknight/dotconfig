@@ -1,0 +1,9 @@
+{
+  "name": "Java & Spring Boot Development",
+  "image": "mcr.microsoft.com/devcontainers/java:21",
+  "features": {
+    "ghcr.io/devcontainers/features/gradle:1": {},
+    "ghcr.io/devcontainers/features/maven:1": {}
+  },
+  "remoteUser": "vscode"
+}
