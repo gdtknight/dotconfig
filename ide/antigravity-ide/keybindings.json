@@ -105,11 +105,21 @@
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "editorTextFocus && neovim.mode == normal"
+    "when": "editorTextFocus && neovim.mode == normal && !whichkeyVisible"
   },
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "!inputFocus && !terminalFocus"
+    "when": "activeEditorGroupEmpty && !inputFocus && !terminalFocus && !sideBarFocus && !auxiliaryBarFocus && !panelFocus && !webviewFocus && !inChat && !chatFocus && !inQuickOpen && !whichkeyVisible"
+  },
+  {
+    "key": "space",
+    "command": "whichkey.show",
+    "when": "!editorIsOpen && !inputFocus && !terminalFocus && !sideBarFocus && !auxiliaryBarFocus && !panelFocus && !webviewFocus && !inChat && !chatFocus && !inQuickOpen && !whichkeyVisible"
+  },
+  {
+    "key": "space",
+    "command": "whichkey.show",
+    "when": "filesExplorerFocus && !inputFocus && !renameInputVisible && !whichkeyVisible"
   }
 ]
