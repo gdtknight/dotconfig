@@ -424,15 +424,7 @@ install_antigravity_extensions() {
     else
       log_info "Installing ${ide_bin} extension: $ext_clean..."
       if ! "$ide_bin" --install-extension "$ext_clean" --force >/dev/null 2>&1; then
-        if [ "$ext_clean" = "ms-vscode-remote.remote-containers" ]; then
-          log_info "Downloading official remote-containers VSIX from CDN..."
-          local tmp_vsix="/tmp/remote-containers.vsix"
-          curl -sL "https://ms-vscode-remote.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode-remote/extension/remote-containers/0.394.0/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage" -o "$tmp_vsix"
-          "$ide_bin" --install-extension "$tmp_vsix" --force >/dev/null 2>&1 || log_warn "Failed to install extension: $ext_clean"
-          rm -f "$tmp_vsix"
-        else
-          log_warn "Failed to install extension: $ext_clean"
-        fi
+        log_warn "Failed to install extension: $ext_clean"
       fi
       log_ok "Installed extension: $ext_clean"
     fi

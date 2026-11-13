@@ -512,25 +512,31 @@
           "key": "o",
           "name": "Reopen in Container",
           "type": "command",
-          "command": "remote-containers.reopenInContainer"
+          "command": "antigravity-dev-containers.reopenInContainer"
         },
         {
           "key": "l",
           "name": "Reopen Locally",
           "type": "command",
-          "command": "remote-containers.reopenLocally"
+          "command": "antigravity-dev-containers.reopenFolderLocally"
         },
         {
-          "key": "r",
-          "name": "Rebuild and Reopen in Container",
+          "key": "a",
+          "name": "Attach to Running Container",
           "type": "command",
-          "command": "remote-containers.rebuildAndReopenInContainer"
+          "command": "antigravity-dev-containers.attachToRunningContainer"
         },
         {
-          "key": "c",
-          "name": "Open devcontainer.json",
+          "key": "f",
+          "name": "Open Folder in Container",
           "type": "command",
-          "command": "remote-containers.openDevContainerFile"
+          "command": "antigravity-dev-containers.openInContainer"
+        },
+        {
+          "key": "s",
+          "name": "Show Dev Containers Log",
+          "type": "command",
+          "command": "antigravity-dev-containers.showLog"
         }
       ]
     }

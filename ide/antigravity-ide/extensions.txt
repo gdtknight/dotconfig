@@ -4,7 +4,6 @@ asvetliakov.vscode-neovim
 bierner.emojisense
 christian-kohler.path-intellisense
 davidanson.vscode-markdownlint
-ms-vscode-remote.remote-containers
 esbenp.prettier-vscode
 flyfly6.terminal-in-status-bar
 gruntfuggly.todo-tree
