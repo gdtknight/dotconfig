@@ -435,6 +435,24 @@ install_antigravity_extensions() {
   fi
 }
 
+patch_antigravity_dev_containers() {
+  local cli_target="/Applications/Antigravity IDE.app/Contents/Resources/app/extensions/antigravity-dev-containers/dist/@devcontainers/cli/dist/spec-node/devContainersSpecCLI.js"
+  if [ -f "$cli_target" ]; then
+    if grep -q '"start"===(i.status||i.Status)' "$cli_target" 2>/dev/null; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Patch Antigravity Dev Containers CLI for Docker v29+ Action compatibility"
+      else
+        log_info "Patching Antigravity Dev Containers CLI for Docker v29+ Action compatibility..."
+        sed -i.bak 's/"start"===(i.status||i.Status)/"start"===(i.status||i.Status||i.Action)/g' "$cli_target"
+        rm -f "${cli_target}.bak"
+        log_ok "Successfully patched Antigravity Dev Containers CLI."
+      fi
+    else
+      log_ok "Antigravity Dev Containers CLI already patched for Docker v29+."
+    fi
+  fi
+}
+
 dump_antigravity_extensions() {
   local ext_file="${REPO_DIR}/ide/antigravity-ide/extensions.txt"
   local ide_bin
@@ -497,7 +515,10 @@ link_ide() {
   # 3. Synchronize extensions
   install_antigravity_extensions
 
-  # 4. IntelliJ configurations (if present)
+  # 4. Patch Antigravity Dev Containers for Docker v29+ compatibility (Issue #1102: Action vs status)
+  patch_antigravity_dev_containers
+
+  # 5. IntelliJ configurations (if present)
   local jetbrains_base
   if [ "$IS_MAC" = true ]; then
     jetbrains_base="${HOME}/Library/Application Support/JetBrains"
