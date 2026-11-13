@@ -18,7 +18,7 @@ import sys
 # 1. 차단 규칙 정의 (Guard Rules)
 # ------------------------------------------------------------------------------
 
-# 파괴적 명령어 패턴
+# 파괴적 명령어 패턴 (고정 문자열 / 정규식)
 DANGEROUS_COMMAND_PATTERNS = [
     (
         r"git\s+push\s+.*(--force\b|-f\b)",
@@ -36,14 +36,144 @@ DANGEROUS_COMMAND_PATTERNS = [
         r"git\s+checkout\s+(\.|-f\b|--force)",
         "git checkout . / -f 명령은 수정사항을 되돌리므로 차단됩니다.",
     ),
-    (
-        r"rm\s+-(rf|fr)\s+[/~]",
-        "루트(/) 또는 홈(~) 디렉터리 강제 삭제 명령은 위험하므로 차단됩니다.",
-    ),
     (r"\bmkfs(\.\w+)?\b", "파일 시스템 포맷(mkfs) 명령은 차단됩니다."),
     (r"\bdd\s+if=", "dd 저수준 디스크 덮어쓰기 명령은 차단됩니다."),
-    (r"chmod\s+-R\s+777\s+[/~]", "루트/홈 전체에 777 권한 부여는 보안상 차단됩니다."),
 ]
+
+# 시스템 핵심 디렉터리 (전체 삭제 방지용)
+CRITICAL_SYSTEM_DIRS = {
+    "/",
+    "/*",
+    "/system",
+    "/system/*",
+    "/library",
+    "/library/*",
+    "/usr",
+    "/usr/*",
+    "/bin",
+    "/bin/*",
+    "/sbin",
+    "/sbin/*",
+    "/etc",
+    "/etc/*",
+    "/var",
+    "/var/*",
+    "/dev",
+    "/dev/*",
+    "/opt",
+    "/opt/*",
+    "/private",
+    "/private/*",
+    "/applications",
+    "/applications/*",
+}
+
+# 홈 디렉터리 전체 타겟
+CRITICAL_HOME_TARGETS = {
+    "~",
+    "~/",
+    "~/*",
+    "$home",
+    "$home/",
+    "$home/*",
+    "${home}",
+    "${home}/",
+    "${home}/*",
+}
+
+
+def is_dangerous_rm(cmd: str) -> bool:
+    """rm 명령어의 타겟을 정밀 분석하여 루트, 홈, 시스템 주요 디렉터리 전체 삭제만 선별 차단합니다.
+
+    /tmp/..., ~/.cache/..., 프로젝트 내부 서브디렉터리 등 안전한 하위 경로 삭제는 허용합니다.
+    """
+    sub_cmds = re.split(r"[;&|]+", cmd)
+    for sub in sub_cmds:
+        tokens = sub.strip().split()
+        if not tokens:
+            continue
+
+        cmd_idx = 0
+        if tokens[0] in ("sudo", "env", "nohup") and len(tokens) > 1:
+            cmd_idx = 1
+
+        if cmd_idx >= len(tokens) or tokens[cmd_idx] != "rm":
+            continue
+
+        rm_args = tokens[cmd_idx + 1 :]
+        # 재귀 플래그(-r, -R, -rf, -fr, --recursive 등) 확인
+        has_recursive = any(
+            arg == "--recursive" or re.search(r"^-[a-zA-Z]*[rR]", arg)
+            for arg in rm_args
+        )
+        if not has_recursive:
+            continue
+
+        # 타겟 인자 추출
+        targets = [
+            arg.strip("\"'`;")
+            for arg in rm_args
+            if not arg.startswith("-") and arg.strip("\"'`;")
+        ]
+
+        for target in targets:
+            norm = target.strip().rstrip("/")
+            norm_lower = norm.lower()
+
+            # 1. 루트 전체 삭제 (예: /, /*)
+            if norm in ("", "/", "/*"):
+                return True
+
+            # 2. 홈 디렉터리 전체 삭제 (예: ~, ~/, ~/*, $HOME 등)
+            if (
+                norm_lower in CRITICAL_HOME_TARGETS
+                or target.strip().lower() in CRITICAL_HOME_TARGETS
+            ):
+                return True
+
+            # 3. 시스템 주요 최상위 디렉터리 전체 삭제 (예: /System, /Library, /usr 등)
+            # 단, /tmp/xxx, ~/.cache/xxx 등 구체적 하위 경로는 안전하므로 허용
+            if norm_lower in CRITICAL_SYSTEM_DIRS:
+                return True
+
+    return False
+
+
+def is_dangerous_chmod(cmd: str) -> bool:
+    """루트 또는 홈 전체에 chmod -R 777을 부여하는 파괴적 명령만 선별 차단합니다."""
+    sub_cmds = re.split(r"[;&|]+", cmd)
+    for sub in sub_cmds:
+        tokens = sub.strip().split()
+        if not tokens:
+            continue
+
+        cmd_idx = 0
+        if tokens[0] in ("sudo", "env", "nohup") and len(tokens) > 1:
+            cmd_idx = 1
+
+        if cmd_idx >= len(tokens) or tokens[cmd_idx] != "chmod":
+            continue
+
+        args = tokens[cmd_idx + 1 :]
+        has_recursive = any(
+            arg in ("-R", "-r") or re.search(r"^-[a-zA-Z]*R", arg) for arg in args
+        )
+        has_777 = any("777" in arg for arg in args)
+
+        if not (has_recursive and has_777):
+            continue
+
+        targets = [
+            arg.strip("\"'`;")
+            for arg in args
+            if not arg.startswith("-") and "777" not in arg
+        ]
+        for target in targets:
+            norm = target.strip().rstrip("/").lower()
+            if norm in ("", "/", "/*") or norm in CRITICAL_HOME_TARGETS:
+                return True
+
+    return False
 
 # 민감 파일 패턴 (example, sample, template 은 허용)
 SENSITIVE_FILE_PATTERN = re.compile(
@@ -110,10 +240,18 @@ def handle_pre_tool():
         or ""
     )
     if cmd:
-        # 위험 명령어 검사
+        # 위험 명령어 검사 (정규식 패턴)
         for pattern, msg in DANGEROUS_COMMAND_PATTERNS:
             if re.search(pattern, cmd, re.IGNORECASE):
                 deny(f"위험한 명령어 차단: {msg} (명령: '{cmd[:80]}...')")
+
+        # 파괴적 삭제(rm) 검사 (루트/홈/시스템 핵심 디렉터리 정밀 차단)
+        if is_dangerous_rm(cmd):
+            deny(f"위험한 명령어 차단: 루트(/), 홈(~), 또는 시스템 핵심 디렉터리 전체 삭제 명령은 차단됩니다. (명령: '{cmd[:80]}...')")
+
+        # 파괴적 권한 변경(chmod 777) 검사
+        if is_dangerous_chmod(cmd):
+            deny(f"위험한 명령어 차단: 루트(/) 또는 홈(~) 전체에 777 권한 부여는 보안상 차단됩니다. (명령: '{cmd[:80]}...')")
 
         # 시크릿 파일 접근 검사 (예: cat .env, rm .env)
         tokens = re.split(r"\s+", cmd)
