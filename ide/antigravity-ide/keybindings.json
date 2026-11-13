@@ -105,11 +105,11 @@
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "editorTextFocus && !insertMode && !replaceMode"
+    "when": "editorTextFocus && neovim.mode == normal"
   },
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "filesExplorerFocus && !inputBoxFocus"
+    "when": "!inputFocus && !terminalFocus"
   }
 ]
