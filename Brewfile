@@ -29,6 +29,7 @@ brew "gh"                # GitHub CLI
 # (Ubuntu/Linux 환경에서는 자동으로 무시되므로 안전하게 동작합니다)
 # ------------------------------------------------------------------------------
 if OS.mac?
+  brew "terminal-notifier" # command-line notification with app activation
   cask "google-chrome"
   cask "alfred"
   cask "rectangle"

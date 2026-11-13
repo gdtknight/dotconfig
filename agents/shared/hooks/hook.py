@@ -302,20 +302,78 @@ def format_file(file_path: str):
 # ------------------------------------------------------------------------------
 
 
+def get_target_app():
+    """알림 클릭 시 포커스할 대상 애플리케이션 및 번들 ID를 감지합니다."""
+    # 1. Antigravity 환경 감지
+    if "ANTIGRAVITY_AGENT" in os.environ or "ANTIGRAVITY_APP_DATA_DIR" in os.environ:
+        return "Antigravity IDE", "com.google.antigravity-ide"
+
+    # 2. WezTerm 환경 감지
+    if "WEZTERM_EXECUTABLE" in os.environ:
+        return "WezTerm", "com.github.wez.wezterm"
+
+    # 3. Alacritty 환경 감지
+    if "ALACRITTY_LOG" in os.environ or "ALACRITTY_SOCKET" in os.environ:
+        return "Alacritty", "org.alacritty"
+
+    # 4. 기타 터미널 및 VS Code 감지
+    term_prog = os.environ.get("TERM_PROGRAM", "").lower()
+    if "vscode" in term_prog:
+        return "Antigravity IDE", "com.google.antigravity-ide"
+    elif "iterm" in term_prog:
+        return "iTerm2", "com.googlecode.iterm2"
+    elif "apple_terminal" in term_prog:
+        return "Terminal", "com.apple.Terminal"
+
+    # 5. 기본값: Antigravity IDE
+    return "Antigravity IDE", "com.google.antigravity-ide"
+
+
 def handle_stop():
     # macOS 환경 알림 전송
     if sys.platform == "darwin":
         try:
             msg = "에이전트 작업이 완료되었습니다."
-            script = (
-                f'display notification "{msg}" with title "AI Agent" sound name "Glass"'
-            )
-            subprocess.run(
-                ["osascript", "-e", script],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=3,
-            )
+            title = "AI Agent"
+            app_name, bundle_id = get_target_app()
+
+            # 1. terminal-notifier 우선 시도 (클릭 시 해당 앱 활성화)
+            notified = False
+            if shutil.which("terminal-notifier"):
+                res = subprocess.run(
+                    [
+                        "terminal-notifier",
+                        "-title",
+                        title,
+                        "-message",
+                        msg,
+                        "-sound",
+                        "Glass",
+                        "-activate",
+                        bundle_id,
+                        "-group",
+                        "ai-agent-stop",
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=3,
+                )
+                if res.returncode == 0:
+                    notified = True
+
+            # 2. terminal-notifier 실패/미설치 시 AppleScript tell application 폴백
+            # (발신자 앱을 Antigravity IDE/WezTerm 등으로 귀속시켜 클릭 시 스크립트 편집기 대신 해당 창 활성화)
+            if not notified:
+                script = (
+                    f'tell application "{app_name}" to display notification "{msg}" '
+                    f'with title "{title}" sound name "Glass"'
+                )
+                subprocess.run(
+                    ["osascript", "-e", script],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=3,
+                )
         except Exception:
             pass
 
