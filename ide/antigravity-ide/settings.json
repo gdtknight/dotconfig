@@ -29,6 +29,8 @@
   "window.systemColorTheme": "dark",
   // OS 테마 변경 시 VS Code 테마를 자동 감지하여 변경할지 여부
   "window.autoDetectColorScheme": false,
+  // 폴더나 워크스페이스 열기 시 항상 현재 창 재사용 (새 창 팝업 방지)
+  "window.openFoldersInNewWindow": "off",
   // 탐색기(파일 트리) 들여쓰기 픽셀 너비
   "workbench.tree.indent": 12,
   // 탐색기(파일 트리) 들여쓰기 가이드 라인 상시 표시
@@ -113,7 +115,7 @@
     "menu.background": "#101010eb",
     "quickInput.background": "#101010eb",
     // 현재 줄 하이라이트 테두리 숨김
-    "editor.lineHighlightBorder": "#00000000",
+    "editor.lineHighlightBorder": "#00000000"
   },
 
   // background-cover 확장 설정 (에디터 배경 이미지/투명화)
@@ -133,7 +135,7 @@
     "rgba(255,255,64,0.07)",
     "rgba(127,255,127,0.07)",
     "rgba(255,127,255,0.07)",
-    "rgba(79,236,236,0.07)",
+    "rgba(79,236,236,0.07)"
   ],
   // 인디케이터 스타일 (라이트 스타일)
   "indentRainbow.indicatorStyle": "light",
@@ -165,13 +167,13 @@
   "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
   // Neovim 확장을 별도 확장 호스트 프로세스로 격리하여 입력 지연 및 프레임 드랍 방지
   "extensions.experimental.affinity": {
-    "asvetliakov.vscode-neovim": 1,
+    "asvetliakov.vscode-neovim": 1
   },
   // 연속 키 입력 매핑 (Insert 모드에서 'jk' 입력 시 ESC 동작)
   "vscode-neovim.compositeKeys": {
     "jk": {
-      "command": "vscode-neovim.escape",
-    },
+      "command": "vscode-neovim.escape"
+    }
   },
   // which-key 표시 팝업 지연 시간 (0ms = 즉시 반응)
   "whichkey.delay": 0,
@@ -179,6 +181,11 @@
   "whichkey.useFullWidthCharacters": true,
   // 마우스로 메뉴 클릭 시 단축키 생성 추천 팝업 비활성화
   "Key Promoter.suggestKeybindingCreation": false,
+  // 원격 컨테이너/SSH 접속 시 UI 단축키 확장(Which-Key, Neovim)을 호스트 로컬에서 강제 실행하여 단축키 유지
+  "remote.extensionKind": {
+    "jellydn.vscode-whichkey": ["ui"],
+    "asvetliakov.vscode-neovim": ["ui"]
+  },
 
   // Which-Key 리더키 단축키 메뉴 바인딩 트리 (<Space> 리더)
   "whichkey.bindings": [
@@ -186,37 +193,37 @@
       "key": "e",
       "name": "Explorer Toggle",
       "type": "command",
-      "command": "workbench.action.toggleSidebarVisibility",
+      "command": "workbench.action.toggleSidebarVisibility"
     },
     {
       "key": "<space>",
       "name": "Find Files (Root)",
       "type": "command",
-      "command": "workbench.action.quickOpen",
+      "command": "workbench.action.quickOpen"
     },
     {
       "key": "/",
       "name": "Grep / Live Search",
       "type": "command",
-      "command": "workbench.action.findInFiles",
+      "command": "workbench.action.findInFiles"
     },
     {
       "key": "q",
       "name": "Quit / Close Buffer",
       "type": "command",
-      "command": "workbench.action.closeActiveEditor",
+      "command": "workbench.action.closeActiveEditor"
     },
     {
       "key": "Q",
       "name": "Quit Window",
       "type": "command",
-      "command": "workbench.action.closeWindow",
+      "command": "workbench.action.closeWindow"
     },
     {
       "key": "h",
       "name": "No Highlight",
       "type": "command",
-      "command": "workbench.action.search.clearHistory",
+      "command": "workbench.action.search.clearHistory"
     },
     {
       "key": "f",
@@ -227,57 +234,57 @@
           "key": "f",
           "name": "Find Files",
           "type": "command",
-          "command": "workbench.action.quickOpen",
+          "command": "workbench.action.quickOpen"
         },
         {
           "key": "r",
           "name": "Recent Files",
           "type": "command",
-          "command": "workbench.action.openRecent",
+          "command": "workbench.action.openRecent"
         },
         {
           "key": "b",
           "name": "Switch Buffer / Editor",
           "type": "command",
-          "command": "workbench.action.showAllEditors",
+          "command": "workbench.action.showAllEditors"
         },
         {
           "key": "g",
           "name": "Find in Path (Grep)",
           "type": "command",
-          "command": "workbench.action.findInFiles",
+          "command": "workbench.action.findInFiles"
         },
         {
           "key": "s",
           "name": "File Structure / Symbol",
           "type": "command",
-          "command": "workbench.action.gotoSymbol",
+          "command": "workbench.action.gotoSymbol"
         },
         {
           "key": "m",
           "name": "Workspace Symbols",
           "type": "command",
-          "command": "workbench.action.showAllSymbols",
+          "command": "workbench.action.showAllSymbols"
         },
         {
           "key": "t",
           "name": "Toggle Terminal",
           "type": "command",
-          "command": "workbench.action.terminal.toggleTerminal",
+          "command": "workbench.action.terminal.toggleTerminal"
         },
         {
           "key": "n",
           "name": "New Untitled File",
           "type": "command",
-          "command": "workbench.action.files.newUntitledFile",
+          "command": "workbench.action.files.newUntitledFile"
         },
         {
           "key": "w",
           "name": "Save File",
           "type": "command",
-          "command": "workbench.action.files.save",
-        },
-      ],
+          "command": "workbench.action.files.save"
+        }
+      ]
     },
     {
       "key": "b",
@@ -288,27 +295,27 @@
           "key": "d",
           "name": "Delete / Close Buffer",
           "type": "command",
-          "command": "workbench.action.closeActiveEditor",
+          "command": "workbench.action.closeActiveEditor"
         },
         {
           "key": "o",
           "name": "Close Other Buffers",
           "type": "command",
-          "command": "workbench.action.closeOtherEditors",
+          "command": "workbench.action.closeOtherEditors"
         },
         {
           "key": "b",
           "name": "Switch Buffer",
           "type": "command",
-          "command": "workbench.action.showAllEditors",
+          "command": "workbench.action.showAllEditors"
         },
         {
           "key": "p",
           "name": "Pin Tab",
           "type": "command",
-          "command": "workbench.action.pinEditor",
-        },
-      ],
+          "command": "workbench.action.pinEditor"
+        }
+      ]
     },
     {
       "key": "c",
@@ -319,27 +326,27 @@
           "key": "a",
           "name": "Code Action / Quick Fix",
           "type": "command",
-          "command": "editor.action.quickFix",
+          "command": "editor.action.quickFix"
         },
         {
           "key": "r",
           "name": "Rename Symbol",
           "type": "command",
-          "command": "editor.action.rename",
+          "command": "editor.action.rename"
         },
         {
           "key": "f",
           "name": "Format Document",
           "type": "command",
-          "command": "editor.action.formatDocument",
+          "command": "editor.action.formatDocument"
         },
         {
           "key": "F",
           "name": "Optimize / Organize Imports",
           "type": "command",
-          "command": "editor.action.organizeImports",
-        },
-      ],
+          "command": "editor.action.organizeImports"
+        }
+      ]
     },
     {
       "key": "w",
@@ -350,45 +357,45 @@
           "key": "s",
           "name": "Split Horizontal",
           "type": "command",
-          "command": "workbench.action.splitEditorDown",
+          "command": "workbench.action.splitEditorDown"
         },
         {
           "key": "v",
           "name": "Split Vertical",
           "type": "command",
-          "command": "workbench.action.splitEditorRight",
+          "command": "workbench.action.splitEditorRight"
         },
         {
           "key": "d",
           "name": "Close Window / Editor",
           "type": "command",
-          "command": "workbench.action.closeActiveEditor",
+          "command": "workbench.action.closeActiveEditor"
         },
         {
           "key": "o",
           "name": "Close Other Editors",
           "type": "command",
-          "command": "workbench.action.closeOtherEditors",
+          "command": "workbench.action.closeOtherEditors"
         },
         {
           "key": "p",
           "name": "Pin Active Tab",
           "type": "command",
-          "command": "workbench.action.pinEditor",
+          "command": "workbench.action.pinEditor"
         },
         {
           "key": "m",
           "name": "Maximize Editor",
           "type": "command",
-          "command": "workbench.action.toggleEditorWidths",
+          "command": "workbench.action.toggleEditorWidths"
         },
         {
           "key": "u",
           "name": "Unsplit All",
           "type": "command",
-          "command": "workbench.action.joinAllGroups",
-        },
-      ],
+          "command": "workbench.action.joinAllGroups"
+        }
+      ]
     },
     {
       "key": "g",
@@ -399,39 +406,39 @@
           "key": "g",
           "name": "Open Source Control",
           "type": "command",
-          "command": "workbench.view.scm",
+          "command": "workbench.view.scm"
         },
         {
           "key": "b",
           "name": "Git Blame",
           "type": "command",
-          "command": "gitlens.toggleFileBlame",
+          "command": "gitlens.toggleFileBlame"
         },
         {
           "key": "c",
           "name": "Commit",
           "type": "command",
-          "command": "git.commit",
+          "command": "git.commit"
         },
         {
           "key": "p",
           "name": "Push",
           "type": "command",
-          "command": "git.push",
+          "command": "git.push"
         },
         {
           "key": "l",
           "name": "Pull / Sync",
           "type": "command",
-          "command": "git.pull",
+          "command": "git.pull"
         },
         {
           "key": "s",
           "name": "Refresh Changes",
           "type": "command",
-          "command": "git.refresh",
-        },
-      ],
+          "command": "git.refresh"
+        }
+      ]
     },
     {
       "key": "r",
@@ -442,27 +449,27 @@
           "key": "r",
           "name": "Run Without Debugging",
           "type": "command",
-          "command": "workbench.action.debug.run",
+          "command": "workbench.action.debug.run"
         },
         {
           "key": "d",
           "name": "Start Debugging",
           "type": "command",
-          "command": "workbench.action.debug.start",
+          "command": "workbench.action.debug.start"
         },
         {
           "key": "t",
           "name": "Stop Debugging",
           "type": "command",
-          "command": "workbench.action.debug.stop",
+          "command": "workbench.action.debug.stop"
         },
         {
           "key": "b",
           "name": "Toggle Breakpoint",
           "type": "command",
-          "command": "editor.debug.action.toggleBreakpoint",
-        },
-      ],
+          "command": "editor.debug.action.toggleBreakpoint"
+        }
+      ]
     },
     {
       "key": "x",
@@ -473,9 +480,9 @@
           "key": "x",
           "name": "Problems View",
           "type": "command",
-          "command": "workbench.actions.view.problems",
-        },
-      ],
+          "command": "workbench.actions.view.problems"
+        }
+      ]
     },
     {
       "key": "p",
@@ -486,15 +493,15 @@
           "key": "p",
           "name": "Manage Recent Projects",
           "type": "command",
-          "command": "workbench.action.openRecent",
+          "command": "workbench.action.openRecent"
         },
         {
           "key": "s",
           "name": "Reveal File in Explorer",
           "type": "command",
-          "command": "workbench.files.action.showActiveFileInExplorer",
-        },
-      ],
+          "command": "workbench.files.action.showActiveFileInExplorer"
+        }
+      ]
     },
     {
       "key": "D",
@@ -502,31 +509,31 @@
       "type": "bindings",
       "bindings": [
         {
-          "key": "m",
-          "name": "Devcontainer Actions Menu",
+          "key": "o",
+          "name": "Reopen in Container",
           "type": "command",
-          "command": "codiumDevcontainer.showMenu",
+          "command": "remote-containers.reopenInContainer"
         },
         {
-          "key": "o",
-          "name": "Open Folder in Devcontainer",
+          "key": "l",
+          "name": "Reopen Locally",
           "type": "command",
-          "command": "codiumDevcontainer.openFolderInDevcontainer",
+          "command": "remote-containers.reopenLocally"
         },
         {
           "key": "r",
-          "name": "Rebuild & Open",
+          "name": "Rebuild and Reopen in Container",
           "type": "command",
-          "command": "codiumDevcontainer.rebuildAndOpen",
+          "command": "remote-containers.rebuildAndReopenInContainer"
         },
         {
           "key": "c",
           "name": "Open devcontainer.json",
           "type": "command",
-          "command": "codiumDevcontainer.openDevcontainerConfig",
-        },
-      ],
-    },
+          "command": "remote-containers.openDevContainerFile"
+        }
+      ]
+    }
   ],
   //#endregion
 
@@ -558,13 +565,13 @@
   "[typescript]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   // React TypeScript 파일 (.tsx)
   "[typescriptreact]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   // 파일 이동 또는 이름 변경 시 import 경로 자동 업데이트 (항상 적용)
   "typescript.updateImportsOnFileMove.enabled": "always",
@@ -572,28 +579,28 @@
   // JavaScript 파일 (.js)
   "[javascript]": {
     "editor.tabSize": 2,
-    "editor.insertSpaces": true,
+    "editor.insertSpaces": true
   },
   // React JavaScript 파일 (.jsx)
   "[javascriptreact]": {
     "editor.tabSize": 2,
-    "editor.insertSpaces": true,
+    "editor.insertSpaces": true
   },
 
   // JSON 파일 (.json)
   "[json]": {
     "editor.tabSize": 2,
-    "editor.insertSpaces": true,
+    "editor.insertSpaces": true
   },
   // 주석이 포함된 JSON 파일 (.jsonc)
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
   // Python 파일 (.py - PEP 8 표준 4칸 공백)
   "[python]": {
     "editor.tabSize": 4,
-    "editor.insertSpaces": true,
+    "editor.insertSpaces": true
   },
   // Python 언어 서버 (Pylance 기본 엔진)
   "python.languageServer": "Default",
@@ -619,7 +626,7 @@
   "totalTypeScript.hiddenTips": [
     "interface-declaration",
     "basic-types",
-    "typing-function-parameters",
-  ],
+    "typing-function-parameters"
+  ]
   //#endregion
 }
