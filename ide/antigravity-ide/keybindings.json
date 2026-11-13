@@ -105,7 +105,7 @@
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "editorTextFocus && neovim.mode == normal && !whichkeyVisible"
+    "when": "editorTextFocus && neovim.mode == normal && !inChat && !chatFocus && !chatInputHasFocus && !auxiliaryBarFocus && !editorSimpleInput && !whichkeyVisible"
   },
   {
     "key": "space",
