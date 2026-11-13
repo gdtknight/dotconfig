@@ -105,6 +105,11 @@
   {
     "key": "space",
     "command": "whichkey.show",
-    "when": "!insertMode && !replaceMode && !terminalFocus && !inputBoxFocus"
+    "when": "editorTextFocus && !insertMode && !replaceMode"
+  },
+  {
+    "key": "space",
+    "command": "whichkey.show",
+    "when": "filesExplorerFocus && !inputBoxFocus"
   }
 ]
