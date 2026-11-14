@@ -123,7 +123,19 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 alias cd="z"
 #alias ll="eza -alD --icons --blocksize && eza -alf --icons --show-symlinks"
 alias ll="eza -al --sort type --icons always"
-eval "$(zoxide init zsh)"
+
+# Homebrew environment (Ensure PATH is initialized in non-login interactive shells on Linux)
+if ! command -v brew >/dev/null 2>&1; then
+  if [ -x "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+    eval "$($HOME/.linuxbrew/bin/brew shellenv zsh)"
+  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+  fi
+fi
+
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 export PATH="$HOME/.local/bin:$PATH"
 
 # android

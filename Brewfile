@@ -11,7 +11,7 @@ brew "bash"
 brew "git"
 brew "neovim"
 brew "tmux"
-brew "zsh"
+# brew "zsh"             # 기본 OS 셸이 zsh이므로 중복 설치 불필요 (Linuxbrew glibc 로케일 충돌 방지)
 
 # ------------------------------------------------------------------------------
 # 2. Modern CLI Productivity Tools

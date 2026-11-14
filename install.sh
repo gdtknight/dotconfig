@@ -700,8 +700,14 @@ EOF
 [user]
 	name = ${ACCOUNT1_NAME}
 	email = ${ACCOUNT1_EMAIL}
+	signingkey = ${ssh_dir}/id_ed25519_${ACCOUNT1_USER}.pub
+[core]
+	sshCommand = ssh -i ${ssh_dir}/id_ed25519_${ACCOUNT1_USER} -F /dev/null
 
 # Multi-account directory includes
+[includeIf "gitdir:~/.dotconfig/"]
+	path = ~/.gitconfig-${ACCOUNT1_USER}
+
 [includeIf "gitdir:~/Projects/${ACCOUNT1_USER}/"]
 	path = ~/.gitconfig-${ACCOUNT1_USER}
 
@@ -848,7 +854,7 @@ install_nerd_font() {
     local tmp_zip
     tmp_zip="$(mktemp /tmp/nerdfont_XXXXXX.zip)"
     curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${zip_name}.zip" -o "$tmp_zip"
-    unzip -qo "$tmp_zip" "*.ttf" "*.otf" -d "$font_dir" 2>/dev/null || unzip -qo "$tmp_zip" -d "$font_dir"
+    unzip -qo "$tmp_zip" -d "$font_dir"
     rm -f "$tmp_zip"
     if [ "$IS_LINUX" = true ] && command -v fc-cache >/dev/null 2>&1; then
       fc-cache -f "$font_dir"
@@ -904,6 +910,17 @@ link_terminal() {
     fi
   else
     log_ok "tpm is installed at: ${tpm_dir}"
+  fi
+
+  # Auto-install/sync Tmux plugins defined in ~/.tmux.conf via TPM
+  if [ -x "${tpm_dir}/bin/install_plugins" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Install Tmux plugins via: ${tpm_dir}/bin/install_plugins"
+    elif command -v tmux >/dev/null 2>&1 || [ -x "${HOME}/.linuxbrew/bin/tmux" ] || [ -x "/opt/homebrew/bin/tmux" ]; then
+      log_info "Installing Tmux plugins via TPM..."
+      PATH="${HOME}/.linuxbrew/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}" "${tpm_dir}/bin/install_plugins" || log_warn "Some Tmux plugins failed to install."
+      log_ok "Tmux plugins synchronized."
+    fi
   fi
 }
 
