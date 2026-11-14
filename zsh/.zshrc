@@ -139,57 +139,49 @@ export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
 # Local private environment variables and secrets (Never committed)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
-# Dev Container Template Initializer
+# Dev Container Template Initializer 2.0 (Dual-Mode: Interactive Wizard & Scriptable Flags)
 devcontainer-init() {
   local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
-  local template_dir="${dotconfig_repo}/devcontainers"
-  if [ ! -d "$template_dir" ]; then
-    echo "Error: Devcontainer template directory not found at: $template_dir"
+  local script_path="${dotconfig_repo}/devcontainers/scripts/init_devcontainer.py"
+
+  if [ ! -f "$script_path" ]; then
+    echo "Error: Devcontainer init script not found at: $script_path"
     return 1
   fi
 
-  if [ -z "$1" ]; then
-    echo "Usage: devcontainer-init <template-name>"
-    echo ""
-    echo "Available templates:"
-    for d in "$template_dir"/*; do
-      [ -d "$d" ] && echo "  - $(basename "$d")"
-    done
-    return 1
-  fi
-
-  local target="$template_dir/$1/.devcontainer"
-  if [ ! -d "$target" ]; then
-    echo "Error: Template '$1' not found. Available templates:"
-    for d in "$template_dir"/*; do
-      [ -d "$d" ] && echo "  - $(basename "$d")"
-    done
-    return 1
-  fi
-
-  if [ -d ".devcontainer" ]; then
-    echo -n ".devcontainer already exists. Overwrite? (y/N): "
-    read -r answer
-    if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-      echo "Aborted."
-      return 0
-    fi
-    rm -rf .devcontainer
-  fi
-
-  cp -r "$target" .
-  echo "✓ Successfully initialized .devcontainer for '$1'!"
-  echo "  Open with 'nvim .' and press '<Space>Ds' to start container, then '<Space>Da' to attach."
+  python3 "$script_path" "$@"
 }
 
-# Zsh auto-completion for devcontainer-init
+# Zsh auto-completion for devcontainer-init 2.0
 _devcontainer_init_completion() {
   local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
   local template_dir="${dotconfig_repo}/devcontainers"
+  local -a templates
   if [ -d "$template_dir" ]; then
-    local -a templates
     templates=("$template_dir"/*(N/:t))
-    _describe 'templates' templates
+    # 'scripts', 'modules', '.cache' 같은 관리용 디렉터리 제외
+    templates=(${templates:#scripts})
+    templates=(${templates:#modules})
+    templates=(${templates:#.cache})
   fi
+
+  _arguments -s \
+    '1:template:->templates' \
+    '(-v --version)'{-v,--version}'[SDK/언어 버전 지정 (예: 22, 3.12, 1.23)]:version:' \
+    '(-p --pkg)'{-p,--pkg}'[패키지 매니저 지정 (pnpm, bun, yarn, uv, poetry)]:package_manager:(pnpm bun yarn npm uv poetry gradle maven cargo)' \
+    '(-d --db)'{-d,--db}'[로컬 DB 사이드카 (쉼표 구분: postgres,redis,mysql,mongo)]:database:(postgres redis mysql mongo postgres,redis)' \
+    '--port[호스트 노출 포트 (예: 3000,8080)]:ports:' \
+    '--docker-socket[호스트 Docker 소켓 바인딩 (Docker-outside-of-Docker)]' \
+    '--ai[컨테이너 내부 AI Agent CLI 사전 설치]' \
+    '--no-install[컨테이너 기동 시 의존성 자동 설치 건너뛰기]' \
+    '(-i --interactive)'{-i,--interactive}'[대화형 마법사 모드 실행]' \
+    '(-y --yes)'{-y,--yes}'[확인 프롬프트 생략 (기본값으로 즉시 생성)]' \
+    '*::args:->args' && return 0
+
+  case "$state" in
+    templates)
+      _describe -t templates 'Dev Container Templates' templates
+      ;;
+  esac
 }
 compdef _devcontainer_init_completion devcontainer-init 2>/dev/null || true

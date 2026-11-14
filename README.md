@@ -170,20 +170,43 @@ Claude, Gemini, Codex 에이전트 공통으로 동작하는 보안 가드, 자�
 - `node-ts`: Node.js 20, TypeScript
 - `react-native`: React Native & Expo (Metro 8081 포트 포워딩, 하이브리드 iOS/Android)
 
-### 사용법
+### 사용법 (Dual-Mode: 대화형 마법사 & CLI 플래그)
 
-새 프로젝트나 기존 프로젝트 디렉터리에서 명령어 한 줄로 템플릿을 생성합니다:
+새 프로젝트나 기존 프로젝트 디렉터리에서 원하는 방식으로 템플릿을 생성합니다:
 
+#### 1) 대화형 마법사 모드 (Interactive Wizard)
+인자 없이 실행하거나 `-i` 플래그를 주면 방향키와 번호로 SDK 버전, 패키지 매니저, 로컬 DB, 포트를 맞춤 선택합니다. (공식 API 최신 릴리스 실시간 조회 & 로컬 캐시 연동)
 ```bash
-# 1. 원하는 디렉터리로 이동
-cd ~/Projects/gdtknight/my-project
+# 대화형 프롬프트 실행 (Zsh 자동완성: devcontainer-init <Tab>)
+devcontainer-init node-ts
 
-# 2. 템플릿 초기화 (Zsh 자동완성 지원: devcontainer-init <Tab>)
-devcontainer-init 42-c-valgrind
-
-# 3. Neovim 실행 후 단축키 조작
-nvim .
-# -> <Space>Ds : 컨테이너 백그라운드 시작 (Start)
-# -> <Space>Da : 컨테이너 내부로 접속 (Attach)
-# -> <Space>Dq : 작업 완료 후 컨테이너 중지 (Stop)
+? Node.js SDK 버전을 선택하세요:
+  ▸ [1] 22 (LTS: Jod) (기본값)
+    [2] 20 (LTS: Iron)
+    [3] 18 (Maintenance)
+    [4] 직접 입력
+? 사용할 패키지 매니저를 선택하세요: [1] pnpm (권장)  [2] bun  [3] yarn  [4] npm
+? 함께 띄울 로컬 데이터베이스가 있나요?: [1] PostgreSQL  [2] Redis  [3] MySQL  [4] MongoDB
+? 호스트에 노출할 포트 (쉼표 구분): 3000, 8080
+? 추가 환경 옵션: 호스트 Neovim 마운트, Docker 소켓 공유, AI CLI 탑재, 의존성 자동 설치
 ```
+
+#### 2) 스크립트 플래그 모드 (Scriptable One-liner)
+옵션을 지정하면 프롬프트 없이 즉시 맞춤형 컨테이너를 생성합니다.
+```bash
+# Node 22 + pnpm + PostgreSQL + Redis + 포트 3000 바인딩
+devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+
+# Python 3.12 + 초고속 uv 패키지 매니저 + 포트 8888 + AI Agent CLI 탑재
+devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
+
+# 확인 프롬프트 생략 (-y)
+devcontainer-init rust -y
+```
+
+#### 3) 에디터 연동 및 실행
+* **Neovim**: `nvim .` 실행 후
+  * `<Space>Ds` : 컨테이너 백그라운드 시작 (Start)
+  * `<Space>Da` : 컨테이너 내부 셸 접속 (Attach)
+  * `<Space>Dq` : 작업 완료 후 컨테이너 중지 (Stop)
+* **Antigravity IDE**: 명령 팔레트(`Cmd+Shift+P`)에서 `Dev Containers: Reopen in Container` 선택

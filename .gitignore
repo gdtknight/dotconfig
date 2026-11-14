@@ -333,3 +333,11 @@ hs_err_pid*
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,vim,intellij+all,visualstudiocode,androidstudio
+
+# Dotconfig local files & caches
+*.local
+.zshrc.local
+git-accounts.env
+devcontainers/.cache/
+.devcontainer/
+
