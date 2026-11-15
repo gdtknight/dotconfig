@@ -114,7 +114,7 @@ flowchart LR
 
 ### 3.1 통합 설치 오케스트레이터 및 패키지 관리 (`install.sh`, `Brewfile`)
 - **Bash 3.2+ 호환성**: 연관 배열(Associative Array) 등 Bash 4+ 전용 문법을 배제하여 기본 macOS 환경에서도 `set -euo pipefail` 기반으로 즉시 실행됩니다.
-- **웹 부트스트랩 (Web Bootstrap)**: 원격 1줄 실행 시 `DOTCONFIG_DIR`(기본 `~/.dotconfig`)로 `https://github.com/gdtknight/dotconfig.git`을 클론·갱신한 뒤 `nvim`, `agents`, `ide`, `git`, `zsh`, `terminal`, `fonts`, `formatter`, `packages` 모듈별 링크를 순차 실행합니다.
+- **웹 부트스트랩 (Web Bootstrap)**: 원격 1줄 실행 시 `DOTCONFIG_DIR`(기본 `~/.dotconfig`)로 `https://github.com/gdtknight/dotconfig.git`을 클론·갱신한 뒤 `all` 기본 실행(`packages`, `nvim`, `agents`, `ide`, `git`, `zsh`, `terminal` — `fonts` 포함) 또는 지정한 모듈(`fonts`, `formatter` 포함)을 실행합니다. (`formatter` 이미지 빌드는 필요 시 `./install.sh formatter`로 별도 실행)
 - **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다.
 
 ### 3.2 3사 AI 에이전트 동기화 및 보안 가드 (`agents/`)

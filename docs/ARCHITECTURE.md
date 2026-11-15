@@ -114,7 +114,7 @@ flowchart LR
 
 ### 3.1 Installer & Package Management (`install.sh`, `Brewfile`)
 - **Bash 3.2+ Compatibility**: Avoids associative arrays and Bash 4+ extensions so fresh macOS systems execute `./install.sh` out of the box with `set -euo pipefail`.
-- **Web Bootstrap**: When executed remotely (`DOTCONFIG_DIR` defaults to `~/.dotconfig`, cloning `https://github.com/gdtknight/dotconfig.git`), it clones/updates the repo and delegates to modular link functions (`nvim`, `agents`, `ide`, `git`, `zsh`, `terminal`, `fonts`, `formatter`, `packages`).
+- **Web Bootstrap**: When executed remotely (`DOTCONFIG_DIR` defaults to `~/.dotconfig`, cloning `https://github.com/gdtknight/dotconfig.git`), it clones/updates the repo and runs the default `all` bundle (`packages`, `nvim`, `agents`, `ide`, `git`, `zsh`, `terminal`, including `fonts`) or any explicitly passed modules (`formatter` is built separately via `./install.sh formatter`).
 - **Rootless & OS Isolation**: `Brewfile` wraps macOS GUI casks (`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, and Nerd Fonts inside `if OS.mac?`, keeping CLI tools (`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`) clean for `~/.linuxbrew`.
 
 ### 3.2 Multi-Vendor AI Agent Synchronization (`agents/`)

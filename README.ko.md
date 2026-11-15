@@ -92,7 +92,7 @@ dotconfig/
 ├── agents/                  # LLM 코딩 에이전트 3사 통합 설정 (Claude, Gemini, Codex)
 │   ├── shared/              # 공통 지침, 규칙(rules), 12개 전문 에이전트, 생명주기 훅(hook.py)
 │   ├── claude/              # Claude Code 설정 (settings.json)
-│   ├── gemini/              # Gemini CLI 설정 (settings.json)
+│   ├── gemini/              # Gemini CLI 설정 (settings.json, config.json, hooks.json, mcp_config.json)
 │   └── codex/               # Codex CLI 설정 (config.toml, agents/*.toml)
 ├── devcontainers/           # 9종 언어/스택별 Dev Container 2.0 템플릿 및 CLI 생성기
 │   └── scripts/             # init_devcontainer.py, version_fetcher.py, db_templates.py
@@ -135,7 +135,7 @@ dotconfig/
 
 ### 3. Dev Container 2.0 동적 생성기 (`devcontainer-init`)
 - `zsh/.zshrc`에 내장된 `devcontainer-init` 함수와 Zsh 탭 자동완성(`_devcontainer_init_completion`)을 통해 프로젝트 디렉터리에서 즉시 컨테이너 구성을 생성할 수 있습니다.
-- `devcontainers/` 내 **9개 템플릿**(`42-c-valgrind`, `devops-cloud`, `fullstack-db`, `go-backend`, `java`, `node-ts`, `python-ai`, `react-native`, `rust`)과 `init_devcontainer.py`를 조합하여 런타임 버전(`--version`), 패키지(`--pkg`), 데이터베이스(`--db`), 포트(`--port`), Neovim/Docker Socket/AI 연동(`--nvim`, `--docker-socket`, `--ai`)을 대화형(`-i`) 또는 비대화형(`-y`)으로 주입합니다.
+- `devcontainers/` 내 **9개 템플릿**(`42-c-valgrind`, `devops-cloud`, `fullstack-db`, `go-backend`, `java`, `node-ts`, `python-ai`, `react-native`, `rust`)과 `init_devcontainer.py`를 조합하여 런타임 버전(`--version`), 패키지(`--pkg`), 데이터베이스(`--db`), 포트(`--port`), Neovim/Docker Socket/AI 연동(`--nvim`/`--no-nvim`, `--docker-socket`, `--ai`)을 대화형(`-i`) 또는 비대화형(`-y`)으로 주입합니다.
 
 ### 4. 안전한 백업, IDE 환경 보정 및 패키지 관리 (Safe Backup & Package Management)
 - **무손실 백업**: 기존 파일 충돌 시 `~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS`로 자동 백업합니다.
