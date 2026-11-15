@@ -440,10 +440,9 @@ def main():
 
     args = parser.parse_args()
 
-    # 템플릿 디렉터리 경로 파악
-    dotconfig_repo = os.environ.get(
-        "DOTCONFIG_REPO", os.path.expanduser("~/dev/dotconfig")
-    )
+    # 템플릿 디렉터리 경로 파악 (환경변수 우선, 미지정 시 현재 스크립트 위치 기준 자동 역추적)
+    default_repo = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+    dotconfig_repo = os.environ.get("DOTCONFIG_REPO", default_repo)
     templates_root = os.path.join(dotconfig_repo, "devcontainers")
 
     available_templates = [

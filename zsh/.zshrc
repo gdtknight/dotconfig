@@ -5,8 +5,20 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# Deduplicate PATH and fpath across nested/subshell sessions (e.g. tmux)
+typeset -U path PATH fpath FPATH
+
+# Initialize Homebrew before Oh My Zsh so compinit picks up brew site-functions
+# and non-login interactive shells on Linux have brew tools in PATH.
+if ! command -v brew >/dev/null 2>&1; then
+  for _brew_bin in /opt/homebrew/bin/brew "$HOME/.linuxbrew/bin/brew" /home/linuxbrew/.linuxbrew/bin/brew; do
+    if [[ -x "$_brew_bin" ]]; then
+      eval "$("$_brew_bin" shellenv zsh)"
+      break
+    fi
+  done
+  unset _brew_bin
+fi
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -77,13 +89,14 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
+# Note: zsh-syntax-highlighting must be loaded last among plugins.
 plugins=(
   git
-  zsh-syntax-highlighting
   zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
-source $ZSH/oh-my-zsh.sh
+[[ -r "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -92,13 +105,16 @@ source $ZSH/oh-my-zsh.sh
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
+# Preferred editor for local and remote sessions (prefer nvim whenever installed)
+if command -v nvim >/dev/null 2>&1; then
+  export EDITOR='nvim'
+  export VISUAL='nvim'
+elif command -v vim >/dev/null 2>&1; then
   export EDITOR='vim'
   export VISUAL='vim'
 else
-  export EDITOR='nvim'
-  export VISUAL='nvim'
+  export EDITOR='vi'
+  export VISUAL='vi'
 fi
 
 # Compilation flags
@@ -115,45 +131,62 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# Powerlevel10k fallback if Oh My Zsh theme symlink was not loaded
+if (( ! $+__p9k_sourced )) && [[ -r "$HOME/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
+  source "$HOME/powerlevel10k/powerlevel10k.zsh-theme"
+fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-alias cd="z"
-#alias ll="eza -alD --icons --blocksize && eza -alf --icons --show-symlinks"
-alias ll="eza -al --sort type --icons always"
-
-# Homebrew environment (Ensure PATH is initialized in non-login interactive shells on Linux)
-if ! command -v brew >/dev/null 2>&1; then
-  if [ -x "/opt/homebrew/bin/brew" ]; then
-    eval "$(/opt/homebrew/bin/brew shellenv zsh)"
-  elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
-    eval "$($HOME/.linuxbrew/bin/brew shellenv zsh)"
-  elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-  fi
+# Modern CLI tool wrappers (guarded to prevent breaking cd/ll when tools are missing)
+if command -v eza >/dev/null 2>&1; then
+  alias ll="eza -al --sort type --icons always"
 fi
 
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
-export PATH="$HOME/.local/bin:$PATH"
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+  alias cd="z"
+fi
 
-# android
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
 
-# Added by Antigravity IDE
-export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
+# Android SDK (only if installed)
+if [[ -d "$HOME/Library/Android/sdk" ]]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+elif [[ -d "$HOME/Android/Sdk" ]]; then
+  export ANDROID_HOME="$HOME/Android/Sdk"
+fi
+if [[ -n "$ANDROID_HOME" && -d "$ANDROID_HOME" ]]; then
+  export PATH="$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools"
+fi
+
+# Added by Antigravity IDE (only if installed)
+[[ -d "$HOME/.antigravity-ide/antigravity-ide/bin" ]] && export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
 
 # Local private environment variables and secrets (Never committed)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
+# Resolve dotconfig repository root dynamically (supports ~/dev/dotconfig, ~/.dotconfig, etc.)
+_dotconfig_repo_dir() {
+  if [[ -n "$DOTCONFIG_REPO" && -d "$DOTCONFIG_REPO" ]]; then
+    print -r -- "$DOTCONFIG_REPO"
+  elif [[ -L "$HOME/.zshrc" && -d "${${:-$HOME/.zshrc}:A:h:h}/devcontainers" ]]; then
+    print -r -- "${${:-$HOME/.zshrc}:A:h:h}"
+  elif [[ -d "$HOME/dev/dotconfig" ]]; then
+    print -r -- "$HOME/dev/dotconfig"
+  elif [[ -d "$HOME/.dotconfig" ]]; then
+    print -r -- "$HOME/.dotconfig"
+  else
+    print -r -- "$HOME/dev/dotconfig"
+  fi
+}
+
 # Dev Container Template Initializer 2.0 (Dual-Mode: Interactive Wizard & Scriptable Flags)
 devcontainer-init() {
-  local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
+  local dotconfig_repo
+  dotconfig_repo="$(_dotconfig_repo_dir)"
   local script_path="${dotconfig_repo}/devcontainers/scripts/init_devcontainer.py"
 
   if [ ! -f "$script_path" ]; then
@@ -161,12 +194,15 @@ devcontainer-init() {
     return 1
   fi
 
-  python3 "$script_path" "$@"
+  DOTCONFIG_REPO="$dotconfig_repo" python3 "$script_path" "$@"
 }
 
 # Zsh auto-completion for devcontainer-init 2.0
 _devcontainer_init_completion() {
-  local dotconfig_repo="${DOTCONFIG_REPO:-$HOME/dev/dotconfig}"
+  local context state state_descr line
+  typeset -A opt_args
+  local dotconfig_repo
+  dotconfig_repo="$(_dotconfig_repo_dir)"
   local template_dir="${dotconfig_repo}/devcontainers"
   local -a templates
   if [ -d "$template_dir" ]; then
@@ -177,7 +213,7 @@ _devcontainer_init_completion() {
     templates=(${templates:#.cache})
   fi
 
-  _arguments -s \
+  _arguments -C -s \
     '1:template:->templates' \
     '(-v --version)'{-v,--version}'[SDK/언어 버전 지정 (예: 22, 3.12, 1.23)]:version:' \
     '(-p --pkg)'{-p,--pkg}'[패키지 매니저 지정 (pnpm, bun, yarn, uv, poetry)]:package_manager:(pnpm bun yarn npm uv poetry gradle maven cargo)' \
@@ -187,8 +223,7 @@ _devcontainer_init_completion() {
     '--ai[컨테이너 내부 AI Agent CLI 사전 설치]' \
     '--no-install[컨테이너 기동 시 의존성 자동 설치 건너뛰기]' \
     '(-i --interactive)'{-i,--interactive}'[대화형 마법사 모드 실행]' \
-    '(-y --yes)'{-y,--yes}'[확인 프롬프트 생략 (기본값으로 즉시 생성)]' \
-    '*::args:->args' && return 0
+    '(-y --yes)'{-y,--yes}'[확인 프롬프트 생략 (기본값으로 즉시 생성)]'
 
   case "$state" in
     templates)
