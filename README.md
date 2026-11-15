@@ -1,212 +1,204 @@
+<div align="center">
+
 # Dotconfig
 
-macOS 및 Ubuntu(루트/sudo 권한이 없는 환경 포함)에서 환경 설정을 단일 Git 리포지토리에서 관리하고, `install.sh` 스크립트를 통해 시스템 대상 경로에 안전한 심볼릭 링크와 패키지 설치 워크플로우를 제공합니다.
+**Cross-Platform, Zero-Sudo Developer Environment, Multi-Vendor AI Agent Harness & Dynamic Dev Container 2.0**
 
-## 1. 아키텍처 및 심볼릭 링크 매핑
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Ubuntu%20(Rootless)-blue?style=flat-square)](./install.sh)
+[![Shell](https://img.shields.io/badge/Shell-Bash%203.2%2B%20%7C%20Zsh-121011?style=flat-square&logo=gnu-bash)](./zsh/.zshrc)
+[![Editor](https://img.shields.io/badge/Neovim-LazyVim%20v14%2B-57A143?style=flat-square&logo=neovim)](./nvim)
+[![AI Harness](https://img.shields.io/badge/AI%20Agents-Claude%20%7C%20Gemini%20%7C%20Codex-8A2BE2?style=flat-square)](./agents)
+[![Dev Containers](https://img.shields.io/badge/Dev%20Containers-2.0%20Dual--Mode-2496ED?style=flat-square&logo=docker)](./devcontainers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
-```text
-dotconfig/
-├── install.sh                  # 심볼릭 링크 자동 설치 및 패키지 관리 스크립트
-├── Brewfile                    # 사용자가 직접 관리하는 패키지 설치 목록 (macOS & Linux)
-├── README.md                   # 리포지토리 매뉴얼 및 매핑 테이블
-├── CLAUDE.md / AGENTS.md       # 에이전트 작업 지침 및 스키마
-├── nvim/                       # Neovim (LazyVim v14+, Obsidian.nvim, Snacks)
-├── zsh/                        # Zsh 셸 및 프롬프트 (.zshrc, .zprofile, .p10k.zsh)
-├── git/                        # Git 전역 설정 (.gitconfig, .gitignore)
-├── agents/                     # LLM 에이전트 설정 (Claude, Gemini, Codex 통합 관리)
-│   ├── shared/                 # 3사 에이전트 공통 원본 (INSTRUCTIONS.md, rules/, agents/*.md, hooks/)
-│   ├── claude/                 # settings.json (Claude 전용 설정 및 훅 연동)
-│   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
-│   └── codex/                  # config.toml, agents/*.toml (shared/agents 참조 래퍼)
-├── ide/                        # IDE 설정 (macOS & Linux XDG 경로 자동 분기)
-│   ├── antigravity-ide/        # settings.json, keybindings.json, extensions.txt
-│   └── intellij/               # keymaps/macOS.xml, idea.vmoptions, idea.properties
-├── alacritty/                  # Alacritty 터미널 설정 및 테마
-├── wezterm/                    # WezTerm 설정 (wezterm.lua)
-├── tmux/                       # tmux.conf
-├── devcontainers/              # 환경별 Dev Container 템플릿 (42 C/C++, Go, DB 풀스택, Python AI 등)
-└── docker/                     # 컨테이너화 도구 정의
-    └── formatter/              # Dockerfile, build.sh (단발성 코드 포매터 컨테이너)
-```
+**English** | [한국어](./README.ko.md)
 
-### 매핑 상세 테이블
+[Quick Start](#-quick-start) · [Architecture](#-architecture--symlink-mapping) · [AI Agent Harness](#-ai-agent-lifecycle-hooks) · [Dev Container 2.0](#-dev-container-20-generator) · [Deep-Dive Docs](./docs/ARCHITECTURE.md)
 
-| 모듈                | 리포지토리 소스 (`dotconfig/`)                                                        | macOS 대상 경로 (`$HOME`)                                                            | Ubuntu/Linux 대상 경로 (`$HOME`)                                                                              | 링크 방식                                                                           |
-| :------------------ | :------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------- |
-| **Neovim**          | `nvim`                                                                                | `~/.config/nvim`                                                                     | `~/.config/nvim`                                                                                              | 디렉토리 심볼릭 링크                                                                |
-| **Zsh**             | `zsh/.zshrc`<br>`zsh/.zprofile`<br>`zsh/.p10k.zsh`                                    | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh`                                         | `~/.zshrc`<br>`~/.zprofile`<br>`~/.p10k.zsh`                                                                  | 파일 심볼릭 링크<br>_(oh-my-zsh, p10k, 플러그인 자동 보장)_                         |
-| **Git**             | `git/.gitconfig`<br>`git/.gitignore`                                                  | `~/.gitconfig`<br>`~/.gitignore`<br>`~/Projects/<account>/`                          | `~/.gitconfig`<br>`~/.gitignore`<br>`~/Projects/<account>/`                                                   | 파일 심볼릭 링크<br>_(다중 계정 격리 워크플로우 & SSH 키/서명 자동화)_              |
-| **Claude**          | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json`              | `~/.claude/{CLAUDE.md,rules,agents,hooks}`<br>`~/.claude/settings.json`                                       | 공통 마크다운/폴더 및 설정 링크<br>_(claude CLI 자동 설치 보장)_                    |
-| **Gemini / AGY**    | `agents/shared/{INSTRUCTIONS.md,rules,agents,hooks}`<br>`agents/gemini/*`             | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | `~/.gemini/{GEMINI.md,agents}`<br>`~/.gemini/config/{rules,hooks,skills/*/SKILL.md}`                          | 공통 마크다운/스킬 및 설정 링크<br>_(agy CLI 자동 설치 보장)_                       |
-| **Codex**           | `agents/shared/{INSTRUCTIONS.md,agents,hooks}`<br>`agents/codex/{config.toml,agents}` | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md`      | `~/.codex/{AGENTS.md,config.toml,agents,hooks}`<br>`~/.codex/skills/*/SKILL.md`                               | 공통 마크다운/스킬 및 TOML 링크<br>_(codex CLI 자동 설치 보장)_                     |
-| **IDE (VS Code / Antigravity)** | `ide/antigravity-ide/*`                                                               | `~/Library/Application Support/Antigravity IDE/User/*`<br>_(VS Code: `~/Library/Application Support/Code/User/*`)_    | `~/.config/Code/User/*`<br>_(Antigravity: `~/.config/Antigravity IDE/User/*`, `~/goinfre/.vscode/extensions` 자동 격리)_ | 파일 심볼릭 링크<br>_(extensions.txt 기반 확장 자동 설치/동기화)_                   |
-| **IntelliJ IDEA**   | `ide/intellij/*`                                                                      | `~/Library/Application Support/JetBrains/IntelliJIdea*/*`                            | `~/.config/JetBrains/IntelliJIdea*/*`                                                                         | 파일 심볼릭 링크                                                                    |
-| **Terminal**        | `alacritty`<br>`wezterm/wezterm.lua`<br>`tmux/tmux.conf`                              | `~/.config/alacritty`<br>`~/.wezterm.lua`<br>`~/.tmux.conf`<br>`~/Library/Fonts`     | `~/.config/alacritty`<br>`~/.wezterm.lua` 및 `~/.config/wezterm/`<br>`~/.tmux.conf`<br>`~/.local/share/fonts` | 디렉토리 및 파일 링크<br>_(tpm 및 Nerd Fonts: D2Coding, ComicShannsMono 자동 보장)_ |
+</div>
 
 ---
 
-## 2. 사용법 (`install.sh`)
+## Overview
 
-### ⚡ 웹 원라인 설치 (새 머신 / Fresh OS)
+**Dotconfig** is a declarative, **Single Source of Truth (SSOT)** workspace repository that provisions and synchronizes a full-stack engineering environment across **macOS** and **Ubuntu/Linux (including rootless / non-sudo university or cluster environments)**.
 
-새 머신에서 터미널을 열고 다음 명령어 한 줄만 실행하면, 저장소 클론(`~/.dotconfig`), 선행 도구(Xcode CLI Tools, Homebrew) 설치, 그리고 전체 환경 설정 심볼릭 링크가 원클릭으로 완료됩니다:
+Built for real-world developer productivity, it goes beyond static dotfiles by integrating a **3-vendor AI Agent Harness** (`Claude Code`, `Google Antigravity CLI`, `OpenAI Codex`), **ephemeral Docker-based formatting**, **multi-account Git/SSH isolation**, and a **dynamic Dev Container 2.0 CLI generator**.
+
+### Design Principles
+
+* **Zero-Sudo Cross-Platform Bootstrap**: Self-bootstraps Homebrew on macOS and rootless Linuxbrew (`~/.linuxbrew`) on Ubuntu, with automatic NFS quota relocation (`~/goinfre`) for IDE extensions.
+* **Single Source of Truth (SSOT)**: Shared agent rules, 12 specialized subagents, and lifecycle hooks live in `agents/shared/` and sync across Claude, Gemini/Antigravity, and Codex automatically.
+* **Thin Host, Ephemeral Tooling**: Language toolchains and code formatters stay isolated inside Dev Containers and on-demand Docker containers (`dotconfig-formatter`) rather than polluting the host OS.
+* **Safe & Idempotent Execution**: Every installation supports `--dry-run`, preserves existing configurations in timestamped backups (`~/.dotconfig_backups/`), and guarantees zero secret leakage via `.gitignore` and PreToolUse guards.
+
+---
+
+## System Architecture
+
+```mermaid
+flowchart LR
+    Repo["dotconfig Repository<br/>(Single Source of Truth)"] --> Installer["install.sh<br/>(Bash 3.2+ / Dry-run / Safe Backup)"]
+
+    Installer --> Env["OS & Terminal<br/>Zsh · Oh My Zsh · P10k · Tmux · WezTerm · Alacritty"]
+    Installer --> Editor["Editors & IDEs<br/>LazyVim · Antigravity IDE · IntelliJ · Docker v29+ Patch"]
+    Installer --> Git["Git Multi-Account<br/>includeIf · Isolated ed25519 SSH · Commit Signing"]
+    Installer --> Agents["3-Vendor AI Harness<br/>Claude · Gemini/AGY · Codex (12 Subagents + hook.py)"]
+    Installer --> Pkg["Brewfile<br/>macOS Casks (OS.mac?) & Cross-Platform CLI"]
+
+    Repo --> DC["devcontainer-init 2.0<br/>(Dynamic Version Cache & Compose Elevation)"]
+```
+
+> For C4 diagrams, sequence flows, and **Architecture Decision Records (ADR)**, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+---
+
+## Quick Start
+
+### Web One-Line Bootstrap (Fresh OS)
+
+Run a single command on a brand-new machine to install prerequisites (Xcode CLI Tools / Homebrew on macOS), clone the repository to `~/.dotconfig`, and link all modules:
 
 ```bash
-# 전체 자동 설치 (Homebrew, 심볼릭 링크, 폰트, IDE 확장 등)
+# Full automated setup (packages, symlinks, fonts, IDE extensions)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
 
-# 미리보기 (Dry-run)
+# Preview actions without modifying files
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
 
-# 특정 모듈만 선택 설치 (예: Neovim, Git)
+# Install specific modules only (e.g., Neovim and Git)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
 ```
 
-> **Tip**: 기본 설치 위치는 `~/.dotconfig`이며, 다른 경로를 원할 경우 `DOTCONFIG_DIR=~/my/path` 환경변수를 앞에 지정할 수 있습니다.
+> **Tip**: Override the default clone path (`~/.dotconfig`) by setting `DOTCONFIG_DIR=~/my/path` before running the command.
 
----
+### Local Repository Execution
 
-### 💻 로컬 저장소에서 실행
-
-이미 저장소를 클론한 경우, 저장소 디렉터리 내에서 직접 실행할 수 있습니다. OS(macOS, Linux)를 자동으로 감지하며 **sudo 권한이 전혀 필요하지 않습니다.**
+Inside an already-cloned repository, run `./install.sh` selectively (**no `sudo` required**):
 
 ```bash
-# 전체 설정 링크 미리보기 (실제 변경 없음)
-./install.sh --dry-run all
+./install.sh --dry-run all      # Preview all symlinks and actions
+./install.sh all                # Apply full environment setup
 
-# 전체 설정 실제 심볼릭 링크 연결
-./install.sh all
+# Modular execution
+./install.sh packages           # Bootstrap Homebrew/Linuxbrew & sync Brewfile
+./install.sh nvim               # Link LazyVim v14+ configuration
+./install.sh zsh                # Link Zsh, Oh My Zsh, Powerlevel10k & plugins
+./install.sh git                # Link global Git config & interactive multi-account setup
+./install.sh agents             # Sync Claude, Gemini/AGY, Codex configs, skills & CLIs
+./install.sh ide                # Link IDE settings, sync extensions & patch Docker v29+ CLI
+./install.sh terminal           # Link Alacritty, WezTerm, Tmux, TPM plugins & Nerd Fonts
+./install.sh fonts              # Install Nerd Fonts (D2Coding, ComicShannsMono)
+./install.sh formatter          # Build dotconfig-formatter Docker image
 
-# 특정 모듈만 선택 연결
-./install.sh nvim       # Neovim만 연결
-./install.sh zsh        # Zsh (.zshrc, .zprofile, .p10k.zsh), Oh My Zsh, p10k 및 플러그인 설정
-./install.sh git        # Git 전역 설정 및 다중 계정(Projects/계정별 디렉터리, SSH 키, includeIf) 구성
-./install.sh agents     # Claude, Gemini, Codex 에이전트 설정만 연결
-./install.sh ide        # Antigravity IDE, IntelliJ 설정 연결 및 확장 프로그램 동기화
-./install.sh terminal   # Alacritty, WezTerm, Tmux 연결 및 Nerd Fonts 설치
-./install.sh fonts      # Nerd Fonts (D2Coding, ComicShannsMono)만 단독 설치
-./install.sh formatter  # 코드 포매터 Docker 이미지 빌드 (dotconfig-formatter:latest)
-
-# Antigravity IDE 확장 프로그램 관리
-./install.sh --dump-extensions  # 현재 IDE에 설치된 확장 목록을 extensions.txt로 내보내기
-
-# 패키지 설치 (Brewfile 기반)
-./install.sh packages   # (또는 ./install.sh brew)
+./install.sh --dump-extensions  # Export current Antigravity IDE extensions to extensions.txt
 ```
 
 ---
 
-## 3. 프로그램 패키지 관리 (`Brewfile`)
-
-[`Brewfile`](./Brewfile)은 사용자가 직접 설치할 프로그램을 선언적으로 편집할 수 있는 파일입니다.
-
-- **macOS 전용 애플리케이션 (GUI Cask)**은 `if OS.mac?` 블록으로 감싸져 있으므로, Linux 환경에서 실행해도 에러 없이 CLI 패키지만 정상 처리됩니다.
-- 원하는 패키지를 `Brewfile`에 추가하거나 주석 처리하여 손쉽게 커스터마이징할 수 있습니다.
-
-### 💡 Homebrew 자동 설치 (macOS & sudo 없는 Ubuntu 지원)
-
-`./install.sh packages` (또는 `./install.sh all`) 실행 시 시스템에 Homebrew가 감지되지 않으면 OS에 맞춰 **자동으로 Homebrew를 먼저 설치**한 뒤 [`Brewfile`](./Brewfile) 패키지를 동기화합니다:
-
-- **macOS**: 공식 Homebrew 설치 스크립트 실행 (`/opt/homebrew` 또는 `/usr/local`)
-- **Ubuntu/Linux (sudo 권한 불필요)**: 사용자 홈 디렉터리(`~/.linuxbrew`)에 Homebrew를 자동 클론 및 심볼릭 링크 구성 (`zsh/.zprofile`에서 자동 PATH 로드)
-- _(또한 `~/.local/bin` 경로가 셸 PATH에 기본 등록되어 있으므로, 직접 다운로드한 AppImage나 Standalone 바이너리를 `~/.local/bin`에 두고 바로 사용할 수도 있습니다.)_
-
----
-
-## 4. 안전 백업 메커니즘
-
-기존 사용자 파일/폴더가 감지되면 덮어쓰지 않고 타임스탬프 기반 백업 디렉토리로 자동 이동합니다:
+## Architecture & Symlink Mapping
 
 ```text
-~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/
+dotconfig/
+├── install.sh                  # Cross-platform symlink installer, web bootstrapper & patcher
+├── Brewfile                    # Curated CLI & macOS-only Cask manifest (OS.mac? guarded)
+├── README.md / README.ko.md    # Bilingual documentation (English / Korean)
+├── CLAUDE.md / CLAUDE.ko.md    # Repository maintenance & agent guidelines (AGENTS.md -> CLAUDE.md)
+├── docs/                       # Deep-dive system architecture & ADRs (English / Korean)
+├── nvim/                       # LazyVim v14+, Obsidian dynamic vault scan, devcontainer.nvim
+├── zsh/                        # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init wrapper
+├── git/                        # Global .gitconfig (SSH signing, histogram diff) & .gitignore
+├── agents/                     # Multi-vendor AI Agent harness (Claude, Gemini/AGY, Codex)
+│   ├── shared/                 # SSOT: INSTRUCTIONS.md, rules/, 12 specialized agents/, hooks/
+│   ├── claude/                 # settings.json (Claude Code hook bindings)
+│   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
+│   └── codex/                  # config.toml & TOML subagent wrappers
+├── ide/                        # Antigravity IDE / VS Code (18 extensions) & IntelliJ IDEA
+├── alacritty/                  # Alacritty terminal config & themes
+├── wezterm/                    # WezTerm Lua configuration
+├── tmux/                       # Tmux config with TPM plugins & vim-tmux-navigator
+├── devcontainers/              # 9 templates + Python-based Dev Container 2.0 generator engine
+└── docker/formatter/           # Multi-language ephemeral code formatter Docker image
 ```
 
+### Detailed Mapping Table
+
+| Module | Repository Source | macOS Target (`$HOME`) | Ubuntu/Linux Target (`$HOME`) | Mechanism |
+| :--- | :--- | :--- | :--- | :--- |
+| **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | Directory symlink (LazyVim v14+, Obsidian, Devcontainer) |
+| **Zsh** | `zsh/{.zshrc,.zprofile,.p10k.zsh}` | `~/.zshrc`, `~/.zprofile`, `~/.p10k.zsh` | `~/.zshrc`, `~/.zprofile`, `~/.p10k.zsh` | File symlinks + auto Oh My Zsh, P10k & plugin bootstrap |
+| **Git** | `git/{.gitconfig,.gitignore}` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | File symlinks + `includeIf` multi-account SSH & signing |
+| **Claude** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | Shared markdown & hook symlinks + CLI auto-install |
+| **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills symlinks + `agy` CLI auto-install |
+| **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,agents,hooks,skills/*/SKILL.md}` | Same as macOS | Shared skills & TOML wrapper links + CLI auto-install |
+| **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` extension isolation) | Settings symlinks, 18-extension sync & Docker v29+ patch |
+| **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | Keymap (`macOS.xml`), VM options & properties links |
+| **Terminal** | `alacritty`, `wezterm/wezterm.lua`, `tmux/tmux.conf` | `~/.config/alacritty`, `~/.wezterm.lua`, `~/.tmux.conf`, `~/Library/Fonts` | Same + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | Symlinks + auto TPM plugin sync + Nerd Fonts |
+
 ---
 
-## 5. AI 에이전트 라이프사이클 훅 (`agents/shared/hooks/hook.py`)
+## Core Engineering Highlights
 
-Claude, Gemini, Codex 에이전트 공통으로 동작하는 보안 가드, 자동 포맷, 시스템 알림 훅을 제공합니다.
+### 1. AI Agent Lifecycle Hooks
 
-| 훅 이벤트                 | 동작 및 기능                                                                                                                                                                                                                         |
-| :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PreToolUse** (실행 전)  | **보안 가드**: `git push --force`, `git reset --hard`, `rm -rf /` 등 파괴적 명령 사전 차단<br>**시크릿 보호**: `.env`, 개인키, 인증 파일 직접 접근 차단 및 API 키(OpenAI, Google, GitHub, Slack 등) 누출 차단                        |
-| **PostToolUse** (실행 후) | **자동 코드 포맷**: 파일 수정 완료 시 **단발성 Docker 컨테이너**(`dotconfig-formatter:latest`)를 통해 즉시 포맷 적용 (`prettier`, `ruff`, `google-java-format`, `clang-format`, `stylua`) _(Docker 미가동 시 로컬 도구로 자동 폴백)_ |
-| **Stop** (세션 종료)      | **작업 완료 알림**: 긴 작업 완료 시 macOS 네이티브 알림(`display notification`) 및 Glass 사운드 재생                                                                                                                                 |
+[`agents/shared/hooks/hook.py`](./agents/shared/hooks/hook.py) provides a unified cross-platform lifecycle hook shared by Claude Code, Gemini/Antigravity, and Codex:
 
----
+| Hook Event | Capability & Behavior |
+| :--- | :--- |
+| **PreToolUse** | • **Destructive Command Guard**: Token-aware parsers (`is_dangerous_rm`, `is_dangerous_chmod`) block root (`/`), home (`~`, `$HOME`), and critical system directories while safely permitting subpath cleanup (e.g., `/tmp/...`). Blocks `git push --force`, `git reset --hard`, `mkfs`, `dd`.<br>• **Secret & Token Leak Prevention**: Blocks direct access to `.env`, private keys, and credential files, and detects GitHub, OpenAI, Google, AWS, and Slack token patterns. |
+| **PostToolUse** | • **Ephemeral Container Formatting**: Formats modified files via `dotconfig-formatter:latest` (`prettier`, `ruff`, `google-java-format`, `clang-format`, `stylua`) with seamless fallback to local formatters when Docker is unavailable. |
+| **Stop** | • **Context-Aware Window Activation**: Sends macOS native notifications via `terminal-notifier` (`-activate`) and dynamically detects the originating app (`Antigravity IDE`, `WezTerm`, `Alacritty`, `iTerm2`, `Terminal`) so clicking the toast focuses the exact workspace window instead of Script Editor. |
 
-## 6. 다중 Git 계정 워크플로우 (`~/Projects/`)
+### 2. Multi-Account Git & SSH Isolation
 
-단일 호스트에서 복수의 GitHub 계정(예: 학교/회사 계정과 개인 계정)을 사용할 때, URL을 임의로 수정할 필요 없이 작업 경로에 따라 **이메일, 커밋 서명, SSH 인증 키**가 100% 자동 분기됩니다.
-
-### 디렉터리 아키텍처
+Manage multiple GitHub accounts (e.g., work/school and personal) on a single machine without rewriting remote URLs:
 
 ```text
 ~/Projects/
-├── <account1>/      # 계정 1 작업 공간 (예: personal)
-│   └── my-project/  # -> 일반 GitHub URL 그대로 clone 해도 계정 1 SSH 키/이메일 자동 적용
-└── <account2>/      # 계정 2 작업 공간 (예: work)
-    └── sub-project/ # -> 일반 GitHub URL 그대로 clone 해도 계정 2 SSH 키/이메일 자동 적용
+├── <account1>/      # Uses ~/.gitconfig-<account1> (dedicated ed25519 key + SSH signingkey)
+└── <account2>/      # Uses ~/.gitconfig-<account2> (dedicated ed25519 key + SSH signingkey)
 ```
 
-- **설정 자동화**: `./install.sh git` (또는 `./install.sh all`) 실행 시 계정 정보가 없으면 대화형으로 계정 정보를 입력받아 `~/.config/dotconfig/git-accounts.env`에 안전하게 격리 저장합니다.
-- **자동 분기 구성**: 계정별 ed25519 SSH 키(`~/.ssh/id_ed25519_<user>`), 프로젝트 디렉터리(`~/Projects/<user>`), `~/.gitconfig-<user>`, 그리고 `~/.gitconfig.local`의 `includeIf` 설정이 한 번에 자동 구성됩니다.
-- **클립보드 지원 (방안 A)**: 실행 시 각 계정의 공개키가 클립보드(`pbcopy`)에 자동 복사되며, 터미널 안내 링크(`https://github.com/settings/ssh/new`)를 통해 GitHub에 손쉽게 붙여넣기만 하면 등록이 완료됩니다.
-- **저장소 무결성**: 실제 개인 식별자(이름, 이메일, 계정명)는 로컬 `~/.config/dotconfig/git-accounts.env` 및 `~/.gitconfig.local`에만 보관되어 공개 Git 저장소에는 일체 커밋되지 않습니다.
+* Interactive account registration stores personal identities outside the repository in `~/.config/dotconfig/git-accounts.env` and `~/.gitconfig.local`.
+* Public keys are automatically copied via `pbcopy` (on macOS) with direct GitHub SSH key registration prompts.
+* `sshCommand` stays scoped to per-account configs so unrelated SSH hosts (`~/.ssh/config`) remain unaffected.
+
+### 3. Dev Container 2.0 Generator
+
+[`devcontainers/`](./devcontainers) includes **9 production-ready templates** (`42-c-valgrind`, `fullstack-db`, `go-backend`, `python-ai`, `devops-cloud`, `rust`, `java`, `node-ts`, `react-native`) powered by a Python 3 standard-library engine (`devcontainer-init`):
+
+* **Smart Version Cache (`version_fetcher.py`)**: Queries official release APIs (`nodejs.org`, `endoflife.date`, `go.dev`) with a 1.5s timeout and updates `~/.cache/dotconfig/devcontainer-versions.json` for resilient offline fallback.
+* **Auto Compose Elevation (`db_templates.py`)**: Checking any local database (`postgres`, `redis`, `mysql`, `mongo`) automatically elevates single-container configs into a multi-service `docker-compose.yml`.
+* **Dual-Mode CLI (`init_devcontainer.py`)**: Supports both an interactive prompt wizard and non-interactive scriptable flags with full Zsh tab completion.
+
+```bash
+# Interactive wizard (lists live active SDK versions)
+devcontainer-init node-ts
+
+# Scriptable one-liner: Node 22 + pnpm + Postgres + Redis + ports 3000,8080
+devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+
+# Python AI: Python 3.12 + uv + port 8888 + bundled AI Agent CLIs
+devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
+```
+
+### 4. Safe Backup & Package Management
+
+* Existing non-symlink files are never overwritten; they are safely relocated to `~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/` preserving directory hierarchy.
+* [`Brewfile`](./Brewfile) guards GUI applications and Nerd Fonts inside `if OS.mac?` so Ubuntu/Linux nodes install only CLI tooling cleanly without root access.
 
 ---
 
-## 7. Dev Container 템플릿 관리 (`devcontainers/`)
+## Documentation Index
 
-호스트 머신에 개발 툴체인을 직접 설치하지 않고 격리된 Docker 환경에서 개발할 수 있는 8가지 표준 템플릿을 제공합니다:
+| Document | English | 한국어 |
+| :--- | :--- | :--- |
+| **Main Manual & Mapping** | [README.md](./README.md) | [README.ko.md](./README.ko.md) |
+| **Architecture & Decisions (ADR)** | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | [docs/ARCHITECTURE.ko.md](./docs/ARCHITECTURE.ko.md) |
+| **Agent & Contributor Guidelines** | [CLAUDE.md](./CLAUDE.md) | [CLAUDE.ko.md](./CLAUDE.ko.md) |
 
-- `42-c-valgrind`: Ubuntu 24.04, Clang/GCC, GDB, Valgrind, Make, Norminette (42 C/C++ 과제 전용)
-- `fullstack-db`: Node.js 20 앱 + PostgreSQL 16 + Redis 7 멀티 컨테이너 Compose 환경
-- `go-backend`: Go 1.23, gopls, dlv, golangci-lint
-- `python-ai`: Python 3.11, PyTorch, Jupyter, LangChain, Pandas
-- `devops-cloud`: Terraform, kubectl, helm, aws-cli
-- `rust`: Rust, Cargo, rust-analyzer
-- `java`: OpenJDK 21, Gradle, Maven
-- `node-ts`: Node.js 20, TypeScript
-- `react-native`: React Native & Expo (Metro 8081 포트 포워딩, 하이브리드 iOS/Android)
+---
 
-### 사용법 (Dual-Mode: 대화형 마법사 & CLI 플래그)
+## License
 
-새 프로젝트나 기존 프로젝트 디렉터리에서 원하는 방식으로 템플릿을 생성합니다:
-
-#### 1) 대화형 마법사 모드 (Interactive Wizard)
-인자 없이 실행하거나 `-i` 플래그를 주면 방향키와 번호로 SDK 버전, 패키지 매니저, 로컬 DB, 포트를 맞춤 선택합니다. (공식 API 최신 릴리스 실시간 조회 & 로컬 캐시 연동)
-```bash
-# 대화형 프롬프트 실행 (Zsh 자동완성: devcontainer-init <Tab>)
-devcontainer-init node-ts
-
-? Node.js SDK 버전을 선택하세요:
-  ▸ [1] 22 (LTS: Jod) (기본값)
-    [2] 20 (LTS: Iron)
-    [3] 18 (Maintenance)
-    [4] 직접 입력
-? 사용할 패키지 매니저를 선택하세요: [1] pnpm (권장)  [2] bun  [3] yarn  [4] npm
-? 함께 띄울 로컬 데이터베이스가 있나요?: [1] PostgreSQL  [2] Redis  [3] MySQL  [4] MongoDB
-? 호스트에 노출할 포트 (쉼표 구분): 3000, 8080
-? 추가 환경 옵션: 호스트 Neovim 마운트, Docker 소켓 공유, AI CLI 탑재, 의존성 자동 설치
-```
-
-#### 2) 스크립트 플래그 모드 (Scriptable One-liner)
-옵션을 지정하면 프롬프트 없이 즉시 맞춤형 컨테이너를 생성합니다.
-```bash
-# Node 22 + pnpm + PostgreSQL + Redis + 포트 3000 바인딩
-devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
-
-# Python 3.12 + 초고속 uv 패키지 매니저 + 포트 8888 + AI Agent CLI 탑재
-devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
-
-# 확인 프롬프트 생략 (-y)
-devcontainer-init rust -y
-```
-
-#### 3) 에디터 연동 및 실행
-* **Neovim**: `nvim .` 실행 후
-  * `<Space>Ds` : 컨테이너 백그라운드 시작 (Start)
-  * `<Space>Da` : 컨테이너 내부 셸 접속 (Attach)
-  * `<Space>Dq` : 작업 완료 후 컨테이너 중지 (Stop)
-* **Antigravity IDE**: 명령 팔레트(`Cmd+Shift+P`)에서 `Dev Containers: Reopen in Container` 선택
+Released under the [MIT License](./LICENSE).
