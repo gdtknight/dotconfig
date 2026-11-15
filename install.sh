@@ -173,6 +173,15 @@ link_target() {
     local current_target
     current_target="$(readlink "$dst")"
     if [ "$current_target" = "$src" ]; then
+      if [ "$FORCE" = true ]; then
+        if [ "$DRY_RUN" = true ]; then
+          log_dry "Force relink: $dst -> $src"
+          return 0
+        fi
+        ln -sfn "$src" "$dst"
+        log_ok "Force relinked: $dst -> $src"
+        return 0
+      fi
       log_ok "Already linked: $dst -> $src"
       return 0
     else
@@ -181,7 +190,7 @@ link_target() {
         return 0
       fi
       rm -f "$dst"
-      ln -s "$src" "$dst"
+      ln -sfn "$src" "$dst"
       log_ok "Updated symlink: $dst -> $src"
       return 0
     fi
@@ -203,7 +212,7 @@ link_target() {
     log_backup "Backed up: $dst -> $backup_target"
 
     mkdir -p "$dst_dir"
-    ln -s "$src" "$dst"
+    ln -sfn "$src" "$dst"
     log_ok "Linked: $dst -> $src"
     return 0
   fi
@@ -215,7 +224,7 @@ link_target() {
   fi
 
   mkdir -p "$dst_dir"
-  ln -s "$src" "$dst"
+  ln -sfn "$src" "$dst"
   log_ok "Created link: $dst -> $src"
 }
 
@@ -356,10 +365,10 @@ setup_goinfre_symlink() {
   local target_home="$1"
   local rel_path="$2"
 
-  local goinfre_dir="${HOME}/goinfre/${rel_path}"
-  local home_dest="${HOME}/${rel_path}"
+  local goinfre_dir="${target_home}/goinfre/${rel_path}"
+  local home_dest="${target_home}/${rel_path}"
 
-  if [ ! -d "${HOME}/goinfre" ]; then
+  if [ ! -d "${target_home}/goinfre" ]; then
     return 0
   fi
 
@@ -564,7 +573,9 @@ guide_github_ssh_key() {
     echo -e "공개키 내용: $(cat "$pub_key")"
   fi
   echo -e "👉 GitHub 등록 링크: ${COLOR_BLUE}https://github.com/settings/ssh/new${COLOR_RESET}"
-  echo -e "   - Title: MacBook (${user})"
+  local host_label
+  host_label="$(hostname -s 2>/dev/null || echo "$OS")"
+  echo -e "   - Title: ${host_label} (${user})"
   echo -e "   - Key type: Authentication Key (또는 Signing Key)"
   echo -e "   - Key: Cmd + V (붙여넣기)"
   echo -e "${COLOR_GREEN}================================================================================${COLOR_RESET}"
