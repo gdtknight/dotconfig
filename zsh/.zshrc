@@ -219,6 +219,8 @@ _devcontainer_init_completion() {
     '(-p --pkg)'{-p,--pkg}'[패키지 매니저 지정 (pnpm, bun, yarn, uv, poetry)]:package_manager:(pnpm bun yarn npm uv poetry gradle maven cargo)' \
     '(-d --db)'{-d,--db}'[로컬 DB 사이드카 (쉼표 구분: postgres,redis,mysql,mongo)]:database:(postgres redis mysql mongo postgres,redis)' \
     '--port[호스트 노출 포트 (예: 3000,8080)]:ports:' \
+    '--nvim[호스트 Neovim 설정 마운트 (기본값)]' \
+    '--no-nvim[호스트 Neovim 설정 마운트 비활성화]' \
     '--docker-socket[호스트 Docker 소켓 바인딩 (Docker-outside-of-Docker)]' \
     '--ai[컨테이너 내부 AI Agent CLI 사전 설치]' \
     '--no-install[컨테이너 기동 시 의존성 자동 설치 건너뛰기]' \

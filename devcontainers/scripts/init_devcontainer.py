@@ -404,12 +404,20 @@ def main():
     parser.add_argument(
         "--port", help="호스트 노출 포트 (쉼표 구분: 3000,8080)"
     )
-    parser.add_argument(
+    nvim_group = parser.add_mutually_exclusive_group()
+    nvim_group.add_argument(
         "--nvim",
+        dest="nvim",
         action="store_true",
-        default=True,
-        help="호스트 Neovim 설정 마운트 (기본값: True)",
+        help="호스트 Neovim 설정 마운트 (기본값: 활성화)",
     )
+    nvim_group.add_argument(
+        "--no-nvim",
+        dest="nvim",
+        action="store_false",
+        help="호스트 Neovim 설정 마운트 비활성화",
+    )
+    parser.set_defaults(nvim=True)
     parser.add_argument(
         "--docker-socket",
         action="store_true",
