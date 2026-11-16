@@ -39,7 +39,7 @@ This repository is the central configuration repository managing macOS and Linux
 ## 3. Script & Documentation Integrity
 
 1. **Synchronized Updates (`install.sh`, `README*.md`, `docs/`)**:
-   - Whenever modules, files, templates, or packages are added or removed, keep `install.sh` link functions and the bilingual documentation (`README.md`, `README.ko.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE.ko.md`) aligned in the same change.
+   - Whenever modules, files, templates, or packages are added or removed, keep `install.sh` link functions and the bilingual documentation (`README.md`, `README.en.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE.ko.md`) aligned in the same change.
    - Preserve the `AGENTS.md -> CLAUDE.md` symlink.
 
 2. **Compatibility & Safety Guarantees**:

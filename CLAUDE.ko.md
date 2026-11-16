@@ -39,7 +39,7 @@
 ## 3. 스크립트 및 문서 무결성 유지 (Script & Documentation Integrity)
 
 1. **스크립트 및 영문/국문 문서 동시 업데이트**:
-   - 새로운 설정 모듈, 파일, 템플릿, 패키지가 추가/제거되면 `install.sh`의 링크 함수와 영문/국문 문서(`README.md`, `README.ko.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE.ko.md`)의 아키텍처 트리 및 매핑 테이블을 반드시 함께 최신화합니다.
+   - 새로운 설정 모듈, 파일, 템플릿, 패키지가 추가/제거되면 `install.sh`의 링크 함수와 국문/영문 문서(`README.md`, `README.en.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE.ko.md`)의 아키텍처 트리 및 매핑 테이블을 반드시 함께 최신화합니다.
    - `AGENTS.md -> CLAUDE.md` 심볼릭 링크를 항상 유지합니다.
 
 2. **호환성 및 안전성 보장**:
