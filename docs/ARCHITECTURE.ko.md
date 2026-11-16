@@ -118,7 +118,7 @@ flowchart LR
 - **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다.
 
 ### 3.2 3사 AI 에이전트 동기화 및 보안 가드 (`agents/`)
-- **통합 프롬프트/에이전트 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **12개 전문 에이전트**(`agents/shared/agents/*.md`)를 단일 관리하며 `agents/codex/agents/*.toml`과 짝을 이룹니다.
+- **통합 프롬프트/에이전트 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`)를 단일 관리하며 `agents/codex/agents/*.toml`과 짝을 이룹니다.
 - **플랫폼 어댑터**: `install.sh agents`가 Claude(`~/.claude`), Gemini(`~/.gemini/config/skills`), Codex(`~/.codex/skills`) 경로에 심볼릭 링크를 구성하고 `agy`, `claude`, `codex` CLI 설치를 연계합니다.
 - **생명주기 훅 (Lifecycle Hook, `hook.py`)**:
   - `PreToolUse` (`handle_pre_tool()`): 위험 Git/디스크 명령(`git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`), 루트·홈·시스템 디렉터리 대상 `rm`(`is_dangerous_rm()`), 광범위 `chmod 777`(`is_dangerous_chmod()`), 시크릿 파일 및 API 키 노출(`SENSITIVE_FILE_PATTERN`, `SECRET_PATTERNS`)을 선별 차단합니다.

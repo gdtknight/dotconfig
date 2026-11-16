@@ -90,7 +90,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main
 ```text
 dotconfig/
 ├── agents/                  # LLM 코딩 에이전트 3사 통합 설정 (Claude, Gemini, Codex)
-│   ├── shared/              # 공통 지침, 규칙(rules), 12개 전문 에이전트, 생명주기 훅(hook.py)
+│   ├── shared/              # 공통 지침, 규칙(rules), 13개 전문 에이전트, 생명주기 훅(hook.py)
 │   ├── claude/              # Claude Code 설정 (settings.json)
 │   ├── gemini/              # Gemini CLI 설정 (settings.json, config.json, hooks.json, mcp_config.json)
 │   └── codex/               # Codex CLI 설정 (config.toml, agents/*.toml)
@@ -126,7 +126,7 @@ dotconfig/
 ## 핵심 엔지니어링 하이라이트 (Core Engineering Highlights)
 
 ### 1. AI 코딩 에이전트 3사 동기화 및 생명주기 훅 (AI Agent Lifecycle Hooks)
-- `agents/shared/agents/` 아래에 정의된 **12개 전문 에이전트**(코드 리뷰, 보안 리뷰, 디버깅, 리팩토링, 단위/통합 테스트, 커밋/PR, 가이드 문서화 등)와 `rules/`, `INSTRUCTIONS.md`를 단일 소스로 유지합니다.
+- `agents/shared/agents/` 아래에 정의된 **13개 전문 에이전트**(코드 리뷰, 보안 리뷰, 디버깅, 리팩토링, 단위/통합 테스트, 커밋/PR, 가이드·자연스러운 기술 문서 작성 등)와 `rules/`, `INSTRUCTIONS.md`를 단일 소스로 유지합니다.
 - `install.sh agents` 실행 시 Claude Code(`~/.claude`), Gemini CLI(`~/.gemini/config/skills`), Codex(`~/.codex/skills`) 세 플랫폼에 구조에 맞게 자동 링크·변환되며, 공통 `hook.py`를 통해 에이전트 작업 완료 알림 등 **생명주기 훅 (Lifecycle Hook)** 을 통합 처리합니다.
 
 ### 2. 멀티 계정 Git 및 SSH 격리 (Multi-Account Git & SSH Isolation)

@@ -118,7 +118,7 @@ flowchart LR
 - **Rootless & OS Isolation**: `Brewfile` wraps macOS GUI casks (`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, and Nerd Fonts inside `if OS.mac?`, keeping CLI tools (`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`) clean for `~/.linuxbrew`.
 
 ### 3.2 Multi-Vendor AI Agent Synchronization (`agents/`)
-- **Unified Prompt & Skill Tree**: `agents/shared/` maintains global `INSTRUCTIONS.md`, `rules/`, and `12` specialized agent definitions under `agents/shared/agents/*.md`, plus matching Codex definitions under `agents/codex/agents/*.toml`.
+- **Unified Prompt & Skill Tree**: `agents/shared/` maintains global `INSTRUCTIONS.md`, `rules/`, and `13` specialized agent definitions under `agents/shared/agents/*.md`, plus matching Codex definitions under `agents/codex/agents/*.toml`.
 - **Platform Adapter**: `install.sh agents` links assets into `~/.claude/`, `~/.gemini/config/skills`, and `~/.codex/skills`, and bootstraps CLI binaries (`agy`, `claude`, `codex`).
 - **Security & Formatting Guard (`hook.py`)**:
   - `PreToolUse` (`handle_pre_tool()`): Inspects shell commands (`git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`), root/home `rm` targets (`is_dangerous_rm()`), recursive `777` permissions (`is_dangerous_chmod()`), and secret file/API-key leakage (`SENSITIVE_FILE_PATTERN`, `SECRET_PATTERNS`).

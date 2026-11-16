@@ -28,7 +28,7 @@ Built for real-world developer productivity, it goes beyond static dotfiles by i
 ### Design Principles
 
 * **Zero-Sudo Cross-Platform Bootstrap**: Self-bootstraps Homebrew on macOS and rootless Linuxbrew (`~/.linuxbrew`) on Ubuntu, with automatic NFS quota relocation (`~/goinfre`) for IDE extensions.
-* **Single Source of Truth (SSOT)**: Shared agent rules, 12 specialized subagents, and lifecycle hooks live in `agents/shared/` and sync across Claude, Gemini/Antigravity, and Codex automatically.
+* **Single Source of Truth (SSOT)**: Shared agent rules, 13 specialized subagents, and lifecycle hooks live in `agents/shared/` and sync across Claude, Gemini/Antigravity, and Codex automatically.
 * **Thin Host, Ephemeral Tooling**: Language toolchains and code formatters stay isolated inside Dev Containers and on-demand Docker containers (`dotconfig-formatter`) rather than polluting the host OS.
 * **Safe & Idempotent Execution**: Every installation supports `--dry-run`, preserves existing configurations in timestamped backups (`~/.dotconfig_backups/`), and guarantees zero secret leakage via `.gitignore` and PreToolUse guards.
 
@@ -43,7 +43,7 @@ flowchart LR
     Installer --> Env["OS & Terminal<br/>Zsh · Oh My Zsh · P10k · Tmux · WezTerm · Alacritty"]
     Installer --> Editor["Editors & IDEs<br/>LazyVim · Antigravity IDE · IntelliJ · Docker v29+ Patch"]
     Installer --> Git["Git Multi-Account<br/>includeIf · Isolated ed25519 SSH · Commit Signing"]
-    Installer --> Agents["3-Vendor AI Harness<br/>Claude · Gemini/AGY · Codex (12 Subagents + hook.py)"]
+    Installer --> Agents["3-Vendor AI Harness<br/>Claude · Gemini/AGY · Codex (13 Subagents + hook.py)"]
     Installer --> Pkg["Brewfile<br/>macOS Casks (OS.mac?) & Cross-Platform CLI"]
 
     Repo --> DC["devcontainer-init 2.0<br/>(Dynamic Version Cache & Compose Elevation)"]
@@ -109,7 +109,7 @@ dotconfig/
 ├── zsh/                        # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init wrapper
 ├── git/                        # Global .gitconfig (SSH signing, histogram diff) & .gitignore
 ├── agents/                     # Multi-vendor AI Agent harness (Claude, Gemini/AGY, Codex)
-│   ├── shared/                 # SSOT: INSTRUCTIONS.md, rules/, 12 specialized agents/, hooks/
+│   ├── shared/                 # SSOT: INSTRUCTIONS.md, rules/, 13 specialized agents/, hooks/
 │   ├── claude/                 # settings.json (Claude Code hook bindings)
 │   ├── gemini/                 # settings.json, config.json, hooks.json, mcp_config.json
 │   └── codex/                  # config.toml & TOML subagent wrappers
@@ -130,7 +130,7 @@ dotconfig/
 | **Git** | `git/{.gitconfig,.gitignore}` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | File symlinks + `includeIf` multi-account SSH & signing |
 | **Claude** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | Shared markdown & hook symlinks + CLI auto-install |
 | **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills symlinks + `agy` CLI auto-install |
-| **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,agents,hooks,skills/*/SKILL.md}` | Same as macOS | Shared skills & TOML wrapper links + CLI auto-install |
+| **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,rules,agents,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills & TOML wrapper links + CLI auto-install |
 | **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` extension isolation) | Settings symlinks, 18-extension sync & Docker v29+ patch |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | Keymap (`macOS.xml`), VM options & properties links |
 | **Terminal** | `alacritty`, `wezterm/wezterm.lua`, `tmux/tmux.conf` | `~/.config/alacritty`, `~/.wezterm.lua`, `~/.tmux.conf`, `~/Library/Fonts` | Same + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | Symlinks + auto TPM plugin sync + Nerd Fonts |
