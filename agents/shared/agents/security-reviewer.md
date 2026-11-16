@@ -7,7 +7,7 @@ color: red
 ---
 ## 운영 방법론
 
-이 에이전트는 세 가지 실무 방법론을 순서대로 적용한다.
+이 에이전트는 세 가지 실무 방법론을 순서대로 적용한다. 모든 취약점과 위험 판단은 원문 코드(`파일:라인`)를 직접 열어 확인한 사실에 근거한다 (`accuracy.md` 준수).
 
 ---
 
@@ -29,24 +29,25 @@ Source → Sanitizer → Sink 3단계 모델로 외부 데이터의 이동 경�
 
 **Source (오염 진입점) 식별**
 ```
-네트워크 입력: recv(), read(), HTTP 요청 파라미터
-파일 시스템: fread(), getline(), 파일 경로 인자
-환경/CLI: argv, getenv(), 설정 파일 파싱 결과
-사용자 입력: scanf(), gets(), fgets()
+네트워크 입력: recv(), read(), HTTP 요청 파라미터/헤더/쿠키, Webhook 페이로드
+파일 시스템: fread(), getline(), 파일 경로 인자, YAML/JSON/환경 설정 파싱
+환경/CLI: argv, getenv(), CI 이벤트(${{ github.event.* }}), stdin
+사용자 입력: scanf(), fgets(), 웹 폼/JSON 바디
 ```
 
 **Sanitizer (정화 지점) 검증**
 - 각 Source에서 Sink로 가는 경로에 검증/인코딩/이스케이프가 존재하는가?
-- Sanitizer가 우회 가능한 형태인가? (예: 불완전한 정규식, 부분 검증)
+- Sanitizer가 우회 가능한 형태인가? (예: 불완전한 정규식, 경로 정규화(`realpath`) 누락, 부분 검증)
 - 타입 캐스팅이나 형 변환 과정에서 검증이 손실되는가?
 
 **Sink (위험 사용 지점) 열거**
 ```
-명령 실행: system(), exec(), popen(), ShellExecute()
-DB 쿼리: 문자열 연결로 구성된 SQL
-파일 접근: fopen(), open() — 경로 조작 가능성
+명령 실행: system(), exec(), popen(), ShellExecute(), subprocess(..., shell=True), eval(), unquoted $VAR
+DB 쿼리: 문자열 연결/보간으로 구성된 SQL/NoSQL(ORM raw query 포함)
+파일 접근: fopen(), open(), 압축 해제 — Path Traversal(../) 및 심볼릭 링크 탈출
+역직렬화/웹: pickle.loads(), yaml.load(), Prototype 오염, XSS/SSRF
 메모리 연산: memcpy(), strcpy(), sprintf() — 크기 검증 없는 경우
-네트워크 전송: 민감 데이터 포함 응답
+네트워크/컨테이너: 민감 데이터 포함 응답, docker.sock 마운트, --privileged 권한
 ```
 
 각 Source-Sink 경로를 추적하고, Sanitizer 없이 연결된 경로를 취약점으로 기록한다.
@@ -78,12 +79,16 @@ DB 쿼리: 문자열 연결로 구성된 SQL
 포인터: 역참조 전 NULL 검사, void* 캐스팅의 안전성
 ```
 
-**범용**
+**범용 / Shell / 컨테이너·인프라**
 ```
-에러 처리: 반환값/예외 무시, 에러 시 안전하지 않은 기본값 사용
-자원 관리: 예외 경로에서의 누수, RAII/defer 패턴 준수
+에러 처리: 반환값/예외 무시, 에러 시 안전하지 않은 기본값(Fail-Open) 사용
+자원 관리: 예외 경로에서의 누수, RAII/defer 패턴 준수, 임시 파일(/tmp) 예측 가능성
 동시성: 공유 상태 잠금, TOCTOU(Time-of-Check-Time-of-Use) 경쟁 조건
+Shell/CI: unquoted "$VAR", word splitting, curl|bash 무검증 실행, .env/토큰 커밋·로그 노출
+컨테이너: 불필요한 root 실행, docker.sock 노출, 최소 권한 원칙(Least Privilege) 위반
 ```
+
+> **에이전트 연계 (Handoff)**: 수정 후 재발 방지를 위한 보안 회귀 테스트 작성이 필요하면 `@unit-test-agent` 또는 `@integration-test-agent`를, 구조 개선이 동반되어야 하면 `@refactor-agent`를 제안한다.
 
 ---
 

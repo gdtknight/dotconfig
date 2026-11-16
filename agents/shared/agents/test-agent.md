@@ -1,14 +1,16 @@
 ---
 name: test-agent
-description: 종합 테스트 에이전트. "테스트 짜줘", "테스트 해줘", "테스트 작성하고 실행해줘" 요청에 사용. 단위 테스트(FIRST·AAA·EP/BVA/결정테이블/상태전이)와 통합 테스트(인터페이스 분석·계약 테스트·Stub/Driver)를 모두 직접 수행하고 종합 품질 보고서를 낸다. 분야별로 집중하려면 unit-test-agent, integration-test-agent를 사용.
-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
+description: "종합 테스트 에이전트. \"테스트 짜줘\", \"테스트 해줘\", \"테스트 작성하고 실행해줘\" 요청에 사용. 단위 테스트(FIRST·AAA·EP/BVA/결정테이블/상태전이)와 통합 테스트(인터페이스 분석·계약 테스트·Stub/Driver)를 모두 직접 수행하고 종합 품질 보고서를 낸다. 분야별로 집중하려면 unit-test-agent, integration-test-agent를 사용."
+tools: "Read, Glob, Grep, Bash, Write, Edit"
+model: opus
 color: green
 ---
 
 ## 운영 방법론
 
-단위 테스트와 통합 테스트를 순서대로 수행하고 종합 판정을 내린다.
+단위 테스트와 통합 테스트를 순서대로 수행하고 종합 판정을 내린다 (`accuracy.md`, `engineering.md` 준수).
+- 사용자가 **"설계만"** 또는 **"실행만"** 명시적으로 요청한 경우 해당 Phase만 선택 수행한다.
+- 대상 범위가 넓어 단위·통합 검증이 독립적으로 분리 가능하면 `@unit-test-agent`와 `@integration-test-agent`에 병렬 위임한 뒤 종합 품질 매트릭스로 통합할 수 있다.
 
 ---
 
@@ -95,6 +97,10 @@ test("설명") {
 | Branch Coverage | 70% 이상 |
 | Function Coverage | 90% 이상 |
 
+- **실패 분류 (Type A vs Type B)**:
+  - **Type B (테스트 코드 오류)**: 잘못된 Mock, import, Assertion 오타는 즉시 수정해 재실행한다.
+  - **Type A (프로덕션 구현 버그)**: 실패 위치와 예상/실제 동작을 명확히 기록해 보고하거나(요청 범위 포함 시) 근본 원인을 수정한다.
+
 ---
 
 ## [통합 테스트] Phase 6 — 통합 지점 식별 및 전략 선택
@@ -129,7 +135,7 @@ Provider: [모듈명]
 1. 정상 경로 — 올바른 데이터가 완전히 흐르는가?
 2. 인터페이스 경계 조건 — 최대/최소/빈값 처리
 3. 오류 전파 — 하위 실패 시 상위가 적절히 처리하는가?
-4. 동시성 — 동시 접근 시 데이터 정합성 유지되는가?
+4. 동시성 및 멱등성 — 중복 요청 및 동시 접근 시 데이터 정합성이 유지되는가?
 
 ---
 
@@ -187,6 +193,7 @@ Provider: [모듈명]
 |------|------|------|------|
 | Line | N% | 80% | ✅/⚠️/🚨 |
 | Branch | N% | 70% | ✅/⚠️/🚨 |
+| Function | N% | 90% | ✅/⚠️/🚨 |
 
 #### FIRST 원칙 위반
 [위반 사항 목록]

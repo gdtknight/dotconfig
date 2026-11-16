@@ -17,17 +17,18 @@ GitHub의 Issue와 Pull Request(PR)를 작성할 때 필수 메타데이터 누�
 ### Phase P1 — 브랜치 및 변경사항(Diff) 분석
 
 ```bash
-# 1. 현재 브랜치 및 원격 상태 확인
+# 1. 현재 브랜치, 원격 기본 브랜치 및 상태 확인
 git status
 git branch -vv
+BASE_BRANCH=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@' || echo "main")
 
-# 2. 타겟(Base) 브랜치 대비 커밋 및 diff 확인
-git log origin/main..HEAD --oneline 2>/dev/null || git log main..HEAD --oneline
-git diff origin/main..HEAD --stat 2>/dev/null || git diff main..HEAD --stat
+# 2. 기본 브랜치 대비 커밋 및 diff 확인
+git log "origin/${BASE_BRANCH}..HEAD" --oneline 2>/dev/null || git log "${BASE_BRANCH}..HEAD" --oneline
+git diff "origin/${BASE_BRANCH}..HEAD" --stat 2>/dev/null || git diff "${BASE_BRANCH}..HEAD" --stat
 ```
 
 - **경고 조건**:
-  - 현재 브랜치가 `main` 또는 `master`인 경우: 새 기능 브랜치 생성을 먼저 권고한다.
+  - 현재 브랜치가 기본 브랜치(`main`, `master` 등)인 경우: 새 기능 브랜치 생성을 먼저 권고한다.
   - 로컬 커밋이 원격(Remote)에 푸시되지 않은 경우: `git push -u origin <branch>` 실행 필요성을 알린다.
 
 ---
@@ -44,7 +45,7 @@ gh milestone list 2>/dev/null || true
 
 | 메타데이터 항목 | 필수 여부 | 점검 및 기본값 기준 |
 | :--- | :---: | :--- |
-| **Base Branch** | **필수** | 머지 대상 브랜치 (기본: `main` 또는 저장소 기본 브랜치) |
+| **Base Branch** | **필수** | 머지 대상 브랜치 (감지된 기본 브랜치 또는 사용자 지정 대상) |
 | **Head Branch** | **필수** | 현재 작업 브랜치 |
 | **Title (제목)** | **필수** | Conventional Commits 형식 (`feat(auth): Add login endpoint`) 준수 |
 | **Assignees** | **필수** | 작업자 본인(`@me`) 또는 지정된 담당자 |
@@ -57,17 +58,17 @@ gh milestone list 2>/dev/null || true
 
 ### Phase P3 — PR 본문 템플릿 작성
 
-저장소에 `.github/PULL_REQUEST_TEMPLATE.md`가 존재하면 해당 템플릿을 최우선으로 따르며, 없을 경우 아래 표준 템플릿을 사용한다:
+저장소에 `.github/PULL_REQUEST_TEMPLATE.md`가 존재하면 해당 템플릿을 최우선으로 따르며, 없을 경우 아래 표준 템플릿을 사용한다. 본문 문장은 과장이나 AI 상투어 없이 `@human-writer`의 `practical` 톤으로 담백하게 작성한다.
 
 ```markdown
 ## 📌 개요 (Overview)
-- 무엇을 왜 변경했는지 핵심 목적을 간결하게 설명합니다 (WHY & WHAT).
+- 무엇을 왜 변경했는지 핵심 목적을 간결하게 설명한다 (WHY & WHAT).
 
 ## 🛠️ 주요 변경 사항 (Key Changes)
-- 변경된 핵심 로직, 모듈, 설정 목록을 불릿 포인트로 작성합니다.
+- 변경된 핵심 로직, 모듈, 설정 목록을 실제 검증한 사실 기준으로 정리한다.
 
 ## 🧪 검증 및 테스트 결과 (Verification)
-- 실행한 테스트 명령어(`npm test`, `pytest`, `./install.sh --dry-run` 등)와 결과를 명시합니다.
+- 실제 실행한 테스트 명령어(`npm test`, `pytest`, `./install.sh --dry-run` 등)와 관찰 결과를 명시한다.
 
 ## 🔗 관련 이슈 (Related Issues)
 - Closes #<이슈번호> (해당 시)
@@ -77,18 +78,21 @@ gh milestone list 2>/dev/null || true
 
 ### Phase P4 — 검토 및 `gh pr create` 실행
 
-1. **메타데이터 요약 및 본문 초안을 사용자에게 먼저 제시한다.**
-2. 사용자가 확인하거나 명시적으로 생략을 원하면 `gh pr create` 명령을 실행한다:
+1. **메타데이터 요약 및 본문 초안을 사용자에게 먼저 제시하고 실행 승인을 확인한다.** (사용자가 사전에 즉시 생성을 명시한 경우 제외)
+2. 마크다운 백틱·따옴표 이스케이프 오류를 막기 위해 본문은 반드시 `--body-file - <<'EOF'` 형태로 전달한다:
    ```bash
    gh pr create \
      --base "<base-branch>" \
      --title "<title>" \
-     --body "<body-text>" \
      --assignee "@me" \
      --label "<label1>,<label2>" \
-     --reviewer "<reviewer>"
+     --reviewer "<reviewer>" \
+     --body-file - <<'EOF'
+   <body-markdown>
+   EOF
    ```
-3. 생성 완료 후 생성된 PR의 URL을 출력한다.
+3. 네트워크·샌드박스 제약으로 `gh` 실행이 차단되면 우회하지 말고, 완성된 초안과 위 실행 명령어를 출력해 보고한다.
+4. 생성 완료 후 생성된 PR의 URL을 출력한다.
 
 ---
 
@@ -119,7 +123,7 @@ gh milestone list 2>/dev/null || true
 
 ### Phase I3 — Issue 본문 템플릿 작성
 
-저장소의 `.github/ISSUE_TEMPLATE/`이 있으면 우선 적용하며, 기본 템플릿은 다음과 같다:
+저장소의 `.github/ISSUE_TEMPLATE/`이 있으면 우선 적용하며, 기본 템플릿은 다음과 같다 (`@human-writer` `practical` 톤 유지):
 
 **[기능 제안 / Task]**
 ```markdown
@@ -152,14 +156,18 @@ gh milestone list 2>/dev/null || true
 
 ### Phase I4 — 검토 및 `gh issue create` 실행
 
-```bash
-gh issue create \
-  --title "<title>" \
-  --body "<body-text>" \
-  --assignee "@me" \
-  --label "<labels>"
-```
-- 생성 완료 후 생성된 Issue의 URL을 출력한다.
+1. **제목·라벨·본문 초안을 사용자에게 먼저 확인받은 뒤** `--body-file - <<'EOF'` 형태로 생성한다:
+   ```bash
+   gh issue create \
+     --title "<title>" \
+     --assignee "@me" \
+     --label "<labels>" \
+     --body-file - <<'EOF'
+   <body-markdown>
+   EOF
+   ```
+2. 네트워크·샌드박스 제약으로 `gh` 실행이 차단되면 우회하지 말고 초안과 실행 명령어를 출력해 보고한다.
+3. 생성 완료 후 생성된 Issue의 URL을 출력한다.
 
 ---
 

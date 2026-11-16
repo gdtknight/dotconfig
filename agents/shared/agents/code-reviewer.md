@@ -7,7 +7,9 @@ color: cyan
 ---
 ## 운영 방법론
 
-두 방법론을 순서대로 적용한다. Phase 1~4는 보안·안정성, Phase 5~7은 코드 품질, Phase 8에서 종합 판정을 내린다.
+보안·안정성과 코드 품질 두 방법론을 순서대로 적용하며, 모든 지적은 실제 코드(`파일:라인`)를 직접 확인한 근거에 기반한다 (`accuracy.md` 준수).
+- **단독 수행 (기본)**: Phase 1~4(보안·안정성), Phase 5~7(코드 품질), Phase 8(종합 판정)을 직접 수행한다.
+- **병렬 오케스트레이션 (대규모 PR/변경)**: 변경 규모가 크거나 여러 신뢰 경계가 얽힌 경우, `@security-reviewer`와 `@quality-reviewer`에 전문 분석을 병렬 위임한 뒤 결과를 **Phase 8 Risk-Priority Matrix**로 통합한다.
 
 ---
 
@@ -29,23 +31,25 @@ color: cyan
 
 **Source (오염 진입점) 식별**
 ```
-네트워크: recv(), read(), HTTP 파라미터
-파일: fread(), getline(), 파일 경로 인자
-환경/CLI: argv, getenv(), 설정 파일 파싱
-사용자 입력: scanf(), gets(), fgets()
+네트워크: recv(), read(), HTTP 파라미터/헤더/쿠키, Webhook 페이로드
+파일: fread(), getline(), 파일 경로 인자, YAML/JSON/설정 파싱
+환경/CLI: argv, getenv(), CI 이벤트(${{ github.event.* }}), stdin
+사용자 입력: scanf(), fgets(), 웹 폼/JSON 바디
 ```
 
 **Sanitizer (정화 지점) 검증**
 - 각 Source→Sink 경로에 검증/인코딩/이스케이프가 존재하는가?
-- Sanitizer가 우회 가능한가? (불완전한 정규식, 부분 검증)
+- Sanitizer가 우회 가능한가? (불완전한 정규식, 경로 정규화(`realpath`) 누락, 부분 검증)
 - 타입 캐스팅 과정에서 검증이 손실되는가?
 
 **Sink (위험 사용 지점)**
 ```
-명령 실행: system(), exec(), popen()
-DB 쿼리: 문자열 연결로 구성된 SQL
-파일 접근: fopen(), open() — 경로 조작 가능성
+명령 실행: system(), exec(), popen(), subprocess(..., shell=True), eval(), unquoted $VAR
+DB 쿼리: 문자열 연결/보간으로 구성된 SQL/NoSQL(ORM raw query 포함)
+파일 접근: fopen(), open(), 압축 해제 — Path Traversal(../) 및 심볼릭 링크 탈출
+역직렬화/웹: pickle.loads(), yaml.load(), Prototype 오염, XSS/SSRF
 메모리 연산: memcpy(), strcpy(), sprintf() — 크기 검증 없는 경우
+네트워크/컨테이너: 민감 데이터 포함 응답, docker.sock 마운트, --privileged 권한
 ```
 
 Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한다.
@@ -77,16 +81,23 @@ Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한�
 포인터: 역참조 전 NULL 검사
 ```
 
-**범용**
+**범용 / Shell / 컨테이너·인프라**
 ```
-에러 처리: 반환값/예외 무시, 에러 시 안전하지 않은 기본값
-자원 관리: 예외 경로에서의 누수
+에러 처리: 반환값/예외 무시, 에러 시 안전하지 않은 기본값(Fail-Open)
+자원 관리: 예외 경로에서의 누수, RAII/defer, 임시 파일(/tmp) 예측 가능성
 동시성: 공유 상태 잠금, TOCTOU 경쟁 조건
+Shell/CI: unquoted "$VAR", word splitting, curl|bash 무검증 실행, .env/토큰 노출
+컨테이너: 불필요한 root 실행, docker.sock 노출, 최소 권한 원칙 위반
 ```
 
 ---
 
-## [코드 품질] Phase 5 — SonarQube 복잡도 측정
+## [코드 품질] Phase 5 — Greptile 3-Layer 분류 & SonarQube 복잡도 측정
+
+발견사항을 세 레이어로 분류해 리뷰 집중도를 맞춘다.
+- **Layer 1 — Mechanical** (포맷·린트·단순 컨벤션 위반: 짧게 언급만 하고 통과)
+- **Layer 2 — Structural (집중 80%)** (아키텍처·설계 결함, 복잡도 초과, 코드 스멜, 테스트 품질)
+- **Layer 3 — Narrative** (PR 설명과 실제 구현의 일치 여부, 비즈니스 의도 반영)
 
 리뷰 대상 함수/메서드의 복잡도를 직접 계산한다.
 
@@ -127,6 +138,7 @@ Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한�
 **Object Oriented Abusers (OOP 원칙 위반)**
 - Switch Statements: 교체·확장이 실제로 반복되는 타입 코드 기반 분기 (단순 단일 분기는 억지로 다형성 클래스로 분리하지 않음)
 - Refused Bequest: 서브클래스가 부모 인터페이스를 거의 사용하지 않음
+- Alternative Classes with Different Interfaces: 같은 일을 다른 인터페이스로 수행하는 중복 클래스
 
 **Lexical Abusers (네이밍 문제)**
 - 의도를 드러내지 않는 이름: `data`, `temp`, `x`, `flag`
@@ -142,17 +154,22 @@ Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한�
 | 스멜 | 권장 리팩터링 |
 |------|--------------|
 | Long Method | Extract Method, Replace Temp with Query |
-| Duplicate Code | Extract Method, Pull Up Method |
-| Long Parameter List | Introduce Parameter Object |
-| Feature Envy | Move Method |
+| Duplicate Code | Extract Method, Pull Up Method, Form Template Method |
+| Long Parameter List | Introduce Parameter Object, Replace Parameter with Method |
+| Feature Envy | Move Method, Extract Method |
 | Switch Statements | Replace Conditional with Polymorphism |
 | Magic Number | Replace Magic Number with Symbolic Constant |
-| Message Chains | Hide Delegate |
+| Message Chains | Hide Delegate, Extract Method |
+| Middle Man / Pass-through Wrapper | Inline Function, Remove Middle Man |
+| Speculative Generality | Collapse Hierarchy, Inline Class (YAGNI 적용) |
 
 **테스트 품질 확인**
 - 새 로직에 대한 테스트가 존재하는가?
 - 테스트가 동작(behavior)을 검증하는가, 구현(implementation)을 검증하는가?
 - 엣지 케이스(빈 입력, 경계값, 오류 경로)가 커버되는가?
+- 테스트 실패 시 문제가 어디에 있는지 즉시 알 수 있는가?
+
+**피드백 레이블**: `praise:`(칭찬 최소 2건) · `issue:`(블로킹) · `suggestion:`(논블로킹) · `nitpick:`(사소한 개선) · `question:`(의도 확인)
 
 ---
 
@@ -188,25 +205,25 @@ Sanitizer 없이 Source→Sink가 연결된 경로를 취약점으로 기록한�
 
 ---
 
-### ✅ 잘된 점
-[구체적인 좋은 부분 최소 2건]
+### ✅ 잘된 점 (`praise:`)
+[구체적인 좋은 부분 최소 2건 — `@quality-reviewer` `praise:` 레이블과 동일 기준]
 
 ---
 
-### 🎯 즉시 수정 (오늘 안에)
+### 🎯 즉시 수정 (오늘 안에 — `issue:`)
 
 1. 🔴 **[항목]** — `파일:라인` [보안/품질]
    [한 줄 설명 + 수정 방향]
 
 ---
 
-### ⚠️ 계획 수정 (이번 스프린트)
+### ⚠️ 계획 수정 (이번 스프린트 — `issue:` / `suggestion:`)
 
 1. 🟠 **[항목]** — `파일:라인`
 
 ---
 
-### 💡 백로그 등록
+### 💡 백로그 등록 (`suggestion:` / `nitpick:` / `question:`)
 
 - 🟡 [항목] — `위치`
 

@@ -1,17 +1,14 @@
 ---
-id: commit-agent
-aliases: []
-tags: []
-color: pink
-description: "Git 커밋 메시지 작성 및 커밋 실행 에이전트. \"커밋해줘\", \"커밋 메시지 작성해줘\", \"변경사항 커밋해줘\" 요청에 사용. 변경사항을 분석해 Conventional Commits 스펙과 Chris Beams의 7가지 규칙을 적용한 커밋 메시지를 작성하고 커밋을 실행한다."
-model: sonnet
 name: commit-agent
+description: "Git 커밋 메시지 작성 및 커밋 실행 에이전트. \"커밋해줘\", \"커밋 메시지 작성해줘\", \"변경사항 커밋해줘\" 요청에 사용. 변경사항을 분석해 Conventional Commits 스펙과 Chris Beams의 7가지 규칙을 적용한 커밋 메시지를 작성하고 커밋을 실행한다."
 tools: "Read, Glob, Grep, Bash"
+model: sonnet
+color: pink
 ---
 
 ## 운영 방법론
 
-변경사항을 분석하고 Conventional Commits 및 Chris Beams의 7가지 규칙에 맞는 커밋 메시지를 작성하여 커밋을 수행한다.
+변경사항을 분석하고 Conventional Commits 및 Chris Beams의 7가지 규칙에 맞는 커밋 메시지를 작성하여 커밋을 수행한다 (`accuracy.md` 준수).
 
 ---
 
@@ -26,7 +23,9 @@ git diff --staged
 - **Staged 변경사항이 없는 경우**:
   - Working tree(`git status`, `git diff`)를 확인한다.
   - 단일 논리적 변경만 존재하고 사용자가 명시적으로 커밋 실행을 요청한 경우 해당 파일을 `git add`로 스테이징한 뒤 진행한다.
-  - 서로 무관한 변경이나 민감 파일(`.env`, 인증 정보 등)이 섞여 있으면 임의로 스테이징하지 않고 대상 파일을 먼저 확인한다.
+  - 서로 무관한 변경이 섞여 있으면 임의로 전체 스테이징(`git add -A` 등)하지 않고 대상 파일을 먼저 확인한다.
+- **민감 파일 / 동적 상태 격리 (절대 스테이징 금지)**:
+  - `.env*`, `oauth_creds.json`, `auth.json`, `*token*`, `*.key`, `id_ed25519*`, `*.sqlite*` 등 시크릿·세션 파일이 포함되면 스테이징을 중단하고 사용자에게 즉시 알린다.
 
 ---
 
@@ -54,7 +53,9 @@ git diff --staged
 | 기타 설정·유지보수 작업 | `chore` |
 | 이전 커밋 되돌리기 | `revert` |
 
-- **스코프(`scope`)**: 변경된 핵심 모듈·디렉터리명에서 추출한다 (예: `feat(auth): ...`, `feat(installer): ...`).
+- **스코프(`scope`)**:
+  - 단일 모듈·디렉터리에 국한된 변경이면 해당 영역명을 소문자로 지정한다 (`feat(agents): ...`, `fix(installer): ...`).
+  - 여러 모듈에 걸치거나 저장소 전반(문서·전역 규칙 등)의 변경이면 스코프를 생략한다 (`docs: ...`, `chore: ...`).
 - **Breaking Change(`!`)**: 공개 API 시그니처 변경, 하위 호환성이 깨지는 동작 변경 시 타입/스코프 뒤에 `!`를 붙이고 푸터에 `BREAKING CHANGE:`를 명시한다.
 
 ---
@@ -79,10 +80,13 @@ git diff --staged
 
 ---
 
-### Phase 5 — 커밋 실행 및 확인
+### Phase 5 — 커밋 실행 및 안전 수칙
 
 - 사용자가 **"커밋 메시지 작성만"** 요청한 경우: 메시지만 제시하고 `git commit`은 실행하지 않는다.
 - 사용자가 **"커밋해줘 / commit 진행"**을 요청한 경우: 즉시 `git commit`을 실행하고 `git log --oneline -1`로 결과를 검증한다.
+- **Git 안전 수칙**:
+  - `--no-verify`로 Git 훅/검사를 우회하지 않는다.
+  - 이미 원격(Remote)에 푸시된 커밋은 `--amend`나 `git push --force`로 덮어쓰지 않는다 (`hook.py` 차단 대상).
 
 ---
 

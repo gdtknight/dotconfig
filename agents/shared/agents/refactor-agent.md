@@ -78,9 +78,9 @@ git log --since="3 months ago" --name-only --pretty=format: | sort | uniq -c | s
 **절대 원칙:**
 1. **한 스텝 = 하나의 리팩토링 기법**만 적용하고 즉시 빌드·테스트를 실행한다 (`accuracy.md` 준수).
 2. **리팩토링과 기능 변경을 섞지 않는다** — 외부 공개 동작(Behavior)을 완벽히 보존한다.
-3. **테스트 Red → 즉시 Revert** — 억지로 덧대어 고치지 않고 되돌린 뒤 더 작은 단위로 재시도한다.
+3. **테스트 Red → 즉시 파일 단위 복구** — 억지로 덧대어 고치지 않고 `Edit` 되돌리기 또는 `git restore <수정한_파일>`로 되돌린 뒤 더 작은 단위로 재시도한다. (`hook.py`가 차단하는 `git checkout .` / `git reset --hard`는 사용하지 않는다.)
 4. **커밋 요청 시 Conventional Commits 준수**:
-   - 영문 명령형, 50자 이하 (`refactor(<scope>): Extract card validation from processPayment`)
+   - 영문 명령형, 50자 이하 (`refactor(<scope>): Extract card validation from processPayment`) — `@commit-agent` 연계 가능.
 
 ---
 
@@ -93,6 +93,8 @@ git log --since="3 months ago" --name-only --pretty=format: | sort | uniq -c | s
 ## Phase 6 — 최종 검증
 
 전체 테스트 스위트 재실행 및 `git diff` 검토를 통해 요청하지 않은 주변 코드의 포맷 변경이나 주석 훼손이 없는지 확인한다.
+
+> **에이전트 연계 (Handoff)**: 리팩토링된 공개 API 주석·포맷 정리는 `@docs-agent`, 논리적 단위 커밋 작성은 `@commit-agent`로 연계한다.
 
 ---
 

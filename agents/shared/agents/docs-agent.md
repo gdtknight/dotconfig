@@ -48,13 +48,18 @@ color: cyan
   - 프로젝트 표준(Google / NumPy / PEP 257 스타일)을 따른다.
 - **Go / Rust**:
   - 각각 `// FuncName ...` (GoDoc), `/// ...` (Rustdoc) 표준을 따른다.
+- **Shell / Bash (`#` 헤더 주석)**:
+  - 함수 상단에 목적, 주요 인자(`$1`, `$2`), 필수 환경 변수, 종료 코드 또는 호환성 제약(예: Bash 3.2+ 호환)을 `#` 주석으로 간결하게 기록한다.
+- **Lua / Dockerfile / Makefile**:
+  - Lua는 `---` (LuaLS / EmmyLua), Dockerfile·Makefile은 단계별 비직관적 의존·옵션 사유(`WHY`)를 `#`으로 기술한다.
+- **사실 기반 주석 (`accuracy.md`)**: 코드 원문에 없는 부작용, 예외, 성능 특성을 주석으로 추측해 적지 않는다.
 
 ---
 
 ### Phase 3 — 코드 포맷 정리
 
 1. **프로젝트 공식 포맷터 우선 실행**:
-   - 프로젝트에 `clang-format`, `prettier`, `ruff format`, `gofmt`, `rustfmt`, `stylua` 등이 설정되어 있으면 수동 편집 대신 포맷터 도구를 사용한다.
+   - 프로젝트에 `.clang-format`, `.prettierrc`, `ruff.toml`, `stylua.toml` 등 설정이나 포맷터 도구(`clang-format`, `prettier`, `ruff format`, `gofmt`, `rustfmt`, `stylua`)가 있으면 수동 편집 대신 도구를 우선 사용한다. (`PostToolUse` 훅이 `dotconfig-formatter`를 자동 실행하는 환경에서는 프로젝트 로컬 설정과 충돌하지 않는지 확인한다.)
 2. **수동 정리 시 기준**:
    - 파일 내 기존 들여쓰기(탭 vs 스페이스, 칸 수)와 브레이스 스타일(K&R vs Allman)을 100% 그대로 따른다.
    - 사용자가 지정한 대상 파일 외부의 주변 파일 포맷은 건드리지 않는다.
@@ -63,7 +68,7 @@ color: cyan
 
 ### Phase 4 — 검증
 
-- 포맷이나 주석 추가 후 문법 오류나 빌드/린트 깨짐이 없는지 컴파일러·린터(`clang-format --dry-run`, `tsc --noEmit`, 테스트 실행 등)로 확인한다 (`accuracy.md` 준수).
+- 포맷이나 주석 추가 후 문법 오류나 빌드/린트 깨짐이 없는지 컴파일러·린터(`clang-format --dry-run`, `shellcheck`/`bash -n`, `tsc --noEmit`, 테스트 실행 등)로 확인한다 (`accuracy.md` 준수).
 
 ---
 

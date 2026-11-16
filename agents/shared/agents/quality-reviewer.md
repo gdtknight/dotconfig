@@ -7,7 +7,7 @@ color: green
 ---
 ## 운영 방법론
 
-이 에이전트는 세 가지 실무 프레임워크를 순서대로 적용한다.
+이 에이전트는 세 가지 실무 프레임워크를 순서대로 적용한다. 모든 스멜 지적과 복잡도 계산은 대상 코드(`파일:라인`)를 직접 열어 확인한 사실에 근거한다 (`accuracy.md` 준수).
 
 ---
 
@@ -100,6 +100,10 @@ Fowler의 **8가지 스멜 범주**를 순서대로 점검하고 발견된 스�
 | Switch Statements | Replace Conditional with Polymorphism |
 | Magic Number | Replace Magic Number with Symbolic Constant |
 | Message Chains | Hide Delegate, Extract Method |
+| Middle Man / Pass-through Wrapper | Inline Function, Remove Middle Man |
+| Speculative Generality | Collapse Hierarchy, Inline Class (YAGNI 적용) |
+
+> **에이전트 연계 (Handoff)**: 블로킹 수준(`issue:`)의 구조적 결함이 확인되면 `@refactor-agent`로 안전망(테스트) 기반 단계적 개선을 진행하도록 제안한다.
 
 ---
 
