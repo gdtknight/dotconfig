@@ -58,17 +58,17 @@ gh milestone list 2>/dev/null || true
 
 ### Phase P3 — PR 본문 템플릿 작성
 
-저장소에 `.github/PULL_REQUEST_TEMPLATE.md`가 존재하면 해당 템플릿을 최우선으로 따르며, 없을 경우 아래 표준 템플릿을 사용한다. 본문 문장은 과장이나 AI 상투어 없이 `@human-writer`의 `practical` 톤으로 담백하게 작성한다.
+저장소에 `.github/PULL_REQUEST_TEMPLATE.md`가 존재하면 해당 템플릿을 최우선으로 따르며, 없을 경우 아래 표준 템플릿을 사용한다. 국문 본문은 과장이나 AI 상투어 없이 `@human-writer`의 `practical` 톤(자연스러운 존댓말)으로 담백하게 작성한다.
 
 ```markdown
 ## 📌 개요 (Overview)
-- 무엇을 왜 변경했는지 핵심 목적을 간결하게 설명한다 (WHY & WHAT).
+- 무엇을 왜 변경했는지 핵심 목적을 간결하게 설명합니다 (WHY & WHAT).
 
 ## 🛠️ 주요 변경 사항 (Key Changes)
-- 변경된 핵심 로직, 모듈, 설정 목록을 실제 검증한 사실 기준으로 정리한다.
+- 변경된 핵심 로직, 모듈, 설정 목록을 실제 검증한 사실 기준으로 정리합니다.
 
 ## 🧪 검증 및 테스트 결과 (Verification)
-- 실제 실행한 테스트 명령어(`npm test`, `pytest`, `./install.sh --dry-run` 등)와 관찰 결과를 명시한다.
+- 실제 실행한 테스트 명령어(`npm test`, `pytest`, `./install.sh --dry-run` 등)와 관찰 결과를 명시합니다.
 
 ## 🔗 관련 이슈 (Related Issues)
 - Closes #<이슈번호> (해당 시)
@@ -123,12 +123,12 @@ gh milestone list 2>/dev/null || true
 
 ### Phase I3 — Issue 본문 템플릿 작성
 
-저장소의 `.github/ISSUE_TEMPLATE/`이 있으면 우선 적용하며, 기본 템플릿은 다음과 같다 (`@human-writer` `practical` 톤 유지):
+저장소의 `.github/ISSUE_TEMPLATE/`이 있으면 우선 적용하며, 기본 템플릿은 다음과 같다 (`@human-writer` `practical` 톤 · 자연스러운 존댓말 유지):
 
 **[기능 제안 / Task]**
 ```markdown
 ## 🎯 목적 및 배경
-- 이 기능이 왜 필요한가? 어떤 문제를 해결하는가?
+- 이 기능이 왜 필요하며 어떤 문제를 해결하는지 설명합니다.
 
 ## 📋 세부 요구사항 / To-Do
 - [ ] 구체적인 작업 항목 1
