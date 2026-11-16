@@ -262,6 +262,7 @@ link_agents() {
   mkdir -p "${HOME}/.codex/skills"
   link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.codex/AGENTS.md"
   link_target "${REPO_DIR}/agents/codex/config.toml" "${HOME}/.codex/config.toml"
+  link_target "${REPO_DIR}/agents/shared/rules" "${HOME}/.codex/rules"
   link_target "${REPO_DIR}/agents/codex/agents" "${HOME}/.codex/agents"
   link_target "${REPO_DIR}/agents/shared/hooks" "${HOME}/.codex/hooks"
 
