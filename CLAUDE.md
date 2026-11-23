@@ -21,8 +21,9 @@ This repository is the central configuration repository managing macOS and Linux
 ## 2. Module-Specific Rules
 
 1. **Cross-Vendor LLM Agent Sync (`agents/`)**:
-   - Maintain shared guidelines and specialized agents in `agents/shared/` (`INSTRUCTIONS.md`, `rules/`, `agents/*.md`) as the single source of truth. Do **not** split files inside `agents/shared/` into `.md`/`.ko.md` pairs, as `install.sh agents` links them directly into tool directories.
-   - When adding a new agent or skill, provide both `agents/shared/agents/<name>.md` and `agents/codex/agents/<name>.toml` so `install.sh agents` synchronizes Claude (`~/.claude`), Gemini (`~/.gemini/config/skills`), and Codex (`~/.codex/skills`) automatically.
+   - Maintain shared guidelines, specialized agents, standalone skills, and shared MCP servers in `agents/shared/` (`INSTRUCTIONS.md`, `rules/`, `agents/*.md`, `skills/<name>/`, `mcp.json`) as the single source of truth. Do **not** split files inside `agents/shared/` into `.md`/`.ko.md` pairs, as `install.sh agents` links them directly into tool directories.
+   - When adding a new subagent, provide both `agents/shared/agents/<name>.md` and `agents/codex/agents/<name>.toml`. When adding a multi-file skill directory (e.g., `graphify`), place it under `agents/shared/skills/<name>/` so `install.sh agents` synchronizes Claude (`~/.claude/skills`), Gemini (`~/.gemini/config/skills`), and Codex (`~/.codex/skills`) automatically.
+   - To add or toggle cross-vendor MCP servers, edit `agents/shared/mcp.json` (pure declarative URL/stdio entries with zero secrets) and run `./install.sh agents` so `sync_mcp.py` regenerates `agents/gemini/mcp_config.json`, `agents/codex/config.toml`, and `~/.claude.json` (`mcpServers`).
 
 2. **Package Management (`Brewfile`)**:
    - Declare macOS-only applications (GUI Casks) and fonts strictly inside the `if OS.mac?` block so rootless Ubuntu/Linux installations run without errors.

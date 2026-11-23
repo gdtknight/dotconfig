@@ -21,8 +21,9 @@
 ## 2. 모듈별 관리 규칙 (Module-Specific Rules)
 
 1. **LLM 에이전트 3사 동기화 (`agents/`)**:
-   - 공통 지침 및 전문 에이전트는 `agents/shared/`(`INSTRUCTIONS.md`, `rules/`, `agents/*.md`)에 단일 소스로 관리합니다. `install.sh agents`가 직접 대상 도구 디렉터리로 링크하므로 `agents/shared/` 내부 프롬프트·스킬 파일은 영문/국문(`.ko.md`)으로 분리하지 않습니다.
-   - 새 에이전트나 스킬 추가 시 `agents/shared/agents/<name>.md` 및 `agents/codex/agents/<name>.toml`을 작성하면, `install.sh agents`가 Claude(`~/.claude`), Gemini(`~/.gemini/config/skills`), Codex(`~/.codex/skills`) 3개 플랫폼에 자동 동기화합니다.
+   - 공통 지침, 전문 에이전트, 공용 스킬, 공용 MCP 서버 정의는 `agents/shared/`(`INSTRUCTIONS.md`, `rules/`, `agents/*.md`, `skills/<name>/`, `mcp.json`)에 단일 소스로 관리합니다. `install.sh agents`가 직접 대상 도구 디렉터리로 링크하므로 `agents/shared/` 내부 프롬프트·스킬 파일은 영문/국문(`.ko.md`)으로 분리하지 않습니다.
+   - 새 서브에이전트 추가 시 `agents/shared/agents/<name>.md`와 `agents/codex/agents/<name>.toml`을 함께 작성하고, `graphify`처럼 다중 파일로 구성된 스킬 디렉터리는 `agents/shared/skills/<name>/` 아래에 두면 `install.sh agents`가 Claude(`~/.claude/skills`), Gemini(`~/.gemini/config/skills`), Codex(`~/.codex/skills`) 3개 플랫폼에 자동 동기화합니다.
+   - 3사 공용 MCP 서버를 추가·비활성화할 때는 시크릿 없는 순수 선언 정의만 `agents/shared/mcp.json`에 반영한 뒤 `./install.sh agents`를 실행해 `sync_mcp.py`로 `agents/gemini/mcp_config.json`, `agents/codex/config.toml`, `~/.claude.json`(`mcpServers`)에 일괄 동기화합니다.
 
 2. **패키지 관리 (`Brewfile`)**:
    - macOS 전용 애플리케이션(GUI Cask) 및 폰트는 반드시 `if OS.mac?` 블록 내에 선언하여 Ubuntu/Linux(Rootless 권한 환경 포함)에서도 CLI 도구가 에러 없이 설치되도록 보장합니다.

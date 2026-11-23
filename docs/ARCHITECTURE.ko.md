@@ -118,15 +118,16 @@ flowchart LR
 - **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다.
 
 ### 3.2 3사 AI 에이전트 동기화 및 보안 가드 (`agents/`)
-- **통합 프롬프트/에이전트 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`)를 단일 관리하며 `agents/codex/agents/*.toml`과 짝을 이룹니다.
-- **플랫폼 어댑터**: `install.sh agents`가 Claude(`~/.claude`), Gemini(`~/.gemini/config/skills`), Codex(`~/.codex/skills`) 경로에 심볼릭 링크를 구성하고 `agy`, `claude`, `codex` CLI 설치를 연계합니다.
+- **통합 프롬프트·스킬·MCP 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`, `agents/codex/agents/*.toml`와 1:1 매핑), `graphify` 같은 다중 파일 공용 스킬 디렉터리(`agents/shared/skills/<name>/`), 공용 MCP 선언(`agents/shared/mcp.json`)을 단일 관리합니다.
+- **작업 비중별 3사 모델 티어링**: 심층 추론·설계·리뷰 역할(8종)과 빠른 실행·단위/통합 테스트·Git/주석 역할(5종)을 Claude(`opus`/`sonnet`), Codex(`model_reasoning_effort` `high`/`medium`), Antigravity(`INSTRUCTIONS.md` 기반 `pro`/`flash` 티어 위임)로 일관되게 배정합니다.
+- **플랫폼 어댑터 및 3사 MCP 동기화**: `install.sh agents`가 `agents/shared/sync_mcp.py`를 실행해 `mcp.json`을 Gemini/AGY(`agents/gemini/mcp_config.json`, `serverUrl`), Codex(`agents/codex/config.toml`의 `[mcp_servers.*]` TOML 블록), Claude Code(`~/.claude.json` 동적 상태 보존 병합) 포맷으로 동기화한 뒤 `~/.claude/`, `~/.gemini/`, `~/.codex/` 링크와 CLI 설치를 연계합니다.
 - **생명주기 훅 (Lifecycle Hook, `hook.py`)**:
   - `PreToolUse` (`handle_pre_tool()`): 위험 Git/디스크 명령(`git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`), 루트·홈·시스템 디렉터리 대상 `rm`(`is_dangerous_rm()`), 광범위 `chmod 777`(`is_dangerous_chmod()`), 시크릿 파일 및 API 키 노출(`SENSITIVE_FILE_PATTERN`, `SECRET_PATTERNS`)을 선별 차단합니다.
   - `PostToolUse` (`handle_post_tool()`): 수정된 파일 확장자(`.js`, `.ts`, `.py`, `.c`, `.cpp`, `.lua`, `.java` 등)에 따라 `prettier`, `ruff`, `clang-format`, `stylua`, `google-java-format`을 단발성 컨테이너(`dotconfig-formatter:latest`)에서 실행하며 Docker 미가용 시 로컬 바이너리로 폴백합니다.
 
 ### 3.3 IDE 용량 격리 및 호환성 패치 (`ide/`, `nvim/`)
 - **Neovim (LazyVim)**: `nvim/`을 `~/.config/nvim`에 연결하며 `nvim/lua/plugins/` 아래 **9개 플러그인 설정**(`42format.lua`, `42header.lua`, `bufferline.lua`, `devcontainer.nvim.lua`, `emoji-picker.nvim.lua`, `markview.nvim.lua`, `obsidian.nvim.lua`, `tokyonight-nvim.lua`, `vim-tmux-navigator.lua`)을 관리합니다.
-- **쿼터 제한 환경 격리 (`~/goinfre`)**: `link_ide`가 `~/goinfre` 존재 시 `.vscode/extensions`와 `.antigravity-ide/extensions`를 대용량 스크래치 영역으로 심볼릭 링크 격리합니다.
+- **쿼터 제한 환경 격리 (`~/goinfre`)**: `~/goinfre` 존재 시 `setup_goinfre_symlink`가 `.vscode/extensions`·`.antigravity-ide/extensions`(`link_ide`)뿐만 아니라 Linux 환경의 `~/.linuxbrew`·`~/.cache/Homebrew`(`install_packages`)까지 내부 심볼릭 링크·숨김 파일 손상 없이 `~/goinfre`로 격리합니다.
 - **Antigravity IDE Dev Containers 패치**: `patch_antigravity_dev_containers` 함수가 컨테이너 상태 비교 구문(`"start"===(i.status||i.Status)`)에 `||i.Action` 체크를 보강하여 CLI 버전 간 호환성을 확보합니다.
 - **선언적 확장 목록**: `ide/antigravity-ide/extensions.txt`에 **18개 확장 프로그램**을 관리하며 `./install.sh --dump-extensions`로 현재 IDE 상태를 역동기화합니다.
 
@@ -166,5 +167,5 @@ flowchart LR
 
 ### ADR-05: 쿼터 제한 환경 격리(`~/goinfre`) 및 Rootless Linuxbrew 지원
 - **배경 (Context)**: 공용 클러스터 워크스테이션은 홈 디렉터리 디스크 쿼터가 작고 루트 권한을 허용하지 않습니다.
-- **결정 (Decision)**: `link_ide`에서 `~/goinfre` 존재 시 IDE 확장 디렉터리를 자동 심볼릭 링크 격리하고, `Brewfile`의 macOS GUI 항목을 `if OS.mac?`로 감싸 `~/.linuxbrew`와 공존시킵니다.
-- **결과 (Consequences)**: 개인 macOS 장비와 제한된 Ubuntu 클러스터에서 동일한 도구 체인을 유지할 수 있습니다.
+- **결정 (Decision)**: `~/goinfre` 존재 시 IDE 확장 디렉터리(`link_ide`)와 Linux의 `~/.linuxbrew`·`~/.cache/Homebrew`(`install_packages`)를 자동 심볼릭 링크 격리하고, `Brewfile`의 macOS GUI 항목을 `if OS.mac?`로 감싸 공존시킵니다.
+- **결과 (Consequences)**: 개인 macOS 장비와 NFS 쿼터 제한 Ubuntu 클러스터에서도 홈 용량 초과 없이 동일한 도구 체인을 유지할 수 있습니다.

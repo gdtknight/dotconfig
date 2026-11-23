@@ -118,15 +118,16 @@ flowchart LR
 - **Rootless & OS Isolation**: `Brewfile` wraps macOS GUI casks (`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, and Nerd Fonts inside `if OS.mac?`, keeping CLI tools (`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`) clean for `~/.linuxbrew`.
 
 ### 3.2 Multi-Vendor AI Agent Synchronization (`agents/`)
-- **Unified Prompt & Skill Tree**: `agents/shared/` maintains global `INSTRUCTIONS.md`, `rules/`, and `13` specialized agent definitions under `agents/shared/agents/*.md`, plus matching Codex definitions under `agents/codex/agents/*.toml`.
-- **Platform Adapter**: `install.sh agents` links assets into `~/.claude/`, `~/.gemini/config/skills`, and `~/.codex/skills`, and bootstraps CLI binaries (`agy`, `claude`, `codex`).
+- **Unified Prompt & Skill Tree**: `agents/shared/` maintains global `INSTRUCTIONS.md`, `rules/`, `13` specialized subagent definitions under `agents/shared/agents/*.md` (paired with `agents/codex/agents/*.toml`), shared multi-file skill directories under `agents/shared/skills/<name>/` (such as `graphify`), and canonical MCP definitions in `agents/shared/mcp.json`.
+- **Workload Model Tiering**: Deep-reasoning subagents (`8` review/architecture/debug/refactor/comprehensive-test/writing agents) and fast-execution subagents (`5` unit/integration/git/docs agents) align across Claude (`opus`/`sonnet`), Codex (`model_reasoning_effort` `high`/`medium`), and Antigravity (`INSTRUCTIONS.md` routing to `pro`/`flash`).
+- **Platform Adapter & Cross-Vendor MCP Sync**: `install.sh agents` runs `agents/shared/sync_mcp.py` to render `agents/shared/mcp.json` into Gemini/Antigravity (`agents/gemini/mcp_config.json`, `serverUrl`), Codex (`agents/codex/config.toml` `[mcp_servers.*]` TOML block), and Claude Code (`~/.claude.json` `mcpServers` merge without touching dynamic state), then links assets into `~/.claude/`, `~/.gemini/`, and `~/.codex/` and bootstraps CLI binaries (`agy`, `claude`, `codex`).
 - **Security & Formatting Guard (`hook.py`)**:
   - `PreToolUse` (`handle_pre_tool()`): Inspects shell commands (`git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`), root/home `rm` targets (`is_dangerous_rm()`), recursive `777` permissions (`is_dangerous_chmod()`), and secret file/API-key leakage (`SENSITIVE_FILE_PATTERN`, `SECRET_PATTERNS`).
   - `PostToolUse` (`handle_post_tool()`): Maps extensions (`.js`, `.ts`, `.py`, `.c`, `.cpp`, `.lua`, `.java`, etc.) to `prettier`, `ruff`, `clang-format`, `stylua`, and `google-java-format` inside `dotconfig-formatter:latest`, falling back to host binaries if Docker is unavailable.
 
 ### 3.3 IDE, Quota Isolation & Compatibility Patching (`ide/`, `nvim/`)
 - **Neovim (LazyVim)**: Symlinks `nvim/` to `~/.config/nvim`, providing `9` focused plugin configurations (`42format.lua`, `42header.lua`, `bufferline.lua`, `devcontainer.nvim.lua`, `emoji-picker.nvim.lua`, `markview.nvim.lua`, `obsidian.nvim.lua`, `tokyonight-nvim.lua`, `vim-tmux-navigator.lua`).
-- **Quota-Safe Storage (`~/goinfre`)**: `link_ide` detects `~/goinfre` (used on quota-restricted cluster workstations) and relocates `.vscode/extensions` and `.antigravity-ide/extensions` via symlinks.
+- **Quota-Safe Storage (`~/goinfre`)**: `setup_goinfre_symlink` detects `~/goinfre` on quota-restricted cluster workstations and relocates `.vscode/extensions`, `.antigravity-ide/extensions` (in `link_ide`), as well as `~/.linuxbrew` and `~/.cache/Homebrew` on Linux (in `install_packages`), preserving dotfiles and internal symlinks cleanly.
 - **Antigravity IDE Dev Container Compatibility Patch**: `patch_antigravity_dev_containers` patches container status checks (`"start"===(i.status||i.Status)` -> adds `||i.Action`) for reliable container lifecycle detection across CLI versions.
 - **Declarative Extensions**: Tracks `18` curated extensions in `ide/antigravity-ide/extensions.txt`, refreshable via `./install.sh --dump-extensions`.
 
@@ -166,5 +167,5 @@ flowchart LR
 
 ### ADR-05: Symlink Relocation (`~/goinfre`) & Rootless Linuxbrew Isolation
 - **Context**: Academic/enterprise cluster environments enforce strict home-directory disk quotas and disallow `sudo` package installation.
-- **Decision**: Automatically detect `~/goinfre` in `link_ide` for large IDE extension caches and support rootless `~/.linuxbrew` in `install_packages` gated cleanly from macOS casks via `if OS.mac?`.
-- **Consequences**: Identical developer tooling on both personal macOS laptops and quota-limited Ubuntu cluster hosts.
+- **Decision**: Automatically detect `~/goinfre` to symlink-relocate heavy IDE extensions (`link_ide`) plus `~/.linuxbrew` and `~/.cache/Homebrew` on Linux (`install_packages`), while gating macOS GUI casks inside `if OS.mac?` in `Brewfile`.
+- **Consequences**: Identical developer tooling on both personal macOS laptops and quota-limited Ubuntu cluster hosts without exhausting home NFS quotas.

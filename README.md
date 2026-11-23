@@ -27,7 +27,7 @@
 
 ### 설계 원칙 (Design Principles)
 
-* **무권한 크로스 플랫폼 부트스트랩 (Zero-Sudo Bootstrap)**: macOS에서는 Homebrew를, 루트 권한이 없는 Ubuntu/Linux에서는 `~/.linuxbrew`를 자동 설치합니다. 디스크 쿼터가 제한된 환경에서는 `~/goinfre`를 감지해 IDE 확장 저장소를 자동으로 옮겨 줍니다.
+* **무권한 크로스 플랫폼 부트스트랩 (Zero-Sudo Bootstrap)**: macOS에서는 Homebrew를, 루트 권한이 없는 Ubuntu/Linux에서는 `~/.linuxbrew`를 자동 설치합니다. `~/goinfre`가 감지되면 IDE 확장과 함께 Linuxbrew 본체·캐시까지 자동으로 옮겨 홈 쿼터 초과를 막습니다.
 * **단일 진실 공급원 (Single Source of Truth, SSoT)**: 전역 지침, **13개 전문 서브에이전트**, 공용 생명주기 훅을 `agents/shared/` 한 곳에서만 관리하며 `install.sh agents` 실행 시 Claude·Gemini·Codex 경로로 동시에 연결합니다.
 * **호스트 최소화 및 컨테이너 격리 (Thin Host, Ephemeral Tooling)**: 언어별 SDK와 런타임은 9종 Dev Container 템플릿에 격리하고, 다국어 자동 포매팅은 단발성 Docker 컨테이너(`dotconfig-formatter`)에서 실행해 호스트 OS 오염을 줄였습니다.
 * **안전 우선 멱등성 (Safety-First & Idempotency)**: 모든 설치 동작은 `--dry-run` 시뮬레이션을 지원하며, 기존 설정 파일과 충돌할 때 덮어쓰지 않고 타임스탬프 백업(`~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/`)으로 보존합니다.
@@ -109,9 +109,9 @@ dotconfig/
 ├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init 자동완성
 ├── git/                          # 전역 .gitconfig (histogram diff, SSH 서명) & .gitignore
 ├── agents/                       # LLM 코딩 에이전트 3사 통합 하네스 (Claude, Gemini/AGY, Codex)
-│   ├── shared/                   # SSoT: INSTRUCTIONS.md, rules/, 13개 전문 에이전트, hook.py
+│   ├── shared/                   # SSoT: INSTRUCTIONS.md, rules/, 13개 전문 에이전트, skills/, mcp.json, sync_mcp.py, hook.py
 │   ├── claude/                   # settings.json (Claude Code 훅 바인딩)
-│   ├── gemini/                   # settings.json, config.json, hooks.json, mcp_config.json
+│   ├── gemini/                   # settings.json, config.json, hooks.json, mcp_config.json (Graphify MCP)
 │   └── codex/                    # config.toml & 13개 TOML 서브에이전트 래퍼
 ├── ide/                          # Antigravity IDE / VS Code (18종 확장) & IntelliJ IDEA 설정
 ├── alacritty/                    # Alacritty 터미널 설정 및 테마
@@ -128,8 +128,8 @@ dotconfig/
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | 디렉터리 심볼릭 링크 (LazyVim, 9개 커스텀 플러그인) |
 | **Zsh** | `zsh/{.zshrc,.zprofile,.p10k.zsh}` | `~/.zshrc`, `~/.zprofile`, `~/.p10k.zsh` | 동일 | 파일 심볼릭 링크 + Oh My Zsh, P10k, 플러그인 자동 부트스트랩 |
 | **Git** | `git/{.gitconfig,.gitignore}` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | 동일 | 파일 심볼릭 링크 + `includeIf` 계정별 SSH 키/서명 격리 |
-| **Claude Code** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | 동일 | 공용 지침·규칙·서브에이전트·훅 링크 + CLI 자동 설치 |
-| **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | 동일 | 공용 규칙·스킬 링크 + `agy` CLI 자동 설치 |
+| **Claude Code** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,skills/*,hooks,settings.json}` | 동일 | 공용 지침·규칙·서브에이전트·스킬·훅 링크 + CLI 자동 설치 |
+| **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,mcp_config.json,skills/*}` | 동일 | 공용 규칙·스킬·MCP 설정 링크 + `agy` CLI 자동 설치 |
 | **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,rules,agents,hooks,skills/*/SKILL.md}` | 동일 | 공용 규칙·스킬 & TOML 래퍼 링크 + CLI 자동 설치 |
 | **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` 확장 격리) | 설정 링크, 18종 확장 동기화 & Docker v29+ 호환 패치 |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 키맵 (`macOS.xml`), VM 옵션 & Properties 링크 |
@@ -154,6 +154,8 @@ Claude Code, Google Antigravity(Gemini CLI), OpenAI Codex는 설정 파일 경�
 * **리뷰·품질**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube 종합 및 병렬 위임), `@security-reviewer`, `@quality-reviewer`
 * **테스트·디버깅·개선**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (최대 3라운드 가설 검증 & 에스컬레이션), `@refactor-agent` (Baby Steps & `hook.py` 호환 파일 단위 복구)
 * **문서·Git 워크플로우**: `@commit-agent`, `@github-agent` (`--body-file - <<'EOF'` 기반 안전한 PR/Issue 생성), `@docs-agent`, `@guide-writer` (C4 Model & ADR), `@human-writer` (AI 상투어 제거 및 존댓말 톤 프리셋 적용)
+* **작업 비중별 3사 모델 티어링**: 심층 추론·설계·리뷰 8종과 빠른 실행·테스트·Git/주석 5종을 Claude(`opus`/`sonnet`), Codex(`model_reasoning_effort` `high`/`medium`), Antigravity(`INSTRUCTIONS.md` 기반 `pro`/`flash` 티어 전달)로 차등 배정했습니다.
+* **공용 스킬 & MCP 동기화**: [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) 같은 다중 파일 스킬과 [`agents/shared/mcp.json`](./agents/shared/mcp.json) MCP 서버 목록을 [`sync_mcp.py`](./agents/shared/sync_mcp.py)가 Claude(`~/.claude.json` 병합)·Gemini/AGY(`serverUrl`)·Codex(TOML) 규격에 맞춰 일괄 동기화합니다.
 
 ### 2. 멀티 계정 Git 및 SSH 격리 (`includeIf`)
 
@@ -193,9 +195,9 @@ devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
 
 | 겪은 문제 (Problem) | 적용한 해결 (Solution) | 구현 위치 |
 | :--- | :--- | :--- |
-| **Docker v29+ 환경에서 Antigravity IDE Dev Containers 기동 멈춤** | 내장 `devContainersSpecCLI.js`의 이벤트 상태 조건(`i.status\|\|i.Status`)에 `\|\|i.Action`이 빠져 컨테이너 준비를 인식 못 하는 문제를 설치 시 자동 패치(`patch_antigravity_dev_containers`)하도록 구현했습니다. | [install.sh](./install.sh#L448-L464) |
+| **Docker v29+ 환경에서 Antigravity IDE Dev Containers 기동 멈춤** | 내장 `devContainersSpecCLI.js`의 이벤트 상태 조건(`i.status\|\|i.Status`)에 `\|\|i.Action`이 빠져 컨테이너 준비를 인식 못 하는 문제를 설치 시 자동 패치(`patch_antigravity_dev_containers`)하도록 구현했습니다. | [install.sh](./install.sh#L507-L523) |
 | **AI 채팅 입력창에서 WhichKey 스페이스바 단축키 오동작** | Vim Normal 모드의 `space -> whichkey.show` 트리거가 AI 채팅 입력·터미널에서도 가로채기를 일으켜 `!antigravity.chatFocused && !inChat && !chatFocus && !chatInputHasFocus` 컨텍스트 가드로 정밀 격리했습니다. | [keybindings.json](./ide/antigravity-ide/keybindings.json#L105-L125) |
-| **클러스터 NFS 홈 쿼터 제한 및 Rootless 환경** | `~/goinfre` 경로 감지 시 `.vscode/extensions`와 `.antigravity-ide/extensions`를 대용량 영역으로 심볼릭 링크 격리하고, `Brewfile`의 macOS GUI 앱을 `if OS.mac?` 블록에 격리해 `~/.linuxbrew` 무권한 설치를 보장했습니다. | [install.sh](./install.sh) · [Brewfile](./Brewfile) |
+| **클러스터 NFS 홈 쿼터 제한 및 Rootless 환경** | `~/goinfre` 경로 감지 시 `.vscode/extensions`·`.antigravity-ide/extensions`와 Linux의 `~/.linuxbrew`·`~/.cache/Homebrew`를 내부 심볼릭 링크 손상 없이 격리하고, `Brewfile`의 macOS GUI 앱을 `if OS.mac?` 블록으로 분리했습니다. | [install.sh](./install.sh) · [Brewfile](./Brewfile) |
 | **SSH 원격 접속 시 `EDITOR` 덮어쓰기 & Zsh 경로 꼬임** | `zsh/.zshrc`에서 Oh My Zsh 로딩 *이전*에 Homebrew `shellenv`를 초기화하고, `$SSH_CONNECTION` 여부와 무관하게 설치된 `nvim`을 우선 `EDITOR`로 고정했으며 `_dotconfig_repo_dir()`로 실제 저장소 위치를 동적 역추적합니다. | [zsh/.zshrc](./zsh/.zshrc) |
 | **Obsidian Vault 동적 인식 & Neovim 유연한 마크다운 편집** | `obsidian.nvim` 설정이 iCloud Obsidian 폴더 내 모든 Vault를 알파벳순으로 자동 등록하고, Vault 바깥에서 마크다운 파일을 열 때는 현재 파일 디렉터리를 기준으로 동작하는 `no-vault` 폴백을 제공합니다. | [obsidian.nvim.lua](./nvim/lua/plugins/obsidian.nvim.lua#L1-L42) |
 

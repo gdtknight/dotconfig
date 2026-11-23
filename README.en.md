@@ -27,7 +27,7 @@ Rather than stopping at static dotfiles, it ties together a **3-vendor AI Agent 
 
 ### Design Principles
 
-* **Zero-Sudo Cross-Platform Bootstrap**: Self-bootstraps Homebrew on macOS and rootless Linuxbrew (`~/.linuxbrew`) on Ubuntu, while relocating heavy IDE extension caches to `~/goinfre` on quota-limited workstations.
+* **Zero-Sudo Cross-Platform Bootstrap**: Self-bootstraps Homebrew on macOS and rootless Linuxbrew (`~/.linuxbrew`) on Ubuntu, while automatically relocating IDE extensions, `~/.linuxbrew`, and `~/.cache/Homebrew` into `~/goinfre` on quota-limited workstations.
 * **Single Source of Truth (SSOT)**: Shared engineering rules, **13 specialized subagents**, and lifecycle hooks live under `agents/shared/` and sync across Claude, Gemini/Antigravity, and Codex via `install.sh agents`.
 * **Thin Host, Ephemeral Tooling**: Language toolchains run inside 9 Dev Container templates, and multi-language code formatting runs inside ephemeral Docker containers (`dotconfig-formatter`) rather than polluting the host OS.
 * **Safety-First & Idempotent Execution**: Every installation supports `--dry-run`, relocates collisions into timestamped backups (`~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/`), and prevents secret leakage via `.gitignore` and PreToolUse guards.
@@ -109,9 +109,9 @@ dotconfig/
 ├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init wrapper
 ├── git/                          # Global .gitconfig (SSH signing, histogram diff) & .gitignore
 ├── agents/                       # Multi-vendor AI Agent harness (Claude, Gemini/AGY, Codex)
-│   ├── shared/                   # SSOT: INSTRUCTIONS.md, rules/, 13 specialized agents/, hook.py
+│   ├── shared/                   # SSOT: INSTRUCTIONS.md, rules/, 13 specialized agents/, skills/, mcp.json, sync_mcp.py, hook.py
 │   ├── claude/                   # settings.json (Claude Code hook bindings)
-│   ├── gemini/                   # settings.json, config.json, hooks.json, mcp_config.json
+│   ├── gemini/                   # settings.json, config.json, hooks.json, mcp_config.json (Graphify MCP)
 │   └── codex/                    # config.toml & 13 TOML subagent wrappers
 ├── ide/                          # Antigravity IDE / VS Code (18 extensions) & IntelliJ IDEA
 ├── alacritty/                    # Alacritty terminal config & themes
@@ -128,8 +128,8 @@ dotconfig/
 | **Neovim** | `nvim` | `~/.config/nvim` | `~/.config/nvim` | Directory symlink (LazyVim v14+, 9 custom plugins) |
 | **Zsh** | `zsh/{.zshrc,.zprofile,.p10k.zsh}` | `~/.zshrc`, `~/.zprofile`, `~/.p10k.zsh` | Same as macOS | File symlinks + auto Oh My Zsh, P10k & plugin bootstrap |
 | **Git** | `git/{.gitconfig,.gitignore}` | `~/.gitconfig`, `~/.gitignore`, `~/Projects/<account>/` | Same as macOS | File symlinks + `includeIf` multi-account SSH & signing |
-| **Claude** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,hooks,settings.json}` | Same as macOS | Shared markdown & hook symlinks + CLI auto-install |
-| **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills symlinks + `agy` CLI auto-install |
+| **Claude** | `agents/shared/*`, `agents/claude/settings.json` | `~/.claude/{CLAUDE.md,rules,agents,skills/*,hooks,settings.json}` | Same as macOS | Shared markdown, skills & hook symlinks + CLI auto-install |
+| **Gemini / AGY** | `agents/shared/*`, `agents/gemini/*` | `~/.gemini/{GEMINI.md,agents}`, `~/.gemini/config/{rules,hooks,mcp_config.json,skills/*}` | Same as macOS | Shared rules/skills/MCP symlinks + `agy` CLI auto-install |
 | **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,rules,agents,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills & TOML wrapper links + CLI auto-install |
 | **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` extension isolation) | Settings symlinks, 18-extension sync & Docker v29+ patch |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | Keymap (`macOS.xml`), VM options & properties links |
@@ -154,6 +154,8 @@ All three tools also share **13 specialized subagents** in [`agents/shared/agent
 * **Review & Quality**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube + parallel delegation), `@security-reviewer`, `@quality-reviewer`
 * **Testing, Debugging & Refactoring**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (3-round hypothesis escalation), `@refactor-agent` (Baby Steps with `hook.py`-safe file restore)
 * **Docs & Git Workflow**: `@commit-agent`, `@github-agent` (heredoc-safe `--body-file -`), `@docs-agent`, `@guide-writer` (C4 & ADR), `@human-writer` (Anti-AI-ism filter & tone presets)
+* **Workload-Based 3-Vendor Model Tiering**: Assigns deep reasoning tasks (8 subagents) and fast execution/Git/docs tasks (5 subagents) across Claude (`opus`/`sonnet`), Codex (`model_reasoning_effort` `high`/`medium`), and Antigravity (`pro`/`flash` delegation tiers in `INSTRUCTIONS.md`).
+* **Shared Skills & Cross-Vendor MCP Sync**: Multi-file skills such as [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) and declarative servers in [`agents/shared/mcp.json`](./agents/shared/mcp.json) are converted and synced by [`sync_mcp.py`](./agents/shared/sync_mcp.py) across Claude (`~/.claude.json` merge), Gemini/AGY (`serverUrl`), and Codex (TOML `[mcp_servers.*]`).
 
 ### 2. Multi-Account Git & SSH Isolation
 
@@ -191,9 +193,9 @@ devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
 
 | Problem Encountered | Implemented Solution | Source |
 | :--- | :--- | :--- |
-| **Antigravity IDE Dev Containers hang on Docker v29+** | Built-in `devContainersSpecCLI.js` missed Docker's `i.Action` event field when checking `"start"===(i.status\|\|i.Status)`. `patch_antigravity_dev_containers()` patches this automatically during `install.sh ide`. | [install.sh](./install.sh#L448-L464) |
+| **Antigravity IDE Dev Containers hang on Docker v29+** | Built-in `devContainersSpecCLI.js` missed Docker's `i.Action` event field when checking `"start"===(i.status\|\|i.Status)`. `patch_antigravity_dev_containers()` patches this automatically during `install.sh ide`. | [install.sh](./install.sh#L507-L523) |
 | **WhichKey Spacebar hijacks AI Chat & terminal input** | Isolated Vim Normal-mode `space -> whichkey.show` triggers behind `!antigravity.chatFocused && !inChat && !chatFocus && !chatInputHasFocus` context guards. | [keybindings.json](./ide/antigravity-ide/keybindings.json#L105-L125) |
-| **Cluster NFS home quotas & Rootless Linux nodes** | Automatically relocates `.vscode/extensions` and `.antigravity-ide/extensions` into `~/goinfre` when present, and gates GUI casks inside `if OS.mac?` in `Brewfile` for clean `~/.linuxbrew` setup. | [install.sh](./install.sh) · [Brewfile](./Brewfile) |
+| **Cluster NFS home quotas & Rootless Linux nodes** | Automatically relocates `.vscode/extensions`, `.antigravity-ide/extensions`, `~/.linuxbrew`, and `~/.cache/Homebrew` into `~/goinfre` while preserving internal symlinks/dotfiles, and gates macOS GUI casks inside `if OS.mac?`. | [install.sh](./install.sh) · [Brewfile](./Brewfile) |
 | **SSH `EDITOR` override & Zsh init order** | `zsh/.zshrc` loads Homebrew `shellenv` *before* Oh My Zsh, prioritizes installed `nvim` as `EDITOR` even over `$SSH_CONNECTION`, and dynamically locates the repo via `_dotconfig_repo_dir()`. | [zsh/.zshrc](./zsh/.zshrc) |
 | **Dynamic Obsidian Vault discovery + general Markdown fallback** | `obsidian.nvim` scans iCloud Obsidian folders alphabetically at startup and falls back to a CWD `no-vault` workspace for standalone Markdown files. | [obsidian.nvim.lua](./nvim/lua/plugins/obsidian.nvim.lua#L1-L42) |
 
