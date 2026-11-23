@@ -236,11 +236,32 @@ link_nvim() {
   link_target "${REPO_DIR}/nvim" "${HOME}/.config/nvim"
 }
 
+sync_shared_mcp() {
+  local mcp_sync="${REPO_DIR}/agents/shared/sync_mcp.py"
+  local mcp_src="${REPO_DIR}/agents/shared/mcp.json"
+  if [ ! -f "$mcp_sync" ] || [ ! -f "$mcp_src" ]; then
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    log_warn "python3 not found; skipping cross-vendor MCP synchronization."
+    return 0
+  fi
+
+  log_info "Synchronizing shared MCP servers (Claude, Gemini/AGY, Codex)..."
+  if [ "$DRY_RUN" = true ]; then
+    python3 "$mcp_sync" --dry-run
+  else
+    python3 "$mcp_sync"
+  fi
+}
+
 link_agents() {
   log_info "Configuring Agents (Claude, Gemini, Codex)..."
 
+  sync_shared_mcp
+
   # Claude (~/.claude)
-  mkdir -p "${HOME}/.claude"
+  mkdir -p "${HOME}/.claude" "${HOME}/.claude/skills"
   link_target "${REPO_DIR}/agents/shared/INSTRUCTIONS.md" "${HOME}/.claude/CLAUDE.md"
   link_target "${REPO_DIR}/agents/claude/settings.json" "${HOME}/.claude/settings.json"
   link_target "${REPO_DIR}/agents/shared/rules" "${HOME}/.claude/rules"
@@ -266,7 +287,19 @@ link_agents() {
   link_target "${REPO_DIR}/agents/codex/agents" "${HOME}/.codex/agents"
   link_target "${REPO_DIR}/agents/shared/hooks" "${HOME}/.codex/hooks"
 
-  # Clean up stale/dangling skill symlinks in Gemini and Codex
+  # Clean up stale/dangling skill symlinks in Claude, Gemini, and Codex
+  local skill_entry
+  for skill_entry in "${HOME}/.claude/skills"/* "${HOME}/.gemini/config/skills"/* "${HOME}/.codex/skills"/*; do
+    if [ -L "$skill_entry" ] && [ ! -e "$skill_entry" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        log_dry "Remove broken skill dir symlink: $skill_entry"
+      else
+        rm -f "$skill_entry"
+        log_ok "Removed stale skill dir symlink: $skill_entry"
+      fi
+    fi
+  done
+
   local skill_file
   for skill_file in "${HOME}/.gemini/config/skills"/*/SKILL.md "${HOME}/.codex/skills"/*/SKILL.md; do
     if [ -L "$skill_file" ] && [ ! -e "$skill_file" ]; then
@@ -290,6 +323,20 @@ link_agents() {
       link_target "$agent_md" "${HOME}/.codex/skills/${agent_name}/SKILL.md"
     fi
   done
+
+  # Link shared multi-file skills across Claude, Gemini, and Codex
+  local skill_dir
+  local skill_name
+  if [ -d "${REPO_DIR}/agents/shared/skills" ]; then
+    for skill_dir in "${REPO_DIR}/agents/shared/skills"/*; do
+      if [ -d "$skill_dir" ]; then
+        skill_name="$(basename "$skill_dir")"
+        link_target "$skill_dir" "${HOME}/.claude/skills/${skill_name}"
+        link_target "$skill_dir" "${HOME}/.gemini/config/skills/${skill_name}"
+        link_target "$skill_dir" "${HOME}/.codex/skills/${skill_name}"
+      fi
+    done
+  fi
 
   # Ensure Agent CLIs (Antigravity, Claude, Codex) are installed
   # 1) Antigravity CLI (agy)
@@ -383,14 +430,26 @@ setup_goinfre_symlink() {
     return 0
   fi
 
-  mkdir -p "$goinfre_dir"
+  mkdir -p "$(dirname "$goinfre_dir")"
+  mkdir -p "$(dirname "$home_dest")"
+
   if [ -d "$home_dest" ] && [ ! -L "$home_dest" ]; then
     log_info "Moving existing ${home_dest} to ${goinfre_dir}..."
-    cp -rn "${home_dest}"/* "$goinfre_dir/" 2>/dev/null || true
-    rm -rf "$home_dest"
+    rmdir "$goinfre_dir" 2>/dev/null || true
+    if [ ! -e "$goinfre_dir" ]; then
+      mv "$home_dest" "$goinfre_dir"
+    else
+      # Preserve dotfiles (.git) and internal symlinks without losing existing goinfre files
+      tar -C "$home_dest" -cf - . | tar -C "$goinfre_dir" -xf -
+      rm -rf "$home_dest"
+    fi
+  elif [ -L "$home_dest" ]; then
+    rm -f "$home_dest"
+    mkdir -p "$goinfre_dir"
+  else
+    mkdir -p "$goinfre_dir"
   fi
 
-  mkdir -p "$(dirname "$home_dest")"
   ln -sfn "$goinfre_dir" "$home_dest"
   log_ok "Linked to goinfre: ${home_dest} -> ${goinfre_dir}"
 }
@@ -927,9 +986,9 @@ link_terminal() {
   if [ -x "${tpm_dir}/bin/install_plugins" ]; then
     if [ "$DRY_RUN" = true ]; then
       log_dry "Install Tmux plugins via: ${tpm_dir}/bin/install_plugins"
-    elif command -v tmux >/dev/null 2>&1 || [ -x "${HOME}/.linuxbrew/bin/tmux" ] || [ -x "/opt/homebrew/bin/tmux" ]; then
+    elif command -v tmux >/dev/null 2>&1 || [ -x "${HOME}/.linuxbrew/bin/tmux" ] || [ -x "${HOME}/goinfre/.linuxbrew/bin/tmux" ] || [ -x "/opt/homebrew/bin/tmux" ]; then
       log_info "Installing Tmux plugins via TPM..."
-      PATH="${HOME}/.linuxbrew/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}" "${tpm_dir}/bin/install_plugins" || log_warn "Some Tmux plugins failed to install."
+      PATH="${HOME}/.linuxbrew/bin:${HOME}/goinfre/.linuxbrew/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}" "${tpm_dir}/bin/install_plugins" || log_warn "Some Tmux plugins failed to install."
       log_ok "Tmux plugins synchronized."
     fi
   fi
@@ -937,6 +996,13 @@ link_terminal() {
 
 install_packages() {
   log_info "Checking package manager & Brewfile..."
+
+  # 42 Goinfre Quota Protection: Relocate Linuxbrew and its download cache when ~/goinfre exists
+  if [ "$IS_LINUX" = true ] && [ -d "${HOME}/goinfre" ]; then
+    log_info "Detected ~/goinfre. Configuring quota-safe Linuxbrew storage..."
+    setup_goinfre_symlink "${HOME}" ".linuxbrew"
+    setup_goinfre_symlink "${HOME}" ".cache/Homebrew"
+  fi
 
   local brew_cmd=""
   if command -v brew >/dev/null 2>&1; then
@@ -947,6 +1013,8 @@ install_packages() {
     brew_cmd="/usr/local/bin/brew"
   elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
     brew_cmd="$HOME/.linuxbrew/bin/brew"
+  elif [ -x "$HOME/goinfre/.linuxbrew/bin/brew" ]; then
+    brew_cmd="$HOME/goinfre/.linuxbrew/bin/brew"
   elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
     brew_cmd="/home/linuxbrew/.linuxbrew/bin/brew"
   fi
@@ -956,8 +1024,13 @@ install_packages() {
     log_warn "Homebrew is not detected on this system."
     if [ "$IS_LINUX" = true ]; then
       if [ "$DRY_RUN" = true ]; then
-        log_dry "Install Homebrew (rootless) into ${HOME}/.linuxbrew"
-        log_dry "Run command: '${HOME}/.linuxbrew/bin/brew bundle --file=${REPO_DIR}/Brewfile'"
+        if [ -d "${HOME}/goinfre" ]; then
+          log_dry "Install Homebrew (rootless) into ${HOME}/.linuxbrew (-> ${HOME}/goinfre/.linuxbrew)"
+          log_dry "Run command: '${HOME}/.linuxbrew/bin/brew bundle --file=${REPO_DIR}/Brewfile'"
+        else
+          log_dry "Install Homebrew (rootless) into ${HOME}/.linuxbrew"
+          log_dry "Run command: '${HOME}/.linuxbrew/bin/brew bundle --file=${REPO_DIR}/Brewfile'"
+        fi
         return 0
       fi
       log_info "Installing Homebrew into ${HOME}/.linuxbrew (no sudo required)..."

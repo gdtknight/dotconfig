@@ -11,7 +11,7 @@ typeset -U path PATH fpath FPATH
 # Initialize Homebrew before Oh My Zsh so compinit picks up brew site-functions
 # and non-login interactive shells on Linux have brew tools in PATH.
 if ! command -v brew >/dev/null 2>&1; then
-  for _brew_bin in /opt/homebrew/bin/brew "$HOME/.linuxbrew/bin/brew" /home/linuxbrew/.linuxbrew/bin/brew; do
+  for _brew_bin in /opt/homebrew/bin/brew "$HOME/.linuxbrew/bin/brew" "$HOME/goinfre/.linuxbrew/bin/brew" /home/linuxbrew/.linuxbrew/bin/brew; do
     if [[ -x "$_brew_bin" ]]; then
       eval "$("$_brew_bin" shellenv zsh)"
       break
