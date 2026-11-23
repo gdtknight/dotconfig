@@ -8,3 +8,10 @@ multi_agent = true
 
 [tui]
 screen_reader_detection_done = true
+
+# BEGIN DOTCONFIG MANAGED MCP
+# Auto-generated from agents/shared/mcp.json by install.sh / sync_mcp.py
+
+[mcp_servers.graphify]
+url = "https://api.graphify.com/mcp"
+# END DOTCONFIG MANAGED MCP

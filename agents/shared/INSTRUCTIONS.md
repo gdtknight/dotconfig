@@ -50,20 +50,26 @@ tags: []
 
 ## 5. Specialized Subagents (전문 에이전트 활용)
 아래 상황에 해당하는 작업을 수행할 때는 해당 전문 에이전트를 적극적으로 호출하거나 사용자에게 활용을 제안한다.
-| 분류 | 상황 / 작업 내용 | 에이전트 |
-| :--- | :--- | :--- |
-| **리뷰** | 코드 리뷰 (보안 + 품질 종합) | `@code-reviewer` |
-| **리뷰** | 보안·취약점·안정성 집중 리뷰 | `@security-reviewer` |
-| **리뷰** | 클린코드·설계 집중 리뷰 | `@quality-reviewer` |
-| **테스트** | 단위 + 통합 테스트 종합 작성 및 실행 | `@test-agent` |
-| **테스트** | 단위 테스트 설계·작성·실행·커버리지 검증 | `@unit-test-agent` |
-| **테스트** | 통합·계약 테스트 설계·작성·실행·장애 격리 | `@integration-test-agent` |
-| **디버깅** | 버그 재현·원인 추적·최소 수정·회귀 검증 | `@debug-agent` |
-| **리팩토링** | 안전망 확인·스멜 분석·계획 수립·Baby Steps 실행 | `@refactor-agent` |
-| **문서/Git** | Git 커밋 메시지 작성 + 커밋 수행 | `@commit-agent` |
-| **문서/Git** | GitHub Issue·PR 작성 및 메타데이터 점검 | `@github-agent` |
-| **문서/Git** | 코드 주석 작성 + 포맷 정리 | `@docs-agent` |
-| **문서/Git** | 프로젝트 인수인계 가이드 문서 작성 | `@guide-writer` |
-| **문서/Git** | 사람처럼 자연스러운 기술 문서 작성·윤문 (AI 말투 제거) | `@human-writer` |
+Antigravity 환경에서 `invoke_subagent` 또는 `run_workflow`로 서브에이전트를 위임할 때는 기본값(`inherit`)을 그대로 쓰지 말고 아래 표에 지정된 `Model` 티어(`"pro"` 또는 `"flash"`)를 명시적으로 전달한다. (단, 사용자가 특정 모델이나 티어를 직접 지정한 경우에는 사용자 지정을 우선한다.)
 
+| 분류 | 상황 / 작업 내용 | 에이전트 | 권장 티어 (Claude / Codex / AGY) |
+| :--- | :--- | :--- | :--- |
+| **리뷰** | 코드 리뷰 (보안 + 품질 종합) | `@code-reviewer` | `opus` / `high` / `pro` |
+| **리뷰** | 보안·취약점·안정성 집중 리뷰 | `@security-reviewer` | `opus` / `high` / `pro` |
+| **리뷰** | 클린코드·설계 집중 리뷰 | `@quality-reviewer` | `opus` / `high` / `pro` |
+| **테스트** | 단위 + 통합 테스트 종합 작성 및 실행 | `@test-agent` | `opus` / `high` / `pro` |
+| **테스트** | 단위 테스트 설계·작성·실행·커버리지 검증 | `@unit-test-agent` | `sonnet` / `medium` / `flash` |
+| **테스트** | 통합·계약 테스트 설계·작성·실행·장애 격리 | `@integration-test-agent` | `sonnet` / `medium` / `flash` |
+| **디버깅** | 버그 재현·원인 추적·최소 수정·회귀 검증 | `@debug-agent` | `opus` / `high` / `pro` |
+| **리팩토링** | 안전망 확인·스멜 분석·계획 수립·Baby Steps 실행 | `@refactor-agent` | `opus` / `high` / `pro` |
+| **문서/Git** | Git 커밋 메시지 작성 + 커밋 수행 | `@commit-agent` | `sonnet` / `medium` / `flash` |
+| **문서/Git** | GitHub Issue·PR 작성 및 메타데이터 점검 | `@github-agent` | `sonnet` / `medium` / `flash` |
+| **문서/Git** | 코드 주석 작성 + 포맷 정리 | `@docs-agent` | `sonnet` / `medium` / `flash` |
+| **문서/Git** | 프로젝트 인수인계 가이드 문서 작성 | `@guide-writer` | `opus` / `high` / `pro` |
+| **문서/Git** | 사람처럼 자연스러운 기술 문서 작성·윤문 (AI 말투 제거) | `@human-writer` | `opus` / `high` / `pro` |
 
+---
+
+## 6. Installed Skills (설치된 스킬)
+- **`graphify`** (`/graphify`) — 코드·문서·이미지·영상 등을 지식 그래프(`graphify-out/`)로 구축하고 탐색하는 공용 스킬(`skills/graphify/SKILL.md`)이다.
+- 사용자가 `/graphify`를 입력하거나 프로젝트에 `graphify-out/`이 존재할 때는 일반 탐색에 앞서 설치된 `graphify` 스킬 지침을 먼저 따른다.

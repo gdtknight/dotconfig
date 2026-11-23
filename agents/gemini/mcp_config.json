@@ -1,4 +1,8 @@
 {
-    "mcpServers": {
+  "mcpServers": {
+    "graphify": {
+      "disabled": false,
+      "serverUrl": "https://api.graphify.com/mcp"
     }
+  }
 }
