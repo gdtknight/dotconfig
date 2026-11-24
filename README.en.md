@@ -153,7 +153,7 @@ All three tools also share **13 specialized subagents** in [`agents/shared/agent
 
 * **Review & Quality**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube + parallel delegation), `@security-reviewer`, `@quality-reviewer`
 * **Testing, Debugging & Refactoring**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (3-round hypothesis escalation), `@refactor-agent` (Baby Steps with `hook.py`-safe file restore)
-* **Docs & Git Workflow**: `@commit-agent`, `@github-agent` (heredoc-safe `--body-file -`), `@docs-agent`, `@guide-writer` (C4 & ADR), `@human-writer` (Anti-AI-ism filter & tone presets)
+* **Docs & Git Workflow**: `@commit-agent`, `@github-agent` (heredoc-safe `--body-file -`), `@docs-agent`, `@guide-writer` (C4 & ADR), `@human-writer` (Anti-AI-ism & concise style presets)
 * **Workload-Based 3-Vendor Model Tiering**: Assigns deep reasoning tasks (8 subagents) and fast execution/Git/docs tasks (5 subagents) across Claude (`opus`/`sonnet`), Codex (`model_reasoning_effort` `high`/`medium`), and Antigravity (`pro`/`flash` delegation tiers in `INSTRUCTIONS.md`).
 * **Shared Skills & Cross-Vendor MCP Sync**: Multi-file skills such as [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) and declarative servers in [`agents/shared/mcp.json`](./agents/shared/mcp.json) are converted and synced by [`sync_mcp.py`](./agents/shared/sync_mcp.py) across Claude (`~/.claude.json` merge), Gemini/AGY (`serverUrl`), and Codex (TOML `[mcp_servers.*]`).
 

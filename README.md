@@ -153,7 +153,7 @@ Claude Code, Google Antigravity(Gemini CLI), OpenAI Codex는 설정 파일 경�
 
 * **리뷰·품질**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube 종합 및 병렬 위임), `@security-reviewer`, `@quality-reviewer`
 * **테스트·디버깅·개선**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (최대 3라운드 가설 검증 & 에스컬레이션), `@refactor-agent` (Baby Steps & `hook.py` 호환 파일 단위 복구)
-* **문서·Git 워크플로우**: `@commit-agent`, `@github-agent` (`--body-file - <<'EOF'` 기반 안전한 PR/Issue 생성), `@docs-agent`, `@guide-writer` (C4 Model & ADR), `@human-writer` (AI 상투어 제거 및 존댓말 톤 프리셋 적용)
+* **문서·Git 워크플로우**: `@commit-agent`, `@github-agent` (`--body-file - <<'EOF'` 기반 안전한 PR/Issue 생성), `@docs-agent`, `@guide-writer` (C4 Model & ADR), `@human-writer` (AI 상투어·서술형 종결어미·1인칭 제거 및 간결한 톤 프리셋 적용)
 * **작업 비중별 3사 모델 티어링**: 심층 추론·설계·리뷰 8종과 빠른 실행·테스트·Git/주석 5종을 Claude(`opus`/`sonnet`), Codex(`model_reasoning_effort` `high`/`medium`), Antigravity(`INSTRUCTIONS.md` 기반 `pro`/`flash` 티어 전달)로 차등 배정했습니다.
 * **공용 스킬 & MCP 동기화**: [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) 같은 다중 파일 스킬과 [`agents/shared/mcp.json`](./agents/shared/mcp.json) MCP 서버 목록을 [`sync_mcp.py`](./agents/shared/sync_mcp.py)가 Claude(`~/.claude.json` 병합)·Gemini/AGY(`serverUrl`)·Codex(TOML) 규격에 맞춰 일괄 동기화합니다.
 
