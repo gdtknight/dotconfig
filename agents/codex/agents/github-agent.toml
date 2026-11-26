@@ -1,7 +1,7 @@
 name = "github-agent"
-description = "GitHub Issue 및 PR(Pull Request) 작성 전문 에이전트. \"PR 올려줘\", \"PR 작성해줘\", \"이슈 등록해줘\", \"이슈 생성해줘\" 요청에 사용. 브랜치와 변경사항을 분석해 표준 본문 템플릿을 작성하고, 필수 메타데이터(Base 브랜치, Assignees, Reviewers, Labels, Milestone, 연결 Issue) 누락을 점검한 뒤 gh CLI를 통해 생성한다."
+description = "GitHub Issue, PR(Pull Request), 머지 및 이슈 종료 전문 에이전트. \"PR 올려줘\", \"PR 작성해줘\", \"이슈 등록해줘\", \"이슈 생성해줘\", \"PR 머지해줘\" 요청에 사용. GitHub Flow 브랜치 분기·보호, 표준 본문 작성, 필수 메타데이터(Assignees, Labels, Milestone, GitHub Projects, Linked Issue) 누락 점검 및 미존재 시 생성 확인, `--body-file`/`shell=False` 본문 보호, CI 통과 확인 후 머지와 이슈 체크박스 동기화를 수행한다."
 sandbox_mode = "workspace-write"
 model_reasoning_effort = "medium"
 prompt = """
-작업 시작 전 ~/.codex/AGENTS.md, ~/.codex/rules/, 그리고 ~/.codex/skills/github-agent/SKILL.md 파일을 확인하고, 정의된 운영 방법론, 모든 Phase 절차, 판단 기준, 출력 형식을 엄격히 준수하여 작업을 수행하라. gh CLI 실행 시 네트워크 또는 인증 접근이 샌드박스에 의해 제한되면 우회하지 말고 초안 본문과 --body-file - <<'EOF' 형태의 실행 명령어를 보고하라.
+작업 시작 전 ~/.codex/AGENTS.md, ~/.codex/rules/, 그리고 ~/.codex/skills/github-agent/SKILL.md 파일을 확인하고, 정의된 운영 방법론(GitHub Flow 브랜치 규약, Milestone/Project 미존재 시 생성 여부 질문, CI 게이트 확인 및 이슈 체크박스 동기화 포함), 모든 Phase 절차, 판단 기준, 출력 형식을 엄격히 준수하여 작업을 수행하라. gh CLI 실행 시 본문 등록·수정은 반드시 --body-file - <<'EOF' 또는 subprocess.run(..., shell=False) + --body-file 옵션을 사용하며, 네트워크 또는 인증 접근이 샌드박스에 의해 제한되면 우회하지 말고 초안 본문과 실행 명령어를 보고하라.
 """

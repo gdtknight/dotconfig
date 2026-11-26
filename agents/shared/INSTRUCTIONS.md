@@ -47,7 +47,9 @@ tags: []
 
 ## 4. Security & Git Safety (보안 및 Git 안전 수칙)
 - API 키, 비밀번호, 토큰 등 민감 정보는 절대 코드에 하드코딩하지 않으며 `.env` 등 시크릿 파일을 커밋에 포함하지 않는다.
-- 커밋 메시지는 Conventional Commits(`feat:`, `fix:`, `refactor:`, `chore:` 등) 형식을 따른다.
+- **GitHub Flow & `main` 보호 기본 원칙**: 개별 이슈 작업은 `main`/`master` 직접 커밋·푸시를 기본 금지하고 이슈 기반 작업 브랜치(`feat/<issue>-<desc>`, `fix/<issue>-<desc>`, `refactor/<desc>`, `docs/<desc>`)를 분기해 PR 머지로 진행한다. (초기 부트스트랩이나 소규모 개인 저장소에서 사용자가 명시적으로 `main` 직접 작업을 지시한 경우 예외)
+- **커밋 메시지 (`@commit-agent`)**: Conventional Commits(`feat:`, `fix:`, `refactor:`, `chore:` 등) 및 이슈 연동 규칙(기본 `[#<N>] <type>(<scope>): <desc>`, 엄격 파서 감지 시 `<type>(<scope>): <desc> - #<N>`)을 따른다.
+- **`gh` CLI 본문 전달 안전 (`@github-agent`)**: 마크다운 본문 등록·수정(`create`/`edit`) 시 백틱 명령 치환과 변수 오염 방지를 위해 반드시 `--body-file - <<'EOF'` 또는 `shell=False` 인자 리스트 + `--body-file` 옵션을 사용한다.
 - 사용자의 명시적인 지시 없이 `git push --force`, `git reset --hard`, 브랜치/파일 임의 삭제 등 파괴적인 명령을 실행하지 않는다.
 
 ---
@@ -66,8 +68,8 @@ Antigravity 환경에서 `invoke_subagent` 또는 `run_workflow`로 서브에이
 | **테스트** | 통합·계약 테스트 설계·작성·실행·장애 격리 | `@integration-test-agent` | `sonnet` / `medium` / `flash` |
 | **디버깅** | 버그 재현·원인 추적·최소 수정·회귀 검증 | `@debug-agent` | `opus` / `high` / `pro` |
 | **리팩토링** | 안전망 확인·스멜 분석·계획 수립·Baby Steps 실행 | `@refactor-agent` | `opus` / `high` / `pro` |
-| **문서/Git** | Git 커밋 메시지 작성 + 커밋 수행 | `@commit-agent` | `sonnet` / `medium` / `flash` |
-| **문서/Git** | GitHub Issue·PR 작성 및 메타데이터 점검 | `@github-agent` | `sonnet` / `medium` / `flash` |
+| **문서/Git** | 브랜치 보호·이슈 연동 커밋 작성 및 실행 | `@commit-agent` | `sonnet` / `medium` / `flash` |
+| **문서/Git** | GitHub Flow 기반 Issue·PR·Project·Milestone·CI 머지/체크박스 동기화 | `@github-agent` | `sonnet` / `medium` / `flash` |
 | **문서/Git** | 코드 주석 작성 + 포맷 정리 | `@docs-agent` | `sonnet` / `medium` / `flash` |
 | **문서/Git** | 프로젝트 인수인계 가이드 문서 작성 | `@guide-writer` | `opus` / `high` / `pro` |
 | **문서/Git** | 사람처럼 자연스러운 기술 문서 작성·윤문 (AI 말투 제거) | `@human-writer` | `opus` / `high` / `pro` |
@@ -77,3 +79,5 @@ Antigravity 환경에서 `invoke_subagent` 또는 `run_workflow`로 서브에이
 ## 6. Installed Skills (설치된 스킬)
 - **`graphify`** (`/graphify`) — 코드·문서·이미지·영상 등을 지식 그래프(`graphify-out/`)로 구축하고 탐색하는 공용 스킬(`skills/graphify/SKILL.md`)이다.
 - 사용자가 `/graphify`를 입력하거나 프로젝트에 `graphify-out/`이 존재할 때는 일반 탐색에 앞서 설치된 `graphify` 스킬 지침을 먼저 따른다.
+- **`llm-wiki`** (`/llm-wiki`) — Obsidian + Excalidraw 시각화와 연동해 `raw/`(불변 원본)·`wiki/`(지속 누적 마크다운·`.excalidraw.md`)·`WIKI_SCHEMA.md` 3계층 지식 베이스를 구축·유지보수하는 공용 스킬(`skills/llm-wiki/SKILL.md`)이다.
+- 사용자가 `/llm-wiki`를 입력하거나 프로젝트/볼트에 `wiki/index.md`와 `wiki/log.md`가 존재할 때는 `llm-wiki` 스킬 지침과 번들 스크립트(`wiki_tool.py`, `excalidraw_gen.py`)를 우선 따른다.

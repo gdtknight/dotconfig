@@ -146,16 +146,16 @@ dotconfig/
 | Hook Event | Capability & Behavior |
 | :--- | :--- |
 | **`PreToolUse`** | • **Destructive Command Guard**: Token-aware parsers (`is_dangerous_rm`, `is_dangerous_chmod`) block root (`/`), home (`~`, `$HOME`), and critical system directories while safely permitting subpath cleanup (e.g., `/tmp/...`). Blocks `git push --force`, `git reset --hard`, `git clean -f`, `git checkout . / -f`, `mkfs`, `dd`.<br>• **Secret & Token Leak Prevention**: Blocks direct access to `.env` and key/credential files (allowing `.example`/`.sample`/`.template`), and detects GitHub (`ghp_`, `github_pat_`), OpenAI (`sk-`), Google (`AIzaSy`), AWS (`AKIA`), and Slack (`xox*`) token patterns. |
-| **`PostToolUse`** | • **Ephemeral Container Formatting**: Formats modified files via `dotconfig-formatter:latest` (`prettier`, `ruff`, `google-java-format` v1.24.0, `clang-format`, `stylua`) with fallback to local binaries when Docker is unavailable. |
+| **`PostToolUse`** | • **Ephemeral Container Formatting**: Formats modified files via `dotconfig-formatter:latest` (`prettier`, `ruff`, `google-java-format` v1.24.0, `clang-format`, `stylua`), excluding `.excalidraw.md`/`.excalidraw` to protect `%%...%%` blocks, with fallback to local binaries when Docker is unavailable. |
 | **`Stop`** | • **Context-Aware Window Activation**: Sends macOS native notifications via `terminal-notifier` (`-activate`) and dynamically detects the originating app (`Antigravity IDE`, `WezTerm`, `Alacritty`, `iTerm2`, `Terminal`) so clicking the alert focuses the active workspace window instead of Script Editor. |
 
 All three tools also share **13 specialized subagents** in [`agents/shared/agents/`](./agents/shared/agents):
 
 * **Review & Quality**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube + parallel delegation), `@security-reviewer`, `@quality-reviewer`
 * **Testing, Debugging & Refactoring**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (3-round hypothesis escalation), `@refactor-agent` (Baby Steps with `hook.py`-safe file restore)
-* **Docs & Git Workflow**: `@commit-agent`, `@github-agent` (heredoc-safe `--body-file -`), `@docs-agent`, `@guide-writer` (C4 & ADR), `@human-writer` (Anti-AI-ism & concise style presets)
+* **Docs & Git Workflow**: `@commit-agent` (GitHub Flow & issue linking), `@github-agent` (GitHub Flow, CI merge & `--body-file -`), `@docs-agent`, `@guide-writer` (C4, ADR & Excalidraw), `@human-writer` (Anti-AI-ism & concise style presets)
 * **Workload-Based 3-Vendor Model Tiering**: Assigns deep reasoning tasks (8 subagents) and fast execution/Git/docs tasks (5 subagents) across Claude (`opus`/`sonnet`), Codex (`model_reasoning_effort` `high`/`medium`), and Antigravity (`pro`/`flash` delegation tiers in `INSTRUCTIONS.md`).
-* **Shared Skills & Cross-Vendor MCP Sync**: Multi-file skills such as [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) and declarative servers in [`agents/shared/mcp.json`](./agents/shared/mcp.json) are converted and synced by [`sync_mcp.py`](./agents/shared/sync_mcp.py) across Claude (`~/.claude.json` merge), Gemini/AGY (`serverUrl`), and Codex (TOML `[mcp_servers.*]`).
+* **Shared Skills & Cross-Vendor MCP Sync**: Multi-file skills including [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) and [`agents/shared/skills/llm-wiki`](./agents/shared/skills/llm-wiki), alongside declarative servers in [`agents/shared/mcp.json`](./agents/shared/mcp.json), are converted and synced by [`sync_mcp.py`](./agents/shared/sync_mcp.py) across Claude (`~/.claude.json` merge), Gemini/AGY (`serverUrl`), and Codex (TOML `[mcp_servers.*]`).
 
 ### 2. Multi-Account Git & SSH Isolation
 

@@ -146,16 +146,16 @@ Claude Code, Google Antigravity(Gemini CLI), OpenAI Codex는 설정 파일 경�
 | 훅 이벤트 | 역할 및 동작 방식 |
 | :--- | :--- |
 | **`PreToolUse`** | • **파괴적 명령 선별 차단**: 토큰 단위 파서(`is_dangerous_rm`, `is_dangerous_chmod`)로 `/`, `~`, `$HOME`, 시스템 핵심 디렉터리 전체 삭제나 재귀 777 권한 부여만 골라 차단하고 `/tmp/...` 같은 안전한 하위 경로 정리는 허용합니다. `git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`도 함께 막습니다.<br>• **시크릿·토큰 유출 방지**: `.env` 및 개인키 파일 직접 접근을 차단(단, `.env.example`/`.sample`/`.template` 예외)하고 GitHub(`ghp_`, `github_pat_`), OpenAI(`sk-`), Google(`AIzaSy`), AWS(`AKIA`), Slack(`xox*`) 토큰 패턴을 탐지합니다. |
-| **`PostToolUse`** | • **단발성 컨테이너 자동 포매팅**: 파일 수정 직후 `dotconfig-formatter:latest` (`prettier`, `ruff`, `clang-format`, `stylua`, `google-java-format` v1.24.0)를 `docker run --rm`으로 실행합니다. Docker 데몬이 꺼져 있으면 로컬 포매터 바이너리로 자연스럽게 폴백(Fallback)합니다. |
+| **`PostToolUse`** | • **단발성 컨테이너 자동 포매팅**: 파일 수정 직후 `dotconfig-formatter:latest` (`prettier`, `ruff`, `clang-format`, `stylua`, `google-java-format` v1.24.0)를 `docker run --rm`으로 실행합니다. (`.excalidraw.md`/`.excalidraw` 파일은 `%%...%%` 블록 보호를 위해 Prettier에서 제외) Docker 데몬이 꺼져 있으면 로컬 포매터 바이너리로 자연스럽게 폴백(Fallback)합니다. |
 | **`Stop`** | • **원래 창 포커스 알림 (Context-Aware Activation)**: macOS에서 작업 완료 시 `terminal-notifier` (`-activate`) 및 AppleScript로 호출 앱(`Antigravity IDE`, `WezTerm`, `Alacritty`, `iTerm2`, `Terminal`)을 판별해 알림을 보냅니다. 알림을 클릭하면 스크립트 편집기가 아니라 작업 중이던 에디터·터미널 창이 바로 올라옵니다. |
 
 또한 [`agents/shared/agents/`](./agents/shared/agents) 아래에 **13개 전문 서브에이전트**를 운용하고 있습니다.
 
 * **리뷰·품질**: `@code-reviewer` (OWASP/STRIDE/Fowler/SonarQube 종합 및 병렬 위임), `@security-reviewer`, `@quality-reviewer`
 * **테스트·디버깅·개선**: `@test-agent`, `@unit-test-agent`, `@integration-test-agent`, `@debug-agent` (최대 3라운드 가설 검증 & 에스컬레이션), `@refactor-agent` (Baby Steps & `hook.py` 호환 파일 단위 복구)
-* **문서·Git 워크플로우**: `@commit-agent`, `@github-agent` (`--body-file - <<'EOF'` 기반 안전한 PR/Issue 생성), `@docs-agent`, `@guide-writer` (C4 Model & ADR), `@human-writer` (AI 상투어·서술형 종결어미·1인칭 제거 및 간결한 톤 프리셋 적용)
+* **문서·Git 워크플로우**: `@commit-agent` (GitHub Flow·이슈 연동), `@github-agent` (GitHub Flow·CI 머지·`--body-file -`), `@docs-agent`, `@guide-writer` (C4 Model·ADR·Excalidraw), `@human-writer` (AI 상투어·서술형 종결어미·1인칭 제거 및 간결한 톤 프리셋 적용)
 * **작업 비중별 3사 모델 티어링**: 심층 추론·설계·리뷰 8종과 빠른 실행·테스트·Git/주석 5종을 Claude(`opus`/`sonnet`), Codex(`model_reasoning_effort` `high`/`medium`), Antigravity(`INSTRUCTIONS.md` 기반 `pro`/`flash` 티어 전달)로 차등 배정했습니다.
-* **공용 스킬 & MCP 동기화**: [`agents/shared/skills/graphify`](./agents/shared/skills/graphify) 같은 다중 파일 스킬과 [`agents/shared/mcp.json`](./agents/shared/mcp.json) MCP 서버 목록을 [`sync_mcp.py`](./agents/shared/sync_mcp.py)가 Claude(`~/.claude.json` 병합)·Gemini/AGY(`serverUrl`)·Codex(TOML) 규격에 맞춰 일괄 동기화합니다.
+* **공용 스킬 & MCP 동기화**: [`agents/shared/skills/graphify`](./agents/shared/skills/graphify), [`agents/shared/skills/llm-wiki`](./agents/shared/skills/llm-wiki) 같은 다중 파일 스킬과 [`agents/shared/mcp.json`](./agents/shared/mcp.json) MCP 서버 목록을 [`sync_mcp.py`](./agents/shared/sync_mcp.py)가 Claude(`~/.claude.json` 병합)·Gemini/AGY(`serverUrl`)·Codex(TOML) 규격에 맞춰 일괄 동기화합니다.
 
 ### 2. 멀티 계정 Git 및 SSH 격리 (`includeIf`)
 

@@ -1,6 +1,6 @@
 ---
 name: commit-agent
-description: "Git 커밋 메시지 작성 및 커밋 실행 에이전트. \"커밋해줘\", \"커밋 메시지 작성해줘\", \"변경사항 커밋해줘\" 요청에 사용. 변경사항을 분석해 Conventional Commits 스펙과 Chris Beams의 7가지 규칙을 적용한 커밋 메시지를 작성하고 커밋을 실행한다."
+description: "Git 커밋 메시지 작성 및 커밋 실행 에이전트. \"커밋해줘\", \"커밋 메시지 작성해줘\", \"변경사항 커밋해줘\" 요청에 사용. GitHub Flow 브랜치 보호 확인 후 브랜치·이슈 번호와 Conventional Commits 엄격 파서 여부를 판별해 이슈 연동 제목(`[#<N>]` 또는 `- #<N>`)과 Chris Beams의 7가지 규칙을 적용하고 커밋을 실행한다."
 tools: "Read, Glob, Grep, Bash"
 model: sonnet
 color: pink
@@ -8,7 +8,24 @@ color: pink
 
 ## 운영 방법론
 
-변경사항을 분석하고 Conventional Commits 및 Chris Beams의 7가지 규칙에 맞는 커밋 메시지를 작성하여 커밋을 수행한다 (`accuracy.md` 준수).
+변경사항과 브랜치 컨텍스트를 분석하고 GitHub Flow 브랜치 보호 원칙, 이슈 연동 커밋 규칙, Conventional Commits 및 Chris Beams의 7가지 규칙에 맞는 커밋 메시지를 작성하여 커밋을 수행한다 (`accuracy.md` 준수).
+
+---
+
+### Phase 0 — 브랜치 보호 및 이슈 컨텍스트 확인
+
+```bash
+git branch --show-current
+git log -n 10 --oneline 2>/dev/null || true
+```
+
+1. **GitHub Flow & `main` 보호 원칙**:
+   - 현재 브랜치가 `main` 또는 `master`인 경우 커밋을 중단하고 이슈 기반 작업 브랜치 분기를 먼저 제안·확인한다 (`feat/<issue>-<desc>`, `fix/<issue>-<desc>`, `refactor/<desc>`, `docs/<desc>`).
+   - 단, 초기 저장소 부트스트랩이나 소규모 개인 저장소에서 사용자가 명시적으로 `main` 직접 커밋을 지시한 경우에만 예외를 허용한다.
+2. **이슈 번호 추출**:
+   - 현재 작업 브랜치명(`feat/25-...`, `fix/25-...`, `docs/25-...` 등)이나 프로젝트 `CLAUDE.md`/`AGENTS.md`에서 연관 이슈 번호를 자동 감지한다. 모호하면 사용자 지정 이슈 번호를 확인한다.
+3. **Conventional Commits 엄격 파서 감지**:
+   - 저장소 루트에 `.commitlintrc*`, `commitlint.config.*`, `release-please-config.json`, `.czrc`가 존재하거나 `package.json` 내 `commitlint`/`semantic-release` 설정, 또는 프로젝트 지침(`CLAUDE.md`)에 엄격 파서 사용이 명시되어 있는지 확인한다.
 
 ---
 
@@ -60,18 +77,29 @@ git diff --staged
 
 ---
 
-### Phase 4 — 커밋 메시지 작성 (Chris Beams 7 Rules)
+### Phase 4 — 커밋 메시지 작성 (Chris Beams 7 Rules + 이슈 연동 형식)
 
 1. 제목과 본문을 **빈 줄로 분리**한다.
-2. 제목은 **50자 이하**로 작성한다.
-3. 제목 첫 글자는 **대문자**로 시작한다 (`<description>` 첫 글자 기준).
+2. 핵심 커밋 제목(`<type>[(<scope>)][!]: <description>`)은 **50자 이하**로 작성한다 (이슈 번호 표기부는 길이 산정에서 제외).
+3. `<description>` 첫 글자는 **대문자**로 시작한다.
 4. 제목 끝에 **마침표를 찍지 않는다**.
-5. 제목은 **영문 명령형(Imperative mood)**으로 작성한다 (`Add` O / `Added`, `Adding` X).
+5. `<description>`은 **영문 명령형(Imperative mood)**으로 작성한다 (`Add` O / `Added`, `Adding` X).
 6. 본문은 **72자 내외에서 줄바꿈**한다.
 7. 본문은 코드가 이미 보여주는 HOW가 아니라 **WHY(변경 이유)와 WHAT(핵심 변경점)**을 설명한다 (단순·명확한 변경은 제목만으로 충분하며 본문을 생략한다).
 
+**제목 형식 선택 (Phase 0 감지 결과 기준)**:
+- **연관 이슈 있음 + 일반 저장소 (기본)**:
+  `[#<이슈번호>] <type>[(<scope>)][!]: <description>`
+  (예: `[#25] feat(lexer): Add quote escaping handler`)
+- **연관 이슈 있음 + Conventional Commits 엄격 파서 존재**:
+  `<type>[(<scope>)][!]: <description> - #<이슈번호>`
+  (예: `feat(lexer): Add quote escaping handler - #25`)
+- **연관 이슈 없음**:
+  `<type>[(<scope>)][!]: <description>`
+  (예: `chore: Ignore local cache directories`)
+
 ```text
-<type>[(<scope>)][!]: <description>
+<이슈 연동 형식에 따른 제목>
 
 <body — 변경 이유나 주의사항이 필요한 경우 작성>
 
@@ -95,6 +123,11 @@ git diff --staged
 ```markdown
 ## 📝 커밋 분석 결과
 
+### 브랜치 & 이슈 컨텍스트
+- **현재 브랜치**: `[branch]`
+- **연관 이슈**: `#[N]` (또는 없음)
+- **엄격 파서 감지**: 예 (`commitlint` 등) / 아니오 (기본 `[#N]` 형식 적용)
+
 ### Staged 변경사항
 - **변경 파일**: N개 ([파일 목록])
 - **변경 규모**: +N / -N 라인
@@ -102,7 +135,7 @@ git diff --staged
 
 ### 결정된 메시지
 ```text
-<type>(<scope>): <description>
+<title>
 
 <body>
 ```

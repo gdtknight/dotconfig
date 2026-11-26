@@ -118,12 +118,12 @@ flowchart LR
 - **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다.
 
 ### 3.2 3사 AI 에이전트 동기화 및 보안 가드 (`agents/`)
-- **통합 프롬프트·스킬·MCP 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`, `agents/codex/agents/*.toml`와 1:1 매핑), `graphify` 같은 다중 파일 공용 스킬 디렉터리(`agents/shared/skills/<name>/`), 공용 MCP 선언(`agents/shared/mcp.json`)을 단일 관리합니다.
+- **통합 프롬프트·스킬·MCP 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`, `agents/codex/agents/*.toml`와 1:1 매핑), 다중 파일 공용 스킬 디렉터리(`agents/shared/skills/<name>/` — `graphify`, `llm-wiki`), 공용 MCP 선언(`agents/shared/mcp.json`)을 단일 관리합니다.
 - **작업 비중별 3사 모델 티어링**: 심층 추론·설계·리뷰 역할(8종)과 빠른 실행·단위/통합 테스트·Git/주석 역할(5종)을 Claude(`opus`/`sonnet`), Codex(`model_reasoning_effort` `high`/`medium`), Antigravity(`INSTRUCTIONS.md` 기반 `pro`/`flash` 티어 위임)로 일관되게 배정합니다.
 - **플랫폼 어댑터 및 3사 MCP 동기화**: `install.sh agents`가 `agents/shared/sync_mcp.py`를 실행해 `mcp.json`을 Gemini/AGY(`agents/gemini/mcp_config.json`, `serverUrl`), Codex(`agents/codex/config.toml`의 `[mcp_servers.*]` TOML 블록), Claude Code(`~/.claude.json` 동적 상태 보존 병합) 포맷으로 동기화한 뒤 `~/.claude/`, `~/.gemini/`, `~/.codex/` 링크와 CLI 설치를 연계합니다.
 - **생명주기 훅 (Lifecycle Hook, `hook.py`)**:
   - `PreToolUse` (`handle_pre_tool()`): 위험 Git/디스크 명령(`git push --force`, `git reset --hard`, `git clean -f`, `mkfs`, `dd`), 루트·홈·시스템 디렉터리 대상 `rm`(`is_dangerous_rm()`), 광범위 `chmod 777`(`is_dangerous_chmod()`), 시크릿 파일 및 API 키 노출(`SENSITIVE_FILE_PATTERN`, `SECRET_PATTERNS`)을 선별 차단합니다.
-  - `PostToolUse` (`handle_post_tool()`): 수정된 파일 확장자(`.js`, `.ts`, `.py`, `.c`, `.cpp`, `.lua`, `.java` 등)에 따라 `prettier`, `ruff`, `clang-format`, `stylua`, `google-java-format`을 단발성 컨테이너(`dotconfig-formatter:latest`)에서 실행하며 Docker 미가용 시 로컬 바이너리로 폴백합니다.
+  - `PostToolUse` (`handle_post_tool()`): 수정된 파일 확장자(`.js`, `.ts`, `.py`, `.c`, `.cpp`, `.lua`, `.java` 등)에 따라 `prettier`, `ruff`, `clang-format`, `stylua`, `google-java-format`을 단발성 컨테이너(`dotconfig-formatter:latest`)에서 실행하며(`.excalidraw.md`/`.excalidraw` 파일은 Prettier 제외), Docker 미가용 시 로컬 바이너리로 폴백합니다.
 
 ### 3.3 IDE 용량 격리 및 호환성 패치 (`ide/`, `nvim/`)
 - **Neovim (LazyVim)**: `nvim/`을 `~/.config/nvim`에 연결하며 `nvim/lua/plugins/` 아래 **9개 플러그인 설정**(`42format.lua`, `42header.lua`, `bufferline.lua`, `devcontainer.nvim.lua`, `emoji-picker.nvim.lua`, `markview.nvim.lua`, `obsidian.nvim.lua`, `tokyonight-nvim.lua`, `vim-tmux-navigator.lua`)을 관리합니다.

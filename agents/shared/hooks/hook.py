@@ -360,6 +360,11 @@ def handle_post_tool():
 
 def format_file(file_path: str):
     """단발성 Docker 컨테이너(docker run --rm) 기반 포매터 실행 (실패 시 로컬 폴백)"""
+    # Obsidian Excalidraw(.excalidraw.md)는 %% 주석·JSON 블록이 Prettier에 의해 손상되므로 자동 포매팅 제외
+    lower_path = file_path.lower()
+    if lower_path.endswith(".excalidraw.md") or lower_path.endswith(".excalidraw"):
+        return
+
     ext = os.path.splitext(file_path)[1].lower()
     cmd_prefix = FORMATTER_COMMANDS.get(ext)
     if not cmd_prefix:

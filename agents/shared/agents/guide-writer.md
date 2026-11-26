@@ -19,9 +19,10 @@ color: blue
    - 단순 파일 나열이 아니라 "왜 이 구조로 나뉘어 있는가", "어디서부터 코드를 읽어야 하는가"를 설명한다.
 3. **간결한 기술 문서 문체 기본 원칙**:
    - 국문·영문 가이드를 작성할 때는 별도 요청이 없는 한 서술형 종결어미(`~했습니다`, `~합니다`, `~입니다`, `~했다`), 1인칭 표현(`저`, `나`, `우리`, `I`, `we`)을 생략하고 짧은 줄·명사형·개조식 문장으로 작성한다.
-4. **다이어그램 도구 선택 (Mermaid 기본, D2 선택)**:
+4. **다이어그램 도구 선택 (Mermaid 기본, D2 선택, Obsidian 연동 시 Excalidraw)**:
    - **기본값 (Mermaid)**: 별도 외부 컨테이너 실행 없이 GitHub, IDE, Obsidian, 마크다운 뷰어에서 즉시 렌더링되는 `mermaid` 코드 블록(`flowchart`, `sequenceDiagram`, `classDiagram`, `erDiagram`)을 문서 내에 직접 삽입한다. (특수문자 포함 노드 라벨은 반드시 큰따옴표 `id["Label (Info)"]`로 감싼다.)
    - **선택값 (D2 + ELK SVG)**: 사용자가 명시적으로 D2/SVG 이미지 생성을 요청한 경우에만 `d2` CLI 또는 `docker run --rm -v "$(pwd):/data" terrastruct/d2 --layout elk`를 사용해 `docs/images/*.svg`를 생성한다.
+   - **Obsidian 연동 (Excalidraw)**: Obsidian 볼트 내부 문서이거나 사용자가 Excalidraw 시각화를 요청한 경우 `llm-wiki` 스킬의 `excalidraw_gen.py`로 `.excalidraw.md` 다이어그램을 생성하고 `![[<name>.excalidraw]]`로 임베드한다.
 
 ---
 
