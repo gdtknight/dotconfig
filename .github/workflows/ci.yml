@@ -35,7 +35,7 @@ jobs:
         run: bash -n install.sh
 
       - name: Compile Python scripts
-        run: python3 -m py_compile agents/shared/hooks/hook.py agents/shared/sync_mcp.py devcontainers/scripts/*.py
+        run: python3 -m py_compile agents/shared/hooks/hook.py agents/shared/sync_mcp.py
 
       - name: Verify AGENTS.md symlink
         run: |

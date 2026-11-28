@@ -2,13 +2,12 @@
 
 # Dotconfig
 
-**macOS · Ubuntu (Rootless) 개발 환경, 3사 AI 에이전트 하네스 & Dev Container 2.0 생성기**
+**macOS · Ubuntu (Rootless) 크로스 플랫폼 개발 환경 & 3사 AI 에이전트 하네스**
 
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Ubuntu%20(Rootless)-blue?style=flat-square)](./install.sh)
 [![Shell](https://img.shields.io/badge/Shell-Bash%203.2%2B%20%7C%20Zsh-121011?style=flat-square&logo=gnu-bash)](./zsh/.zshrc)
 [![Editor](https://img.shields.io/badge/Neovim-LazyVim%20v14%2B-57A143?style=flat-square&logo=neovim)](./nvim)
 [![AI Harness](https://img.shields.io/badge/AI%20Agents-Claude%20%7C%20Gemini%20%7C%20Codex-8A2BE2?style=flat-square)](./agents)
-[![Dev Containers](https://img.shields.io/badge/Dev%20Containers-2.0%20Dual--Mode-2496ED?style=flat-square&logo=docker)](./devcontainers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 **한국어** | [English](./README.en.md)
@@ -22,11 +21,11 @@
 ## 개요
 
 macOS와 `sudo` 없는 Ubuntu 클러스터·컨테이너 환경을 하나의 선언적 저장소로 통합 관리.
-3사 AI 코딩 에이전트 하네스, 단발성 Docker 포매터, 멀티 계정 Git/SSH 격리, Dev Container 2.0 생성기를 [`install.sh`](./install.sh) 한 곳에서 제어.
+3사 AI 코딩 에이전트 하네스, 단발성 Docker 포매터, 멀티 계정 Git/SSH 격리를 [`install.sh`](./install.sh) 한 곳에서 제어.
 
 * **무권한 크로스 플랫폼 부트스트랩**: macOS Homebrew, Linux `~/.linuxbrew` 자동 설치 및 `~/goinfre` 감지 시 홈 쿼터 격리
 * **단일 진실 공급원 (SSoT)**: 전역 지침, 전문 서브에이전트 13종, 공용 스킬, MCP, 생명주기 훅을 `agents/shared/`에서 일괄 동기화
-* **호스트 최소화**: 언어별 런타임은 9종 Dev Container로 격리하고 자동 포매팅은 단발성 Docker 컨테이너에서 실행
+* **호스트 최소화**: 다국어 자동 포매팅을 단발성 Docker 컨테이너(`dotconfig-formatter`)에서 실행해 호스트 의존성 최소화
 * **멱등성 및 안전 백업**: `--dry-run` 시뮬레이션 지원, 충돌 시 덮어쓰지 않고 `~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/` 백업
 
 ---
@@ -152,14 +151,13 @@ dotconfig/
 ├── CLAUDE.md / CLAUDE.ko.md      # 저장소 작업 규칙 (AGENTS.md -> CLAUDE.md)
 ├── docs/                         # 저장소 내 아키텍처 원본 문서
 ├── nvim/                         # LazyVim v14+, Obsidian 동적 스캔, devcontainer.nvim
-├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init
+├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh)
 ├── git/                          # 전역 .gitconfig (histogram diff, SSH 서명) & .gitignore
 ├── agents/                       # Claude, Gemini/AGY, Codex 통합 하네스 (agents/shared/ SSoT)
 ├── ide/                          # Antigravity IDE / VS Code (18종 확장) & IntelliJ IDEA
 ├── alacritty/                    # Alacritty 설정 (터미널 기본 선택 대상)
 ├── wezterm/                      # WezTerm Lua 설정 (wezterm.lua)
 ├── tmux/                         # Tmux 설정 (TPM & 플러그인 9종)
-├── devcontainers/                # 9종 스택 템플릿 + Python Dev Container 2.0 생성기
 └── docker/formatter/             # 다국어 단발성 포매터 Docker 이미지 (Debian Bookworm Slim)
 ```
 
@@ -173,7 +171,6 @@ dotconfig/
 | :--- | :--- | :--- |
 | **AI 3사 하네스 & 훅** | `hook.py` 3사 페이로드 정규화, 파괴적 명령·시크릿 차단, 단발성 Docker 포매터, 서브에이전트 13종·스킬·MCP 동기화 | [AI-Agent-Harness](https://github.com/gdtknight/dotconfig/wiki/AI-Agent-Harness) |
 | **멀티 계정 Git · 터미널 · Tmux** | `~/Projects/<account>/` 기준 SSH·서명 격리, 1단계 공용 폰트, `tmux` 독립 모듈, Alacritty/WezTerm 택 1 및 미선택 링크 정리 | [Git-Multi-Account-and-Terminal](https://github.com/gdtknight/dotconfig/wiki/Git-Multi-Account-and-Terminal) |
-| **Dev Container 2.0** | `devcontainer-init` CLI, 9종 템플릿, 1.5초 버전 캐시, `--db` 선택 시 Compose DB 사이드카 자동 승격 | [Dev-Container](https://github.com/gdtknight/dotconfig/wiki/Dev-Container) |
 | **실전 트러블슈팅 자동 보정** | Docker v29+ `i.Action` 패치, WhichKey 채팅 가드, `~/goinfre` 쿼터 격리, SSH `EDITOR`, Obsidian `no-vault` 폴백 | [Troubleshooting](https://github.com/gdtknight/dotconfig/wiki/Troubleshooting) |
 
 ---
