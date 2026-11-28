@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+  push:
+    branches:
+      - dev
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enforce release branch policy for main PRs
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$HEAD_REF" in
+            dev|release/*|hotfix/*)
+              echo "Allowed release source branch: $HEAD_REF"
+              ;;
+            *)
+              echo "ERROR: PRs into 'main' must originate from 'dev', 'release/*', or 'hotfix/*' (got: $HEAD_REF)"
+              exit 1
+              ;;
+          esac
+
+      - name: Check Bash 3.2+ syntax of install.sh
+        run: bash -n install.sh
+
+      - name: Compile Python scripts
+        run: python3 -m py_compile agents/shared/hooks/hook.py agents/shared/sync_mcp.py devcontainers/scripts/*.py
+
+      - name: Verify AGENTS.md symlink
+        run: |
+          test -L AGENTS.md
+          test "$(readlink AGENTS.md)" = "CLAUDE.md"
+
+      - name: Verify README single-command bash blocks
+        run: |
+          python3 - <<'PY'
+          import re
+
+          for fname in ("README.md", "README.en.md"):
+              with open(fname, encoding="utf-8") as fh:
+                  content = fh.read()
+              blocks = re.findall(
+                  r"^(?P<indent>[ \t]*)```bash\n(?P<body>.*?)\n(?P=indent)```",
+                  content,
+                  flags=re.MULTILINE | re.DOTALL,
+              )
+              assert blocks, f"{fname}: no bash blocks found"
+              for idx, (indent, body) in enumerate(blocks):
+                  lines = body.splitlines()
+                  assert len(lines) == 1, f"{fname} block {idx} has {len(lines)} lines: {body!r}"
+                  assert lines[0].startswith(indent), f"{fname} block {idx} missing indent"
+                  cmd = lines[0][len(indent):]
+                  assert "#" not in cmd, f"{fname} block {idx} contains comment: {cmd!r}"
+          print("README bash block verification passed")
+          PY
+
+      - name: Run installer dry-run simulation
+        run: NONINTERACTIVE=1 ./install.sh --dry-run all

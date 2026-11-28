@@ -54,5 +54,12 @@ This repository is the central configuration repository managing macOS and Linux
    - After any modification, run `./install.sh --dry-run <module>` (or `./install.sh --dry-run all`) to check syntax and ensure no unintended file overwrites occur.
 2. **Runtime Verification**:
    - Run `./install.sh <module>` when needed to verify symlink creation and CLI integration directly.
-3. **Commit Standards**:
+3. **Branch Strategy & Release Flow (`main` Protected / `dev` Integration)**:
+   - **`main`**: Protected release branch (direct push blocked; accepts PRs only from `dev`, `release/*`, or `hotfix/*` with passing `verify` CI).
+   - **`dev`**: Active integration branch. Register a GitHub Issue first (`.github/ISSUE_TEMPLATE/`), branch off `dev` (`feat/<N>-<desc>`, `fix/<N>-<desc>`, `refactor/<N>-<desc>`, `docs/<N>-<desc>`), and merge back into `dev` via PR (`Closes #<N>`).
+   - **Release & Documentation Sync (`dev` -> `main` + Tag/Release)**:
+     1. Update `README.md`, `README.en.md`, `docs/ARCHITECTURE*.md`, and the GitHub Wiki (`gdtknight/dotconfig.wiki.git`) to match accumulated `dev` changes.
+     2. Open a Release PR from `dev` into `main` using `.github/PULL_REQUEST_TEMPLATE/release.md` and confirm the `verify` CI check passes before merging.
+     3. Create and push a version tag on `main` (`git tag vX.Y.Z && git push origin vX.Y.Z`) so `.github/workflows/release.yml` automatically publishes the GitHub Release.
+4. **Commit Standards**:
    - Strictly follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, etc.) and Chris Beams' 7 rules (imperative English mood, capitalized subject line <= 50 chars without trailing period).
