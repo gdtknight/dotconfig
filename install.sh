@@ -113,6 +113,8 @@ BACKUP_DIR="${BACKUP_BASE}/backup_${TIMESTAMP}"
 
 DRY_RUN=false
 FORCE=false
+TERMINAL_CHOICE="${DOTCONFIG_TERMINAL:-}"
+SELECTED_TERMINAL=""
 
 usage() {
   cat << EOF
@@ -124,31 +126,34 @@ Web One-Line Quickstart:
   /bin/bash -c "\$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
 
 Modules:
-  nvim            Link Neovim configuration (~/.config/nvim)
-  agents          Link Agent configurations (Claude, Gemini, Codex)
-  ide             Link IDE configurations (Antigravity IDE, IntelliJ) & sync extensions
+  packages, brew  Install/sync user-curated packages from Brewfile (non-root compatible)
+  fonts           Install & register Nerd Fonts (D2Coding, ComicShannsMono) for macOS & Linux
   git             Link Git global configuration & multi-account workspaces (~/Projects)
   zsh             Link Zsh, Oh My Zsh & Powerlevel10k configuration (~/.zshrc, ~/.p10k.zsh)
-  terminal        Link Terminal & utility configurations (Alacritty, WezTerm, Tmux, Nerd Fonts)
-  fonts           Install Nerd Fonts (D2Coding, ComicShannsMono)
+  tmux            Link ~/.tmux.conf, install TPM & sync Tmux plugins
+  terminal        Select & configure terminal emulator (Alacritty [default], WezTerm, none) with auto-cleanup
+  nvim            Link Neovim configuration (~/.config/nvim)
+  ide             Link IDE configurations (Antigravity IDE, IntelliJ) & sync extensions
+  agents          Link Agent configurations (Claude, Gemini, Codex)
   formatter, docker Build the dotconfig-formatter Docker image (Prettier, Ruff, Clang-format, StyLua, Google-Java-Format)
-  packages, brew  Install/sync user-curated packages from Brewfile (non-root compatible)
-  all             Link all configurations (Default if no module specified)
+  all             Run bottom-up setup: packages -> fonts -> git base -> zsh -> tmux -> terminal -> nvim -> ide -> agents -> git accounts (Default)
 
 Options:
-  -n, --dry-run   Preview actions without creating symlinks or modifying files
-  -f, --force     Force overwrite / relink even if destination symlink points elsewhere
-  --dump-extensions Dump currently installed Antigravity IDE extensions to extensions.txt
-  -h, --help      Display this help message and exit
+  -n, --dry-run       Preview actions without creating symlinks or modifying files
+  -f, --force         Force overwrite / relink or re-prompt terminal selection
+  --terminal <name>   Pre-select terminal emulator: alacritty (default), wezterm, or none
+  --dump-extensions   Dump currently installed Antigravity IDE extensions to extensions.txt
+  -h, --help          Display this help message and exit
 
 Environment Variables:
-  DOTCONFIG_DIR   Target repository directory (Default: ~/.dotconfig)
-  NONINTERACTIVE  Set to 1 to bypass interactive prompts in automated/CI setups
+  DOTCONFIG_DIR       Target repository directory (Default: ~/.dotconfig)
+  DOTCONFIG_TERMINAL  Pre-select terminal emulator (alacritty, wezterm, none)
+  NONINTERACTIVE      Set to 1 to bypass interactive prompts in automated/CI setups
 
 Examples:
   $(basename "$0") --dry-run
-  $(basename "$0") nvim
-  $(basename "$0") agents
+  $(basename "$0") tmux
+  $(basename "$0") --terminal alacritty terminal
   $(basename "$0") all
 EOF
 }
@@ -226,6 +231,20 @@ link_target() {
   mkdir -p "$dst_dir"
   ln -sfn "$src" "$dst"
   log_ok "Created link: $dst -> $src"
+}
+
+unlink_repo_target() {
+  local expected_src="$1"
+  local dst="$2"
+
+  if [ -L "$dst" ] && [ "$(readlink "$dst" 2>/dev/null || true)" = "$expected_src" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "Remove unselected terminal symlink: $dst"
+    else
+      rm -f "$dst"
+      log_ok "Removed unselected terminal symlink: $dst"
+    fi
+  fi
 }
 
 # ------------------------------------------------------------------------------
@@ -801,10 +820,14 @@ EOF
   fi
 }
 
-link_git() {
+link_git_base() {
   log_info "Configuring Git (Global .gitconfig, .gitignore)..."
   link_target "${REPO_DIR}/git/.gitconfig" "${HOME}/.gitconfig"
   link_target "${REPO_DIR}/git/.gitignore" "${HOME}/.gitignore"
+}
+
+link_git() {
+  link_git_base
   setup_git_accounts
 }
 
@@ -956,15 +979,8 @@ if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPr
   fi
 }
 
-link_terminal() {
-  log_info "Configuring Terminal utilities (Alacritty, WezTerm, Tmux, Nerd Fonts)..."
-  install_fonts
-  link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
-  link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
-  if [ "$IS_LINUX" = true ]; then
-    mkdir -p "${HOME}/.config/wezterm"
-    link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
-  fi
+link_tmux() {
+  log_info "Configuring Tmux (~/.tmux.conf, TPM, Plugins)..."
   link_target "${REPO_DIR}/tmux/tmux.conf" "${HOME}/.tmux.conf"
 
   # Ensure Tmux Plugin Manager (tpm) is installed
@@ -992,6 +1008,160 @@ link_terminal() {
       log_ok "Tmux plugins synchronized."
     fi
   fi
+}
+
+normalize_terminal_choice() {
+  local raw
+  raw="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  case "$raw" in
+    alacritty) echo "alacritty" ;;
+    wezterm)   echo "wezterm" ;;
+    none|skip) echo "none" ;;
+    *)         return 1 ;;
+  esac
+}
+
+save_terminal_choice() {
+  local term_env="$1"
+  local choice="$2"
+
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Save terminal preference (${choice}) to ${term_env}"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$term_env")"
+  printf 'TERMINAL_EMULATOR="%s"\n' "$choice" > "$term_env"
+  log_ok "Saved terminal preference (${choice}) to ${term_env}"
+}
+
+select_terminal() {
+  local term_env="${HOME}/.config/dotconfig/terminal.env"
+  SELECTED_TERMINAL=""
+
+  # 1) Explicit flag (--terminal) or environment variable (DOTCONFIG_TERMINAL)
+  if [ -n "$TERMINAL_CHOICE" ]; then
+    if ! SELECTED_TERMINAL="$(normalize_terminal_choice "$TERMINAL_CHOICE")"; then
+      log_warn "Invalid terminal choice: ${TERMINAL_CHOICE} (expected: alacritty, wezterm, none)"
+      exit 1
+    fi
+    save_terminal_choice "$term_env" "$SELECTED_TERMINAL"
+    return 0
+  fi
+
+  # 2) Reuse saved choice unless -f / --force is passed
+  if [ "$FORCE" = false ] && [ -f "$term_env" ]; then
+    local saved_raw=""
+    saved_raw="$(grep -E '^TERMINAL_EMULATOR=' "$term_env" 2>/dev/null | head -n 1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" || true)"
+    if [ -n "$saved_raw" ] && SELECTED_TERMINAL="$(normalize_terminal_choice "$saved_raw" 2>/dev/null)"; then
+      log_ok "Using saved terminal preference: ${SELECTED_TERMINAL} (use -f to re-select)"
+      return 0
+    fi
+  fi
+
+  # 3) Interactive prompt (Method B: prompt when entering link_terminal)
+  local can_prompt=false
+  if [ "${NONINTERACTIVE:-0}" != "1" ] && { [ -t 0 ] || [ -c /dev/tty ]; }; then
+    can_prompt=true
+  fi
+
+  if [ "$can_prompt" = true ]; then
+    local _term_input=""
+    echo ""
+    echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
+    echo -e "${COLOR_BLUE}[터미널 에뮬레이터 선택]${COLOR_RESET} 설치 및 링크할 터미널을 선택하세요."
+    echo "  1) Alacritty (기본값)"
+    echo "  2) WezTerm"
+    echo "  3) 건너뛰기 (GUI 터미널 설정 안 함)"
+    echo -e "${COLOR_BLUE}============================================================${COLOR_RESET}"
+    read_prompt "선택 [1/2/3] (Enter = 1): " _term_input || _term_input=""
+
+    case "$(echo "$_term_input" | tr '[:upper:]' '[:lower:]')" in
+      ""|1|alacritty) SELECTED_TERMINAL="alacritty" ;;
+      2|wezterm)      SELECTED_TERMINAL="wezterm" ;;
+      3|none|skip)    SELECTED_TERMINAL="none" ;;
+      *)
+        log_warn "Invalid selection '${_term_input}'; defaulting to 'alacritty'."
+        SELECTED_TERMINAL="alacritty"
+        ;;
+    esac
+    save_terminal_choice "$term_env" "$SELECTED_TERMINAL"
+    return 0
+  fi
+
+  # 4) Non-interactive fallback: default to Alacritty
+  SELECTED_TERMINAL="alacritty"
+  log_info "Non-interactive mode: defaulting terminal emulator to '${SELECTED_TERMINAL}'."
+  save_terminal_choice "$term_env" "$SELECTED_TERMINAL"
+}
+
+install_terminal_cask() {
+  local cask_name="$1"
+  local app_path="$2"
+  local bin_name="$3"
+
+  if [ "$IS_MAC" != true ]; then
+    return 0
+  fi
+
+  local brew_cmd=""
+  if command -v brew >/dev/null 2>&1; then
+    brew_cmd="brew"
+  elif [ -x "/opt/homebrew/bin/brew" ]; then
+    brew_cmd="/opt/homebrew/bin/brew"
+  elif [ -x "/usr/local/bin/brew" ]; then
+    brew_cmd="/usr/local/bin/brew"
+  fi
+
+  if [ -d "$app_path" ] || command -v "$bin_name" >/dev/null 2>&1 || { [ -n "$brew_cmd" ] && "$brew_cmd" list --cask "$cask_name" >/dev/null 2>&1; }; then
+    log_ok "Terminal app (${cask_name}) is already installed."
+    return 0
+  fi
+
+  if [ -z "$brew_cmd" ]; then
+    log_warn "Homebrew not found; skipping ${cask_name} cask installation."
+    return 0
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    log_dry "Install ${cask_name} via: ${brew_cmd} install --cask ${cask_name}"
+    return 0
+  fi
+
+  log_info "Installing ${cask_name} via Homebrew Cask..."
+  "$brew_cmd" install --cask "$cask_name"
+  log_ok "Installed ${cask_name}"
+}
+
+link_terminal() {
+  log_info "Configuring Terminal Emulator (Alacritty / WezTerm)..."
+  select_terminal
+
+  case "$SELECTED_TERMINAL" in
+    alacritty)
+      install_terminal_cask "alacritty" "/Applications/Alacritty.app" "alacritty"
+      link_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
+      unlink_repo_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
+      unlink_repo_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
+      ;;
+    wezterm)
+      install_terminal_cask "wezterm" "/Applications/WezTerm.app" "wezterm"
+      link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
+      if [ "$IS_LINUX" = true ]; then
+        if [ "$DRY_RUN" = false ]; then
+          mkdir -p "${HOME}/.config/wezterm"
+        fi
+        link_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
+      fi
+      unlink_repo_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
+      ;;
+    none)
+      log_info "Skipping GUI terminal emulator installation and configuration."
+      unlink_repo_target "${REPO_DIR}/alacritty" "${HOME}/.config/alacritty"
+      unlink_repo_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.wezterm.lua"
+      unlink_repo_target "${REPO_DIR}/wezterm/wezterm.lua" "${HOME}/.config/wezterm/wezterm.lua"
+      ;;
+  esac
 }
 
 install_packages() {
@@ -1111,7 +1281,26 @@ while [[ $# -gt 0 ]]; do
       dump_antigravity_extensions
       exit 0
       ;;
-    nvim|agents|ide|git|zsh|terminal|fonts|formatter|docker|packages|brew|all)
+    --terminal)
+      if [ $# -lt 2 ]; then
+        log_warn "--terminal requires a value: alacritty | wezterm | none"
+        exit 1
+      fi
+      if ! TERMINAL_CHOICE="$(normalize_terminal_choice "$2")"; then
+        log_warn "Invalid terminal option: $2 (expected: alacritty, wezterm, none)"
+        exit 1
+      fi
+      shift 2
+      ;;
+    --terminal=*)
+      local_term_val="${1#*=}"
+      if ! TERMINAL_CHOICE="$(normalize_terminal_choice "$local_term_val")"; then
+        log_warn "Invalid terminal option: ${local_term_val} (expected: alacritty, wezterm, none)"
+        exit 1
+      fi
+      shift
+      ;;
+    nvim|agents|ide|git|zsh|tmux|terminal|fonts|formatter|docker|packages|brew|all)
       MODULES+=("$1")
       shift
       ;;
@@ -1139,18 +1328,22 @@ for mod in "${MODULES[@]}"; do
     ide)              link_ide ;;
     git)              link_git ;;
     zsh)              link_zsh ;;
+    tmux)             link_tmux ;;
     terminal)         link_terminal ;;
     fonts)            install_fonts ;;
     formatter|docker) build_formatter ;;
     packages|brew)    install_packages ;;
     all)
       install_packages
-      link_nvim
-      link_agents
-      link_ide
-      link_git
+      install_fonts
+      link_git_base
       link_zsh
+      link_tmux
       link_terminal
+      link_nvim
+      link_ide
+      link_agents
+      setup_git_accounts
       ;;
   esac
 done

@@ -103,16 +103,10 @@ Inside an already-cloned repository, run `./install.sh` selectively (**no `sudo`
   ./install.sh packages
   ```
 
-* Link LazyVim v14+ configuration
+* Install & register Nerd Fonts (D2Coding, ComicShannsMono) for macOS & Linux
 
   ```bash
-  ./install.sh nvim
-  ```
-
-* Link Zsh, Oh My Zsh, Powerlevel10k & plugins
-
-  ```bash
-  ./install.sh zsh
+  ./install.sh fonts
   ```
 
 * Link global Git config & interactive multi-account setup
@@ -121,10 +115,28 @@ Inside an already-cloned repository, run `./install.sh` selectively (**no `sudo`
   ./install.sh git
   ```
 
-* Sync Claude, Gemini/AGY, Codex configs, skills & CLIs
+* Link Zsh, Oh My Zsh, Powerlevel10k & plugins
 
   ```bash
-  ./install.sh agents
+  ./install.sh zsh
+  ```
+
+* Link `~/.tmux.conf`, install TPM & sync 9 Tmux plugins
+
+  ```bash
+  ./install.sh tmux
+  ```
+
+* Select & configure terminal emulator (Alacritty [default] / WezTerm / skip, auto-cleans unselected symlink, supports `-f` or `--terminal`)
+
+  ```bash
+  ./install.sh terminal
+  ```
+
+* Link LazyVim v14+ configuration
+
+  ```bash
+  ./install.sh nvim
   ```
 
 * Link IDE settings, sync extensions & patch Docker v29+ CLI
@@ -133,16 +145,10 @@ Inside an already-cloned repository, run `./install.sh` selectively (**no `sudo`
   ./install.sh ide
   ```
 
-* Link Alacritty, WezTerm, Tmux, TPM plugins & Nerd Fonts
+* Sync Claude, Gemini/AGY, Codex configs, skills & CLIs
 
   ```bash
-  ./install.sh terminal
-  ```
-
-* Install Nerd Fonts (D2Coding, ComicShannsMono)
-
-  ```bash
-  ./install.sh fonts
+  ./install.sh agents
   ```
 
 * Build `dotconfig-formatter` Docker image
@@ -196,7 +202,8 @@ dotconfig/
 | **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,rules,agents,hooks,skills/*/SKILL.md}` | Same as macOS | Shared rules/skills & TOML wrapper links + CLI auto-install |
 | **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` extension isolation) | Settings symlinks, 18-extension sync & Docker v29+ patch |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | Keymap (`macOS.xml`), VM options & properties links |
-| **Terminal & Fonts** | `alacritty`, `wezterm/wezterm.lua`, `tmux/tmux.conf` | `~/.config/alacritty`, `~/.wezterm.lua`, `~/.tmux.conf`, `~/Library/Fonts` | Same + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | Symlinks + auto TPM plugin sync + CoreText Nerd Fonts |
+| **Tmux** | `tmux/tmux.conf` | `~/.tmux.conf` | Same as macOS | File symlink + auto TPM & 9 Tmux plugins sync |
+| **Terminal & Fonts** | `alacritty`, `wezterm/wezterm.lua` | `~/.config/alacritty` or `~/.wezterm.lua` *(exclusive choice)*, `~/Library/Fonts` | Same + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | Alacritty (default) / WezTerm selective symlink (auto-cleans unselected) + Step 1 Nerd Fonts & CoreText registration |
 
 ---
 

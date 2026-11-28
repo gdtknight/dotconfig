@@ -114,8 +114,8 @@ flowchart LR
 
 ### 3.1 통합 설치 오케스트레이터 및 패키지 관리 (`install.sh`, `Brewfile`)
 - **Bash 3.2+ 호환성**: 연관 배열(Associative Array) 등 Bash 4+ 전용 문법을 배제하여 기본 macOS 환경에서도 `set -euo pipefail` 기반으로 즉시 실행됩니다.
-- **웹 부트스트랩 (Web Bootstrap)**: 원격 1줄 실행 시 `DOTCONFIG_DIR`(기본 `~/.dotconfig`)로 `https://github.com/gdtknight/dotconfig.git`을 클론·갱신한 뒤 `all` 기본 실행(`packages`, `nvim`, `agents`, `ide`, `git`, `zsh`, `terminal` — `fonts` 포함) 또는 지정한 모듈(`fonts`, `formatter` 포함)을 실행합니다. (`formatter` 이미지 빌드는 필요 시 `./install.sh formatter`로 별도 실행)
-- **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다.
+- **웹 부트스트랩 (Web Bootstrap)**: 원격 1줄 실행 시 `DOTCONFIG_DIR`(기본 `~/.dotconfig`)로 `https://github.com/gdtknight/dotconfig.git`을 클론·갱신한 뒤 `all` 계층형 기본 순서(`packages` → `fonts` → `git` 기본 링크 → `zsh` → `tmux` → `terminal` → `nvim` → `ide` → `agents` → `git` 계정 마법사) 또는 지정한 모듈(`formatter` 포함)을 실행합니다. (`formatter` 이미지 빌드는 필요 시 `./install.sh formatter`로 별도 실행)
+- **루트리스(Rootless) 및 OS 분기**: `Brewfile`에서 macOS 전용 GUI Cask(`google-chrome`, `alfred`, `rectangle`, `orbstack`), `terminal-notifier`, Nerd Fonts를 `if OS.mac?` 블록으로 격리하여 Ubuntu Rootless 환경(`~/.linuxbrew`)에서도 CLI 도구(`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`)가 에러 없이 설치됩니다. 터미널 에뮬레이터(`alacritty` 기본값 / `wezterm`)는 `./install.sh terminal` 단계에서 선택 설치됩니다.
 
 ### 3.2 3사 AI 에이전트 동기화 및 보안 가드 (`agents/`)
 - **통합 프롬프트·스킬·MCP 트리**: `agents/shared/`에 전역 지침(`INSTRUCTIONS.md`), 세부 규칙(`rules/`), **13개 전문 에이전트**(`agents/shared/agents/*.md`, `agents/codex/agents/*.toml`와 1:1 매핑), 다중 파일 공용 스킬 디렉터리(`agents/shared/skills/<name>/` — `graphify`, `llm-wiki`), 공용 MCP 선언(`agents/shared/mcp.json`)을 단일 관리합니다.
@@ -139,7 +139,7 @@ flowchart LR
 ### 3.5 셸, 폰트 및 멀티 계정 Git 격리 (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
 - **결정론적 셸 초기화 (`zsh/.zshrc`)**: `typeset -U`로 `PATH`/`FPATH` 중복을 제거하고, Oh My Zsh 로딩 *이전*에 Homebrew `shellenv`를 초기화하며, SSH 세션에서도 설치된 `nvim`을 `EDITOR`로 우선 적용합니다. `__p9k_sourced` 가드와 `_dotconfig_repo_dir()` 동적 경로 해석도 함께 제공합니다.
 - **멀티 계정 Git/SSH 격리**: `setup_git_accounts`가 `~/.config/dotconfig/git-accounts.env`, 계정별 `~/.gitconfig-<user>`, `~/.gitconfig.local`을 생성하고 `sshCommand` 스코프를 계정별로 엄격히 분리합니다.
-- **터미널/폰트 자동화**: `install.sh terminal`에서 TPM 클론 및 Tmux 플러그인을 자동 설치하고, macOS에서는 D2Coding / ComicShannsMono Nerd Fonts를 CoreText 사용자 영역에 자동 등록합니다.
+- **Tmux, 터미널 선택 및 공용 폰트 자동화**: `install.sh fonts`가 1단계에서 macOS(CoreText 등록)·Linux(zip 다운로드 + `fc-cache`) 공통으로 D2Coding / ComicShannsMono Nerd Fonts를 설치합니다. `install.sh tmux`가 TPM 클론 및 Tmux 플러그인 9종을 먼저 동기화하며, `install.sh terminal`은 `~/.config/dotconfig/terminal.env` 상태 파일을 기반으로 Alacritty(기본값)·WezTerm·건너뛰기 중 1개를 선택·설치(macOS Cask)·링크하고 미선택 저장소 심볼릭 링크를 자동 정리합니다.
 
 ---
 

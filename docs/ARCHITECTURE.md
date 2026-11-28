@@ -114,8 +114,8 @@ flowchart LR
 
 ### 3.1 Installer & Package Management (`install.sh`, `Brewfile`)
 - **Bash 3.2+ Compatibility**: Avoids associative arrays and Bash 4+ extensions so fresh macOS systems execute `./install.sh` out of the box with `set -euo pipefail`.
-- **Web Bootstrap**: When executed remotely (`DOTCONFIG_DIR` defaults to `~/.dotconfig`, cloning `https://github.com/gdtknight/dotconfig.git`), it clones/updates the repo and runs the default `all` bundle (`packages`, `nvim`, `agents`, `ide`, `git`, `zsh`, `terminal`, including `fonts`) or any explicitly passed modules (`formatter` is built separately via `./install.sh formatter`).
-- **Rootless & OS Isolation**: `Brewfile` wraps macOS GUI casks (`google-chrome`, `alfred`, `rectangle`, `orbstack`, `wezterm`), `terminal-notifier`, and Nerd Fonts inside `if OS.mac?`, keeping CLI tools (`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`) clean for `~/.linuxbrew`.
+- **Web Bootstrap**: When executed remotely (`DOTCONFIG_DIR` defaults to `~/.dotconfig`, cloning `https://github.com/gdtknight/dotconfig.git`), it clones/updates the repo and runs the bottom-up `all` sequence (`packages` -> `fonts` -> `git` base links -> `zsh` -> `tmux` -> `terminal` -> `nvim` -> `ide` -> `agents` -> `git` interactive accounts) or any explicitly passed modules (`formatter` is built separately via `./install.sh formatter`).
+- **Rootless & OS Isolation**: `Brewfile` wraps macOS GUI casks (`google-chrome`, `alfred`, `rectangle`, `orbstack`), `terminal-notifier`, and Nerd Fonts inside `if OS.mac?`, keeping CLI tools (`neovim`, `tmux`, `eza`, `zoxide`, `fzf`, `ripgrep`, `bat`, `lazygit`, `gh`) clean for `~/.linuxbrew`. Terminal emulators (`alacritty` default / `wezterm`) are installed selectively by `./install.sh terminal`.
 
 ### 3.2 Multi-Vendor AI Agent Synchronization (`agents/`)
 - **Unified Prompt & Skill Tree**: `agents/shared/` maintains global `INSTRUCTIONS.md`, `rules/`, `13` specialized subagent definitions under `agents/shared/agents/*.md` (paired with `agents/codex/agents/*.toml`), shared multi-file skill directories under `agents/shared/skills/<name>/` (`graphify`, `llm-wiki`), and canonical MCP definitions in `agents/shared/mcp.json`.
@@ -139,7 +139,7 @@ flowchart LR
 ### 3.5 Shell, Fonts & Multi-Account Git (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
 - **Deterministic Shell Startup (`zsh/.zshrc`)**: Deduplicates `PATH`/`FPATH` with `typeset -U`, initializes Homebrew `shellenv` *before* Oh My Zsh, prioritizes installed `nvim` as `EDITOR` even over SSH, verifies `__p9k_sourced` fallback loading, and resolves the repo path dynamically via `_dotconfig_repo_dir()`.
 - **Multi-Account Git**: `setup_git_accounts` generates `~/.config/dotconfig/git-accounts.env`, per-account `~/.gitconfig-<user>`, and `~/.gitconfig.local`, scoping `sshCommand` strictly to account contexts.
-- **Terminal & Fonts**: Auto-bootstraps TPM + installs Tmux plugins on `install.sh terminal` and registers D2Coding / ComicShannsMono Nerd Fonts via CoreText on macOS.
+- **Tmux, Selective Terminal & Cross-Platform Fonts**: `install.sh fonts` handles D2Coding / ComicShannsMono Nerd Fonts across macOS (CoreText registration) and Linux (zip download + `fc-cache`) during Step 1. `install.sh tmux` clones TPM and syncs 9 Tmux plugins independently before GUI terminals, while `install.sh terminal` persists user choice in `~/.config/dotconfig/terminal.env` across Alacritty (default), WezTerm, or skip (`none`), installs the selected macOS cask, and safely removes unselected repository-owned symlinks.
 
 ---
 

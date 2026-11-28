@@ -34,8 +34,9 @@ if OS.mac?
   cask "alfred"
   cask "rectangle"
   cask "orbstack"
-  cask "wezterm"
+  # 터미널 에뮬레이터(alacritty 기본 / wezterm)는 './install.sh terminal' 단계에서 선택 설치
   # cask "alacritty"
+  # cask "wezterm"
   # cask "ghostty"
   cask "font-d2coding-nerd-font"
   cask "font-comic-shanns-mono-nerd-font"

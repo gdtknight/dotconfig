@@ -103,16 +103,10 @@ flowchart LR
   ./install.sh packages
   ```
 
-* Neovim (LazyVim v14+) 설정 연결
+* Nerd Fonts (D2Coding, ComicShannsMono) 설치 및 CoreText / fc-cache 등록
 
   ```bash
-  ./install.sh nvim
-  ```
-
-* Zsh, Oh My Zsh, Powerlevel10k 및 플러그인 구성
-
-  ```bash
-  ./install.sh zsh
+  ./install.sh fonts
   ```
 
 * 전역 Git 설정 및 대화형 멀티 계정 SSH/서명 설정
@@ -121,10 +115,28 @@ flowchart LR
   ./install.sh git
   ```
 
-* Claude, Gemini/AGY, Codex 규칙·서브에이전트·훅·CLI 동기화
+* Zsh, Oh My Zsh, Powerlevel10k 및 플러그인 구성
 
   ```bash
-  ./install.sh agents
+  ./install.sh zsh
+  ```
+
+* Tmux (`~/.tmux.conf`), TPM 및 Tmux 플러그인 9종 동기화
+
+  ```bash
+  ./install.sh tmux
+  ```
+
+* 터미널 에뮬레이터 선택 설치 및 링크 (Alacritty [기본값] / WezTerm / 건너뛰기, 미선택 링크 자동 정리, `-f` 또는 `--terminal` 지원)
+
+  ```bash
+  ./install.sh terminal
+  ```
+
+* Neovim (LazyVim v14+) 설정 연결
+
+  ```bash
+  ./install.sh nvim
   ```
 
 * IDE 설정·확장(18종) 동기화 및 Docker v29+ CLI 패치
@@ -133,16 +145,10 @@ flowchart LR
   ./install.sh ide
   ```
 
-* Alacritty, WezTerm, Tmux, TPM 플러그인 및 Nerd Fonts 구성
+* Claude, Gemini/AGY, Codex 규칙·서브에이전트·훅·CLI 동기화
 
   ```bash
-  ./install.sh terminal
-  ```
-
-* Nerd Fonts (D2Coding, ComicShannsMono) 설치 및 등록
-
-  ```bash
-  ./install.sh fonts
+  ./install.sh agents
   ```
 
 * `dotconfig-formatter:latest` Docker 이미지 빌드
@@ -196,7 +202,8 @@ dotconfig/
 | **Codex** | `agents/shared/*`, `agents/codex/*` | `~/.codex/{AGENTS.md,config.toml,rules,agents,hooks,skills/*/SKILL.md}` | 동일 | 공용 규칙·스킬 & TOML 래퍼 링크 + CLI 자동 설치 |
 | **IDE (AGY / Code)** | `ide/antigravity-ide/*` | `~/Library/Application Support/Antigravity IDE/User/*` | `~/.config/Code/User/*` (`~/goinfre` 확장 격리) | 설정 링크, 18종 확장 동기화 & Docker v29+ 호환 패치 |
 | **IntelliJ IDEA** | `ide/intellij/*` | `~/Library/Application Support/JetBrains/IntelliJIdea*/*` | `~/.config/JetBrains/IntelliJIdea*/*` | 키맵 (`macOS.xml`), VM 옵션 & Properties 링크 |
-| **Terminal & Fonts** | `alacritty`, `wezterm/wezterm.lua`, `tmux/tmux.conf` | `~/.config/alacritty`, `~/.wezterm.lua`, `~/.tmux.conf`, `~/Library/Fonts` | 동일 + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | 심볼릭 링크 + TPM 플러그인 자동 설치 + CoreText 폰트 등록 |
+| **Tmux** | `tmux/tmux.conf` | `~/.tmux.conf` | 동일 | 파일 심볼릭 링크 + TPM 및 Tmux 플러그인 9종 자동 설치 |
+| **Terminal & Fonts** | `alacritty`, `wezterm/wezterm.lua` | `~/.config/alacritty` 또는 `~/.wezterm.lua` *(택 1)*, `~/Library/Fonts` | 동일 + `~/.config/wezterm/wezterm.lua`, `~/.local/share/fonts` | Alacritty(기본)·WezTerm 선택 링크(미선택 자동 정리) + 1단계 공통 Nerd Fonts & CoreText 등록 |
 
 ---
 
