@@ -29,7 +29,6 @@ flowchart TD
     Inst --> Pkg["Homebrew / Rootless Linuxbrew (~/.linuxbrew)"]
     Inst --> FmtDocker["Formatter Image (dotconfig-formatter:latest)"]
 
-    Zsh -->|"devcontainer-init"| DevGen["Dev Container 2.0 Python Engine"]
     Agents -->|"PreToolUse / PostToolUse / Stop"| Hook["Unified Lifecycle Hook (hook.py)"]
     Hook -->|"docker run --rm (or Local Fallback)"| FmtDocker
 ```
@@ -92,22 +91,6 @@ sequenceDiagram
     end
 ```
 
-### 2.3 Dev Container 2.0 Dynamic Generation (`devcontainer-init`)
-
-Invoked from `zsh/.zshrc` with native tab completion (`_devcontainer_init_completion`), `init_devcontainer.py` resolves templates, live runtime versions, and optional database sidecars without third-party Python dependencies.
-
-```mermaid
-flowchart LR
-    Zsh["zsh: devcontainer-init"] --> Init["init_devcontainer.py"]
-    Init --> Ver["version_fetcher.py"]
-    Ver -->|"1.5s HTTP Timeout"| Api["Official APIs (nodejs.org, endoflife.date, go.dev)"]
-    Ver -. "Read/Write Cache" .-> Cache["~/.cache/dotconfig/devcontainer-versions.json"]
-    Ver -. "Offline Fallback" .-> Fallback["DEFAULT_FALLBACKS"]
-    Init --> Db["db_templates.py (SUPPORTED_DATABASES)"]
-    Db -->|"render_compose_yaml()"| Compose["docker-compose.yml (Multi-Container Sidecars)"]
-    Init --> Out[".devcontainer/ + Optional Neovim/AI/Docker Socket"]
-```
-
 ---
 
 ## 3. Module Architecture Breakdown
@@ -131,13 +114,8 @@ flowchart LR
 - **Antigravity IDE Dev Container Compatibility Patch**: `patch_antigravity_dev_containers` patches container status checks (`"start"===(i.status||i.Status)` -> adds `||i.Action`) for reliable container lifecycle detection across CLI versions.
 - **Declarative Extensions**: Tracks `18` curated extensions in `ide/antigravity-ide/extensions.txt`, refreshable via `./install.sh --dump-extensions`.
 
-### 3.4 Dev Container 2.0 Engine (`devcontainers/`)
-- **9 Templates**: `42-c-valgrind`, `devops-cloud`, `fullstack-db`, `go-backend`, `java`, `node-ts`, `python-ai`, `react-native`, and `rust`.
-- **Smart Version Resolution (`version_fetcher.py`)**: Queries official endpoints (`nodejs.org/dist/index.json`, `endoflife.date/api/python.json`, `go.dev/dl/?mode=json`) with a strict `1.5s` timeout (`TIMEOUT_SECONDS = 1.5`), caching responses in `~/.cache/dotconfig/devcontainer-versions.json` and degrading gracefully to `DEFAULT_FALLBACKS`.
-- **Automatic Sidecar Promotion (`db_templates.py`)**: Selecting any database in `SUPPORTED_DATABASES` (`postgres`, `redis`, `mysql`, `mongo`) automatically upgrades a single-container template into a multi-service `docker-compose.yml` via `render_compose_yaml()` with persistent named volumes.
-
-### 3.5 Shell, Fonts & Multi-Account Git (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
-- **Deterministic Shell Startup (`zsh/.zshrc`)**: Deduplicates `PATH`/`FPATH` with `typeset -U`, initializes Homebrew `shellenv` *before* Oh My Zsh, prioritizes installed `nvim` as `EDITOR` even over SSH, verifies `__p9k_sourced` fallback loading, and resolves the repo path dynamically via `_dotconfig_repo_dir()`.
+### 3.4 Shell, Fonts & Multi-Account Git (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
+- **Deterministic Shell Startup (`zsh/.zshrc`)**: Deduplicates `PATH`/`FPATH` with `typeset -U`, initializes Homebrew `shellenv` *before* Oh My Zsh, prioritizes installed `nvim` as `EDITOR` even over SSH, and verifies `__p9k_sourced` fallback loading.
 - **Multi-Account Git**: `setup_git_accounts` generates `~/.config/dotconfig/git-accounts.env`, per-account `~/.gitconfig-<user>`, and `~/.gitconfig.local`, scoping `sshCommand` strictly to account contexts.
 - **Tmux, Selective Terminal & Cross-Platform Fonts**: `install.sh fonts` handles D2Coding / ComicShannsMono Nerd Fonts across macOS (CoreText registration) and Linux (zip download + `fc-cache`) during Step 1. `install.sh tmux` clones TPM and syncs 9 Tmux plugins independently before GUI terminals, while `install.sh terminal` persists user choice in `~/.config/dotconfig/terminal.env` across Alacritty (default), WezTerm, or skip (`none`), installs the selected macOS cask, and safely removes unselected repository-owned symlinks.
 
@@ -160,12 +138,7 @@ flowchart LR
 - **Decision**: Package all formatters (`clang-format`, `google-java-format` v1.24.0, `prettier`, `ruff`, `black`, `stylua`) in `docker/formatter/Dockerfile` (`debian:bookworm-slim`) and run ephemeral `docker run --rm` invocations in `PostToolUse`, with local binary fallback.
 - **Consequences**: Reproducible formatting across macOS and Ubuntu without host dependency conflicts, while remaining usable when Docker is stopped.
 
-### ADR-04: Zero-Dependency Python Dev Container Generator with Bounded 1.5s Timeout
-- **Context**: Interactive Dev Container scaffolding runs inside developer shells across corporate/campus networks where external package installs are friction and offline/slow networks occur.
-- **Decision**: Build `init_devcontainer.py`, `version_fetcher.py`, and `db_templates.py` using only Python standard library modules (`urllib.request`, `json`) with `TIMEOUT_SECONDS = 1.5`, local caching, and static `DEFAULT_FALLBACKS`.
-- **Consequences**: Near-instant CLI UX online and deterministic offline behavior without requiring a virtualenv.
-
-### ADR-05: Symlink Relocation (`~/goinfre`) & Rootless Linuxbrew Isolation
+### ADR-04: Symlink Relocation (`~/goinfre`) & Rootless Linuxbrew Isolation
 - **Context**: Academic/enterprise cluster environments enforce strict home-directory disk quotas and disallow `sudo` package installation.
 - **Decision**: Automatically detect `~/goinfre` to symlink-relocate heavy IDE extensions (`link_ide`) plus `~/.linuxbrew` and `~/.cache/Homebrew` on Linux (`install_packages`), while gating macOS GUI casks inside `if OS.mac?` in `Brewfile`.
 - **Consequences**: Identical developer tooling on both personal macOS laptops and quota-limited Ubuntu cluster hosts without exhausting home NFS quotas.

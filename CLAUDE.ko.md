@@ -2,7 +2,7 @@
 
 # Dotconfig Repository Agent Guidelines
 
-이 저장소는 macOS 및 Linux 환경의 설정(Neovim, LLM 에이전트, IDE, 셸, 터미널 도구, Dev Container, 패키지)을 관리하는 중앙 설정 저장소입니다.
+이 저장소는 macOS 및 Linux 환경의 설정(Neovim, LLM 에이전트, IDE, 셸, 터미널 도구, 패키지)을 관리하는 중앙 설정 저장소입니다.
 
 ---
 
@@ -54,5 +54,12 @@
    - 파일 수정 후 반드시 `./install.sh --dry-run <module>` (또는 `./install.sh --dry-run all`)을 실행하여 문법 오류나 의도치 않은 파일 덮어쓰기가 없는지 확인합니다.
 2. **동작 검증**:
    - 필요 시 `./install.sh <module>`을 실행하여 심볼릭 링크 정상 생성 및 CLI 연동을 직접 확인합니다.
-3. **Git 커밋 규격 준수**:
+3. **브랜치 전략 및 릴리스 절차 (`main` 보호 / `dev` 통합)**:
+   - **`main`**: 보호된 릴리스 브랜치 (직접 푸시 금지; `verify` CI 통과 및 `dev`, `release/*`, `hotfix/*` 출발 PR 머지만 허용).
+   - **`dev`**: 일상 통합 브랜치. GitHub Issue 등록(`.github/ISSUE_TEMPLATE/`) 후 `dev`에서 작업 브랜치(`feat/<N>-<desc>`, `fix/<N>-<desc>`, `refactor/<N>-<desc>`, `docs/<N>-<desc>`)를 분기해 PR(`Closes #<N>`)로 `dev`에 머지합니다.
+   - **릴리스 및 문서 동기화 (`dev` -> `main` + Tag/Release)**:
+     1. `dev` 누적 변경사항에 맞춰 `README.md`, `README.en.md`, `docs/ARCHITECTURE*.md`, GitHub Wiki(`gdtknight/dotconfig.wiki.git`)를 최신화합니다.
+     2. `.github/PULL_REQUEST_TEMPLATE/release.md` 기준으로 `dev` → `main` Release PR을 생성해 `verify` CI 통과 후 머지합니다.
+     3. `main` 최신 커밋에 버전 태그(`git tag vX.Y.Z && git push origin vX.Y.Z`)를 푸시하면 `.github/workflows/release.yml`이 GitHub Release를 자동 생성합니다.
+4. **Git 커밋 규격 준수**:
    - 커밋 메시지는 **Conventional Commits**(`feat:`, `fix:`, `refactor:`, `docs:`, `chore:` 등) 및 **Chris Beams 7원칙**(영문 명령형, 50자 이하 제목, 마침표 생략)을 엄격히 준수합니다.
