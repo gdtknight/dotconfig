@@ -59,16 +59,23 @@ flowchart LR
 
 새 머신에 저장소가 아직 없더라도 명령어 한 줄로 사전 도구 확인, 저장소 클론(`~/.dotconfig`), 전체 모듈 심볼릭 링크 연결을 순차적으로 진행할 수 있습니다.
 
-```bash
-# 전체 환경 자동 구성 (패키지, 심볼릭 링크, 폰트, IDE 확장 동기화)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+* 전체 환경 자동 구성 (패키지, 심볼릭 링크, 폰트, IDE 확장 동기화)
 
-# 파일 시스템을 바꾸지 않고 실행 계획만 미리 확인
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+  ```
 
-# 원하는 모듈만 선택 설치 (예: Neovim과 Git)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
-```
+* 파일 시스템을 바꾸지 않고 실행 계획만 미리 확인
+
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
+  ```
+
+* 원하는 모듈만 선택 설치 (예: Neovim, Git)
+
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
+  ```
 
 > 기본 클론 경로(`~/.dotconfig`)를 바꾸고 싶다면 실행 전에 `DOTCONFIG_DIR=~/my/path` 환경 변수를 지정하시면 됩니다.
 
@@ -76,23 +83,79 @@ flowchart LR
 
 클론한 저장소 안에서는 `./install.sh`로 원하는 모듈만 골라 적용할 수 있습니다.
 
-```bash
-./install.sh --dry-run all      # 전체 변경 예정 내역 시뮬레이션
-./install.sh all                # 전체 모듈 설치
+> 기존 일반 파일을 백업 후 강제 교체하려면 `-f` 또는 `--force` 옵션을 함께 지정합니다.
 
-# 모듈별 선택 실행 (기존 일반 파일 강제 백업 후 교체 시 -f / --force)
-./install.sh packages           # Homebrew / Rootless Linuxbrew 부트스트랩 및 Brewfile 동기화
-./install.sh nvim               # Neovim (LazyVim v14+) 설정 연결
-./install.sh zsh                # Zsh, Oh My Zsh, Powerlevel10k 및 플러그인 구성
-./install.sh git                # 전역 Git 설정 및 대화형 멀티 계정 SSH/서명 설정
-./install.sh agents             # Claude, Gemini/AGY, Codex 규칙·서브에이전트·훅·CLI 동기화
-./install.sh ide                # IDE 설정·확장(18종) 동기화 및 Docker v29+ CLI 패치
-./install.sh terminal           # Alacritty, WezTerm, Tmux, TPM 플러그인 및 Nerd Fonts 구성
-./install.sh fonts              # Nerd Fonts (D2Coding, ComicShannsMono) 설치 및 등록
-./install.sh formatter          # dotconfig-formatter:latest Docker 이미지 빌드
+* 전체 변경 예정 내역 시뮬레이션
 
-./install.sh --dump-extensions  # 현재 IDE 확장 목록을 ide/antigravity-ide/extensions.txt로 내보내기
-```
+  ```bash
+  ./install.sh --dry-run all
+  ```
+
+* 전체 모듈 설치
+
+  ```bash
+  ./install.sh all
+  ```
+
+* Homebrew / Rootless Linuxbrew 부트스트랩 및 Brewfile 동기화
+
+  ```bash
+  ./install.sh packages
+  ```
+
+* Neovim (LazyVim v14+) 설정 연결
+
+  ```bash
+  ./install.sh nvim
+  ```
+
+* Zsh, Oh My Zsh, Powerlevel10k 및 플러그인 구성
+
+  ```bash
+  ./install.sh zsh
+  ```
+
+* 전역 Git 설정 및 대화형 멀티 계정 SSH/서명 설정
+
+  ```bash
+  ./install.sh git
+  ```
+
+* Claude, Gemini/AGY, Codex 규칙·서브에이전트·훅·CLI 동기화
+
+  ```bash
+  ./install.sh agents
+  ```
+
+* IDE 설정·확장(18종) 동기화 및 Docker v29+ CLI 패치
+
+  ```bash
+  ./install.sh ide
+  ```
+
+* Alacritty, WezTerm, Tmux, TPM 플러그인 및 Nerd Fonts 구성
+
+  ```bash
+  ./install.sh terminal
+  ```
+
+* Nerd Fonts (D2Coding, ComicShannsMono) 설치 및 등록
+
+  ```bash
+  ./install.sh fonts
+  ```
+
+* `dotconfig-formatter:latest` Docker 이미지 빌드
+
+  ```bash
+  ./install.sh formatter
+  ```
+
+* 현재 IDE 확장 목록을 `ide/antigravity-ide/extensions.txt`로 내보내기
+
+  ```bash
+  ./install.sh --dump-extensions
+  ```
 
 ---
 
@@ -178,16 +241,23 @@ Claude Code, Google Antigravity(Gemini CLI), OpenAI Codex는 설정 파일 경�
 * **Compose 사이드카 자동 승격 ([`db_templates.py`](./devcontainers/scripts/db_templates.py))**: `--db` 옵션으로 로컬 데이터베이스(`postgres`, `redis`, `mysql`, `mongo`)를 하나 이상 선택하면 단일 컨테이너 템플릿을 영속 볼륨이 포함된 멀티 컨테이너 `docker-compose.yml` 구성으로 자동 승격합니다.
 * **듀얼 모드 CLI & Neovim 마운트 ([`init_devcontainer.py`](./devcontainers/scripts/init_devcontainer.py))**: 대화형 마법사(`-i`)와 스크립트용 비대화형 플래그(`-y`)를 모두 지원하며, `--nvim`/`--no-nvim`, `--docker-socket`, `--ai`, `--no-install` 옵션으로 컨테이너 내부 작업 환경을 세밀하게 제어할 수 있습니다. (호스트 Neovim의 `devcontainer.nvim` `<leader>D` 키맵과도 연동됩니다.)
 
-```bash
-# 대화형 마법사 실행 (실시간 활성 SDK 버전 목록 표시)
-devcontainer-init node-ts
+* 대화형 마법사 실행 (실시간 활성 SDK 버전 목록 표시)
 
-# 비대화형 구성: Node 22 + pnpm + PostgreSQL/Redis 사이드카 + 포트 3000, 8080
-devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+  ```bash
+  devcontainer-init node-ts
+  ```
 
-# Python AI 환경: Python 3.12 + uv + 포트 8888 + 컨테이너 내 AI Agent CLI 포함
-devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
-```
+* 비대화형 구성 (Node 22 + pnpm + PostgreSQL/Redis 사이드카 + 포트 3000, 8080)
+
+  ```bash
+  devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+  ```
+
+* Python AI 환경 (Python 3.12 + uv + 포트 8888 + 컨테이너 내 AI Agent CLI 포함)
+
+  ```bash
+  devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
+  ```
 
 ### 4. 실전 트러블슈팅 및 환경 자동 보정
 

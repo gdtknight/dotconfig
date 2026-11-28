@@ -59,16 +59,23 @@ flowchart LR
 
 Run a single command on a clean machine to verify prerequisites, clone the repository to `~/.dotconfig`, and link all modules:
 
-```bash
-# Full automated setup (packages, symlinks, fonts, IDE extensions)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+* Full automated setup (packages, symlinks, fonts, IDE extensions)
 
-# Preview actions without modifying files
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)"
+  ```
 
-# Install specific modules only (e.g., Neovim and Git)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
-```
+* Preview actions without modifying files
+
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- --dry-run
+  ```
+
+* Install specific modules only (e.g., Neovim and Git)
+
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdtknight/dotconfig/main/install.sh)" -- nvim git
+  ```
 
 > **Tip**: Override the default clone path (`~/.dotconfig`) by setting `DOTCONFIG_DIR=~/my/path` before running the command.
 
@@ -76,23 +83,79 @@ Run a single command on a clean machine to verify prerequisites, clone the repos
 
 Inside an already-cloned repository, run `./install.sh` selectively (**no `sudo` required**):
 
-```bash
-./install.sh --dry-run all      # Preview all symlinks and actions
-./install.sh all                # Apply full environment setup
+> Use `-f` or `--force` to replace existing non-symlink targets after backing them up.
 
-# Modular execution (-f / --force replaces non-symlink targets after backup)
-./install.sh packages           # Bootstrap Homebrew/Linuxbrew & sync Brewfile
-./install.sh nvim               # Link LazyVim v14+ configuration
-./install.sh zsh                # Link Zsh, Oh My Zsh, Powerlevel10k & plugins
-./install.sh git                # Link global Git config & interactive multi-account setup
-./install.sh agents             # Sync Claude, Gemini/AGY, Codex configs, skills & CLIs
-./install.sh ide                # Link IDE settings, sync extensions & patch Docker v29+ CLI
-./install.sh terminal           # Link Alacritty, WezTerm, Tmux, TPM plugins & Nerd Fonts
-./install.sh fonts              # Install Nerd Fonts (D2Coding, ComicShannsMono)
-./install.sh formatter          # Build dotconfig-formatter Docker image
+* Preview all symlinks and actions
 
-./install.sh --dump-extensions  # Export current Antigravity IDE extensions to extensions.txt
-```
+  ```bash
+  ./install.sh --dry-run all
+  ```
+
+* Apply full environment setup
+
+  ```bash
+  ./install.sh all
+  ```
+
+* Bootstrap Homebrew/Linuxbrew & sync Brewfile
+
+  ```bash
+  ./install.sh packages
+  ```
+
+* Link LazyVim v14+ configuration
+
+  ```bash
+  ./install.sh nvim
+  ```
+
+* Link Zsh, Oh My Zsh, Powerlevel10k & plugins
+
+  ```bash
+  ./install.sh zsh
+  ```
+
+* Link global Git config & interactive multi-account setup
+
+  ```bash
+  ./install.sh git
+  ```
+
+* Sync Claude, Gemini/AGY, Codex configs, skills & CLIs
+
+  ```bash
+  ./install.sh agents
+  ```
+
+* Link IDE settings, sync extensions & patch Docker v29+ CLI
+
+  ```bash
+  ./install.sh ide
+  ```
+
+* Link Alacritty, WezTerm, Tmux, TPM plugins & Nerd Fonts
+
+  ```bash
+  ./install.sh terminal
+  ```
+
+* Install Nerd Fonts (D2Coding, ComicShannsMono)
+
+  ```bash
+  ./install.sh fonts
+  ```
+
+* Build `dotconfig-formatter` Docker image
+
+  ```bash
+  ./install.sh formatter
+  ```
+
+* Export current Antigravity IDE extensions to `extensions.txt`
+
+  ```bash
+  ./install.sh --dump-extensions
+  ```
 
 ---
 
@@ -178,16 +241,23 @@ Manage separate work/school and personal GitHub identities on one machine withou
 * **Automatic Compose Elevation ([`db_templates.py`](./devcontainers/scripts/db_templates.py))**: Selecting any database sidecar (`postgres`, `redis`, `mysql`, `mongo`) upgrades single-container configs into a multi-service `docker-compose.yml` with persistent volumes.
 * **Dual-Mode CLI & Neovim Mounting ([`init_devcontainer.py`](./devcontainers/scripts/init_devcontainer.py))**: Supports interactive prompts (`-i`) and scriptable flags (`-y`), plus `--nvim`/`--no-nvim`, `--docker-socket`, `--ai`, and `--no-install` (paired with `devcontainer.nvim` `<leader>D` keymaps on the host).
 
-```bash
-# Interactive wizard (fetches active SDK versions)
-devcontainer-init node-ts
+* Interactive wizard (fetches active SDK versions)
 
-# Scriptable one-liner: Node 22 + pnpm + Postgres/Redis sidecars + ports 3000,8080
-devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+  ```bash
+  devcontainer-init node-ts
+  ```
 
-# Python AI workspace: Python 3.12 + uv + port 8888 + bundled AI Agent CLIs
-devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
-```
+* Scriptable one-liner (Node 22 + pnpm + Postgres/Redis sidecars + ports 3000, 8080)
+
+  ```bash
+  devcontainer-init node-ts --version 22 --pkg pnpm --db postgres,redis --port 3000,8080
+  ```
+
+* Python AI workspace (Python 3.12 + uv + port 8888 + bundled AI Agent CLIs)
+
+  ```bash
+  devcontainer-init python-ai --version 3.12 --pkg uv --port 8888 --ai
+  ```
 
 ### 4. Practical Troubleshooting & Environment Automation
 
