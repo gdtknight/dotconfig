@@ -2,7 +2,7 @@
 
 # Dotconfig Repository Agent Guidelines
 
-이 저장소는 macOS 및 Linux 환경의 설정(Neovim, LLM 에이전트, IDE, 셸, 터미널 도구, Dev Container, 패키지)을 관리하는 중앙 설정 저장소입니다.
+이 저장소는 macOS 및 Linux 환경의 설정(Neovim, LLM 에이전트, IDE, 셸, 터미널 도구, 패키지)을 관리하는 중앙 설정 저장소입니다.
 
 ---
 

@@ -2,13 +2,12 @@
 
 # Dotconfig
 
-**Cross-Platform, Zero-Sudo Developer Environment, 3-Vendor AI Agent Harness & Dev Container 2.0 Generator**
+**Cross-Platform, Zero-Sudo Developer Environment & 3-Vendor AI Agent Harness**
 
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Ubuntu%20(Rootless)-blue?style=flat-square)](./install.sh)
 [![Shell](https://img.shields.io/badge/Shell-Bash%203.2%2B%20%7C%20Zsh-121011?style=flat-square&logo=gnu-bash)](./zsh/.zshrc)
 [![Editor](https://img.shields.io/badge/Neovim-LazyVim%20v14%2B-57A143?style=flat-square&logo=neovim)](./nvim)
 [![AI Harness](https://img.shields.io/badge/AI%20Agents-Claude%20%7C%20Gemini%20%7C%20Codex-8A2BE2?style=flat-square)](./agents)
-[![Dev Containers](https://img.shields.io/badge/Dev%20Containers-2.0%20Dual--Mode-2496ED?style=flat-square&logo=docker)](./devcontainers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 [한국어](./README.md) | **English**
@@ -22,11 +21,11 @@
 ## Overview
 
 Declarative **Single Source of Truth (SSoT)** workspace for **macOS** and **Ubuntu/Linux (including rootless cluster hosts)**.
-Unifies a 3-vendor AI Agent harness, ephemeral Docker formatting, multi-account Git/SSH isolation, and a Dev Container 2.0 generator under [`install.sh`](./install.sh).
+Unifies a 3-vendor AI Agent harness, ephemeral Docker formatting, and multi-account Git/SSH isolation under [`install.sh`](./install.sh).
 
 * **Zero-Sudo Bootstrap**: Installs Homebrew on macOS and rootless Linuxbrew (`~/.linuxbrew`) on Ubuntu, relocating heavy storage into `~/goinfre` when present
 * **Single Source of Truth**: Syncs shared rules, 13 subagents, shared skills, MCP servers, and lifecycle hooks from `agents/shared/` across Claude, Gemini/AGY, and Codex
-* **Thin Host Tooling**: Isolates language SDKs across 9 Dev Container templates and runs code formatters inside ephemeral `docker run --rm` containers
+* **Thin Host Tooling**: Runs multi-language code formatters inside ephemeral `docker run --rm` containers (`dotconfig-formatter`) without host toolchain clutter
 * **Idempotent & Safe**: Supports `--dry-run` simulation and archives file collisions into `~/.dotconfig_backups/backup_YYYYMMDD_HHMMSS/`
 
 ---
@@ -152,14 +151,13 @@ dotconfig/
 ├── CLAUDE.md / CLAUDE.ko.md      # Repository maintenance guidelines (AGENTS.md -> CLAUDE.md)
 ├── docs/                         # Local architecture guide mirrors
 ├── nvim/                         # LazyVim v14+, Obsidian auto-scan, devcontainer.nvim
-├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh) & devcontainer-init
+├── zsh/                          # Zsh (.zshrc, .zprofile, .p10k.zsh)
 ├── git/                          # Global .gitconfig (histogram diff, SSH signing) & .gitignore
 ├── agents/                       # Claude, Gemini/AGY, Codex harness (agents/shared/ SSoT)
 ├── ide/                          # Antigravity IDE / VS Code (18 extensions) & IntelliJ IDEA
 ├── alacritty/                    # Alacritty config (default terminal selection)
 ├── wezterm/                      # WezTerm Lua configuration (wezterm.lua)
 ├── tmux/                         # Tmux config (TPM & 9 plugins)
-├── devcontainers/                # 9 stack templates + Python Dev Container 2.0 generator
 └── docker/formatter/             # Multi-language ephemeral formatter image (Debian Bookworm Slim)
 ```
 
@@ -173,7 +171,6 @@ Detailed architecture diagrams, ADR records, and module internals live in the [G
 | :--- | :--- | :--- |
 | **3-Vendor AI Harness** | Payload-normalized `hook.py` guards, ephemeral Docker formatter, 13 subagents, shared skills & MCP sync | [AI-Agent-Harness](https://github.com/gdtknight/dotconfig/wiki/AI-Agent-Harness) |
 | **Multi-Account Git & Terminal** | Directory-scoped `includeIf` Git/SSH keys, Step 1 fonts, standalone `tmux`, Alacritty/WezTerm choice + auto-cleanup | [Git-Multi-Account-and-Terminal](https://github.com/gdtknight/dotconfig/wiki/Git-Multi-Account-and-Terminal) |
-| **Dev Container 2.0** | `devcontainer-init` CLI, 9 stack templates, 1.5s version cache & automatic `--db` Compose sidecars | [Dev-Container](https://github.com/gdtknight/dotconfig/wiki/Dev-Container) |
 | **Automated Fixes** | Docker v29+ `i.Action` patch, WhichKey AI chat guards, `~/goinfre` isolation, SSH `EDITOR`, Obsidian fallback | [Troubleshooting](https://github.com/gdtknight/dotconfig/wiki/Troubleshooting) |
 
 ---

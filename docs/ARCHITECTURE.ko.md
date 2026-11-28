@@ -29,7 +29,6 @@ flowchart TD
     Inst --> Pkg["Homebrew / Rootless Linuxbrew (~/.linuxbrew)"]
     Inst --> FmtDocker["Formatter Image (dotconfig-formatter:latest)"]
 
-    Zsh -->|"devcontainer-init"| DevGen["Dev Container 2.0 Python Engine"]
     Agents -->|"PreToolUse / PostToolUse / Stop"| Hook["Unified Lifecycle Hook (hook.py)"]
     Hook -->|"docker run --rm (또는 Local Fallback)"| FmtDocker
 ```
@@ -92,22 +91,6 @@ sequenceDiagram
     end
 ```
 
-### 2.3 Dev Container 2.0 동적 생성 파이프라인 (Dev Container Generation)
-
-`zsh/.zshrc`에 통합된 `devcontainer-init` 명령과 Zsh 탭 자동완성(`_devcontainer_init_completion`)을 통해 외부 Python 패키지 의존성 없이 템플릿, 실시간 런타임 버전, 선택적 DB **사이드카 (Sidecar)** 를 구성합니다.
-
-```mermaid
-flowchart LR
-    Zsh["zsh: devcontainer-init"] --> Init["init_devcontainer.py"]
-    Init --> Ver["version_fetcher.py"]
-    Ver -->|"1.5s HTTP Timeout"| Api["공식 API (nodejs.org, endoflife.date, go.dev)"]
-    Ver -. "캐시 읽기/쓰기" .-> Cache["~/.cache/dotconfig/devcontainer-versions.json"]
-    Ver -. "오프라인 폴백" .-> Fallback["DEFAULT_FALLBACKS"]
-    Init --> Db["db_templates.py (SUPPORTED_DATABASES)"]
-    Db -->|"render_compose_yaml()"| Compose["docker-compose.yml (멀티 컨테이너 사이드카)"]
-    Init --> Out[".devcontainer/ + 선택적 Neovim/AI/Docker Socket"]
-```
-
 ---
 
 ## 3. 모듈별 내부 설계 (Module Breakdown)
@@ -131,13 +114,8 @@ flowchart LR
 - **Antigravity IDE Dev Containers 패치**: `patch_antigravity_dev_containers` 함수가 컨테이너 상태 비교 구문(`"start"===(i.status||i.Status)`)에 `||i.Action` 체크를 보강하여 CLI 버전 간 호환성을 확보합니다.
 - **선언적 확장 목록**: `ide/antigravity-ide/extensions.txt`에 **18개 확장 프로그램**을 관리하며 `./install.sh --dump-extensions`로 현재 IDE 상태를 역동기화합니다.
 
-### 3.4 Dev Container 2.0 동적 엔진 (`devcontainers/`)
-- **9개 스택 템플릿**: `42-c-valgrind`, `devops-cloud`, `fullstack-db`, `go-backend`, `java`, `node-ts`, `python-ai`, `react-native`, `rust`.
-- **스마트 버전 수집 (`version_fetcher.py`)**: 공식 API(`nodejs.org/dist/index.json`, `endoflife.date/api/python.json`, `go.dev/dl/?mode=json`)를 엄격한 `1.5초` 타임아웃(`TIMEOUT_SECONDS = 1.5`)으로 조회하고 `~/.cache/dotconfig/devcontainer-versions.json`에 캐싱하며, 오프라인 시 `DEFAULT_FALLBACKS`로 즉시 폴백합니다.
-- **Compose 자동 승격 (`db_templates.py`)**: `SUPPORTED_DATABASES`(`postgres`, `redis`, `mysql`, `mongo`) 중 하나 이상 선택 시 `render_compose_yaml()`이 단일 컨테이너 구성을 영속 볼륨이 포함된 멀티 컨테이너 `docker-compose.yml`로 자동 승격합니다.
-
-### 3.5 셸, 폰트 및 멀티 계정 Git 격리 (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
-- **결정론적 셸 초기화 (`zsh/.zshrc`)**: `typeset -U`로 `PATH`/`FPATH` 중복을 제거하고, Oh My Zsh 로딩 *이전*에 Homebrew `shellenv`를 초기화하며, SSH 세션에서도 설치된 `nvim`을 `EDITOR`로 우선 적용합니다. `__p9k_sourced` 가드와 `_dotconfig_repo_dir()` 동적 경로 해석도 함께 제공합니다.
+### 3.4 셸, 폰트 및 멀티 계정 Git 격리 (`zsh/`, `alacritty/`, `wezterm/`, `tmux/`, `git/`)
+- **결정론적 셸 초기화 (`zsh/.zshrc`)**: `typeset -U`로 `PATH`/`FPATH` 중복을 제거하고, Oh My Zsh 로딩 *이전*에 Homebrew `shellenv`를 초기화하며, SSH 세션에서도 설치된 `nvim`을 `EDITOR`로 우선 적용합니다. `__p9k_sourced` 가드도 함께 제공합니다.
 - **멀티 계정 Git/SSH 격리**: `setup_git_accounts`가 `~/.config/dotconfig/git-accounts.env`, 계정별 `~/.gitconfig-<user>`, `~/.gitconfig.local`을 생성하고 `sshCommand` 스코프를 계정별로 엄격히 분리합니다.
 - **Tmux, 터미널 선택 및 공용 폰트 자동화**: `install.sh fonts`가 1단계에서 macOS(CoreText 등록)·Linux(zip 다운로드 + `fc-cache`) 공통으로 D2Coding / ComicShannsMono Nerd Fonts를 설치합니다. `install.sh tmux`가 TPM 클론 및 Tmux 플러그인 9종을 먼저 동기화하며, `install.sh terminal`은 `~/.config/dotconfig/terminal.env` 상태 파일을 기반으로 Alacritty(기본값)·WezTerm·건너뛰기 중 1개를 선택·설치(macOS Cask)·링크하고 미선택 저장소 심볼릭 링크를 자동 정리합니다.
 
@@ -160,12 +138,7 @@ flowchart LR
 - **결정 (Decision)**: `docker/formatter/Dockerfile`(`debian:bookworm-slim`)에 `clang-format`, `google-java-format` v1.24.0, `prettier`, `ruff`, `black`, `stylua`를 패키징하여 `docker run --rm`으로 격리 실행하고, Docker 미가용 시 로컬 폴백을 둡니다.
 - **결과 (Consequences)**: OS와 무관하게 동일한 포매팅 결과를 얻으면서도 호스트 환경 의존성을 최소화합니다.
 
-### ADR-04: 표준 라이브러리 기반 Dev Container 엔진 및 1.5초 타임아웃 캐싱
-- **배경 (Context)**: `devcontainer-init`은 별도 가상환경(virtualenv) 활성화 없이 모든 프로젝트 디렉터리에서 즉시 실행되어야 하며 폐쇄망/저속 네트워크에서도 멈추지 않아야 합니다.
-- **결정 (Decision)**: Python 표준 라이브러리(`urllib.request`, `json`)만으로 구현하고 `TIMEOUT_SECONDS = 1.5`, 로컬 JSON 캐시, 정적 `DEFAULT_FALLBACKS` 3단계 전략을 적용합니다.
-- **결과 (Consequences)**: 온라인 환경에서는 최신 LTS 버전을 반영하고, 오프라인 환경에서도 대기 시간 없이 즉시 컨테이너 구성을 생성합니다.
-
-### ADR-05: 쿼터 제한 환경 격리(`~/goinfre`) 및 Rootless Linuxbrew 지원
+### ADR-04: 쿼터 제한 환경 격리(`~/goinfre`) 및 Rootless Linuxbrew 지원
 - **배경 (Context)**: 공용 클러스터 워크스테이션은 홈 디렉터리 디스크 쿼터가 작고 루트 권한을 허용하지 않습니다.
 - **결정 (Decision)**: `~/goinfre` 존재 시 IDE 확장 디렉터리(`link_ide`)와 Linux의 `~/.linuxbrew`·`~/.cache/Homebrew`(`install_packages`)를 자동 심볼릭 링크 격리하고, `Brewfile`의 macOS GUI 항목을 `if OS.mac?`로 감싸 공존시킵니다.
 - **결과 (Consequences)**: 개인 macOS 장비와 NFS 쿼터 제한 Ubuntu 클러스터에서도 홈 용량 초과 없이 동일한 도구 체인을 유지할 수 있습니다.

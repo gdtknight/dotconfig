@@ -2,7 +2,7 @@
 
 # Dotconfig Repository Agent Guidelines
 
-This repository is the central configuration repository managing macOS and Linux environments (Neovim, LLM coding agents, IDE, shells, terminal tools, Dev Containers, and packages).
+This repository is the central configuration repository managing macOS and Linux environments (Neovim, LLM coding agents, IDE, shells, terminal tools, and packages).
 
 ---
 

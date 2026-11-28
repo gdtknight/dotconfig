@@ -338,6 +338,5 @@ hs_err_pid*
 *.local
 .zshrc.local
 git-accounts.env
-devcontainers/.cache/
 .devcontainer/
 
